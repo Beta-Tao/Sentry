@@ -54,6 +54,12 @@
 extern CAN_HandleTypeDef hcan1;
 
 /* USER CODE BEGIN Private defines */
+#define DLC_LEN	8
+
+#define FIRST_FOUR_ID	0x200
+#define SECOND_FOUR_ID	0x1FF
+#define CHASSIS_L_ID	0x201
+#define CHASSIS_R_ID	0x202
 
 /* USER CODE END Private defines */
 
@@ -62,6 +68,12 @@ extern void _Error_Handler(char *, int);
 void MX_CAN1_Init(void);
 
 /* USER CODE BEGIN Prototypes */
+
+void CANFilter_Init(CAN_HandleTypeDef* hcan);
+uint8_t CAN_SendMsg(CAN_HandleTypeDef* hcan, uint32_t ID, uint8_t* Data);
+void CAN_MotorTxMsgConv(uint8_t* Data, int16_t ID1Msg, int16_t ID2Msg, 
+									   int16_t ID3Msg, int16_t ID4Msg);
+void CAN_MotorRxMsgConv(CAN_HandleTypeDef* hcan);
 
 /* USER CODE END Prototypes */
 

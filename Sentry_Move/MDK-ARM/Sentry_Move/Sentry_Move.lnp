@@ -6,6 +6,8 @@
 "sentry_move\usart.o"
 "sentry_move\stm32f4xx_it.o"
 "sentry_move\stm32f4xx_hal_msp.o"
+"sentry_move\motor.o"
+"sentry_move\pid.o"
 "sentry_move\stm32f4xx_hal_can.o"
 "sentry_move\stm32f4xx_hal_tim.o"
 "sentry_move\stm32f4xx_hal_tim_ex.o"
