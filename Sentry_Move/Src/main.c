@@ -98,7 +98,7 @@ int main(void)
   MX_CAN1_Init();
   MX_UART7_Init();
   /* USER CODE BEGIN 2 */
-
+	CANFilter_Init(&hcan1);
   /* USER CODE END 2 */
 
   /* Infinite loop */

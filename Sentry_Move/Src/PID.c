@@ -102,7 +102,6 @@ void Motor_SetPosition(PID_t *PID, float pos)
 		PID->ref = pos;
 }
 
-
 void PID_Debug(float data1, float data2, float data3, float data4, 
 				float data5, float data6, float data7, float data8, 
 				float data9, float data10)

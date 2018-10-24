@@ -49,9 +49,6 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define fault_Pin GPIO_PIN_11
-#define fault_GPIO_Port GPIOE
-
 /* ########################## Assert Selection ############################## */
 /**
   * @brief Uncomment the line below to expanse the "assert_param" macro in the 

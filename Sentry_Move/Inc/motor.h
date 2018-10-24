@@ -14,8 +14,6 @@ typedef struct
 	int16_t rawRotateSpeed;				//转速
 	int16_t rotateSpeedBuf[BUF_SIZE];	//转速的寄存器
 	
-	uint8_t revData[8];					//从CAN接收的数据
-	uint8_t sentData[2];				//需要从CAN发送的电流值
 }Motor_t;
 
 extern volatile Motor_t chassisL;	//左轮电机

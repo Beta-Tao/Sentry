@@ -17,28 +17,21 @@ Library Manager: ArmAr.exe V5.06 update 6 (build 750)
 Hex Converter:   FromElf.exe V5.06 update 6 (build 750)
 CPU DLL:         SARMCM3.DLL V5.25.2.0
 Dialog DLL:      DCM.DLL V1.17.1.0
-Target DLL:      STLink\ST-LINKIII-KEIL_SWO.dll V3.0.1.0
+Target DLL:      Segger\JL2CM3.dll V2.99.29.0
 Dialog DLL:      TCM.DLL V1.35.1.0
  
 <h2>Project:</h2>
 F:\RM2019\µç¿Ø\Sentry\Sentry_Move\MDK-ARM\Sentry_Move.uvprojx
-Project File Date:  10/20/2018
+Project File Date:  10/24/2018
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 6 (build 750)', folder: 'F:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'Sentry_Move'
-compiling PID.c...
-../Inc/PID.h(35): error:  #20: identifier "Encoder" is undefined
-  void PID_TrigCalc(PID_t *PID, volatile Encoder *M);
-../Inc/PID.h(36): error:  #20: identifier "PID_Regulator_t" is undefined
-  void Trigger_SetSpeed(PID_Regulator_t *pid, float speed);
-../Inc/PID.h(37): error:  #20: identifier "PID_Regulator_t" is undefined
-  void Trigger_SetPosition(PID_Regulator_t *pid, float position);
-../Inc/PID.h(42): warning:  #1-D: last line of file ends without a newline
-  #endif
-..\Src\PID.c: 1 warning, 3 errors
-compiling motor.c...
-"Sentry_Move\Sentry_Move.axf" - 3 Error(s), 1 Warning(s).
+compiling can.c...
+linking...
+Program Size: Code=6000 RO-data=476 RW-data=12 ZI-data=1308  
+FromELF: creating hex file...
+"Sentry_Move\Sentry_Move.axf" - 0 Error(s), 0 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -61,8 +54,7 @@ Package Vendor: Keil
 <h2>Collection of Component Files used:</h2>
 
    * Component: ARM::CMSIS:CORE:5.1.1
-Target not created.
-Build Time Elapsed:  00:00:05
+Build Time Elapsed:  00:00:04
 </pre>
 </body>
 </html>

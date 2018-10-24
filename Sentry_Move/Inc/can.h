@@ -70,8 +70,8 @@ void MX_CAN1_Init(void);
 /* USER CODE BEGIN Prototypes */
 
 void CANFilter_Init(CAN_HandleTypeDef* hcan);
-uint8_t CAN_SendMsg(CAN_HandleTypeDef* hcan, uint32_t ID, uint8_t* Data);
-void CAN_MotorTxMsgConv(uint8_t* Data, int16_t ID1Msg, int16_t ID2Msg, 
+uint8_t CAN_SendMsg(CAN_HandleTypeDef* hcan, uint32_t ID);
+void CAN_MotorTxMsgConv(CAN_HandleTypeDef* hcan, int16_t ID1Msg, int16_t ID2Msg, 
 									   int16_t ID3Msg, int16_t ID4Msg);
 void CAN_MotorRxMsgConv(CAN_HandleTypeDef* hcan);
 

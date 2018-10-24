@@ -43,12 +43,12 @@
 #include "gpio.h"
 
 /* USER CODE BEGIN 0 */
-
 #include "motor.h"
-
+#include "PID.h"
 /* USER CODE END 0 */
 
 CAN_HandleTypeDef hcan1;
+
 
 /* CAN1 init function */
 void MX_CAN1_Init(void)
@@ -65,7 +65,7 @@ void MX_CAN1_Init(void)
   hcan1.Init.AWUM = DISABLE;
   hcan1.Init.NART = ENABLE;
   hcan1.Init.RFLM = DISABLE;
-  hcan1.Init.TXFP = DISABLE;
+  hcan1.Init.TXFP = ENABLE;
   if (HAL_CAN_Init(&hcan1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -86,19 +86,22 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
     __HAL_RCC_CAN1_CLK_ENABLE();
   
     /**CAN1 GPIO Configuration    
-    PB8     ------> CAN1_RX
-    PB9     ------> CAN1_TX 
+    PD0     ------> CAN1_RX
+    PD1     ------> CAN1_TX 
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9;
+    GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF9_CAN1;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-	/* USER CODE BEGIN CAN1_MspInit 1 */
-	HAL_NVIC_SetPriority(CAN1_RX0_IRQn, 2, 2);
-	HAL_NVIC_EnableIRQ(CAN1_RX0_IRQn);
+    /* CAN1 interrupt Init */
+    HAL_NVIC_SetPriority(CAN1_RX0_IRQn, 2, 2);
+    HAL_NVIC_EnableIRQ(CAN1_RX0_IRQn);
+  /* USER CODE BEGIN CAN1_MspInit 1 */
+  
+	__HAL_CAN_ENABLE_IT(canHandle, CAN_IT_FMP0);
   /* USER CODE END CAN1_MspInit 1 */
   }
 }
@@ -115,11 +118,13 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
     __HAL_RCC_CAN1_CLK_DISABLE();
   
     /**CAN1 GPIO Configuration    
-    PB8     ------> CAN1_RX
-    PB9     ------> CAN1_TX 
+    PD0     ------> CAN1_RX
+    PD1     ------> CAN1_TX 
     */
-    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_8|GPIO_PIN_9);
+    HAL_GPIO_DeInit(GPIOD, GPIO_PIN_0|GPIO_PIN_1);
 
+    /* CAN1 interrupt Deinit */
+    HAL_NVIC_DisableIRQ(CAN1_RX0_IRQn);
   /* USER CODE BEGIN CAN1_MspDeInit 1 */
 
   /* USER CODE END CAN1_MspDeInit 1 */
@@ -155,35 +160,8 @@ void CANFilter_Init(CAN_HandleTypeDef* hcan)
 	hcan->pTxMsg = &TxMessage;
 	hcan->pRxMsg = &RxMessage;
 	
-	
 	//CAN1 and CAN2 have same filter
 	HAL_CAN_ConfigFilter(hcan, &Canfilter);
-}
-
-/**
-  *	@brief	send RTR message with Std ID type
-  *	@param	hcan:	CAN_HandleTypeDef结构体指针，给pTxMsg中的参数赋值
-  *	@param	ID:		数据帧的ID值
-  *	@param	Data:	数据段内容
-  *	@retval	1 发送成功
-  *			0 发送失败 
-  */
-uint8_t CAN_SendMsg(CAN_HandleTypeDef* hcan, uint32_t ID, uint8_t* Data)
-{
-	uint32_t i;
-	hcan->pTxMsg->StdId = ID;
-	hcan->pTxMsg->ExtId = ID;
-	hcan->pTxMsg->IDE = CAN_ID_STD;		//标准格式
-	hcan->pTxMsg->RTR = CAN_RTR_DATA;	//数据帧
-	hcan->pTxMsg->DLC = DLC_LEN;
-	
-	for(i = 0; i < DLC_LEN; i++)
-		hcan1.pTxMsg->Data[i] = Data[i];
-	
-	if(HAL_CAN_Transmit(hcan, 10) != HAL_OK)
-		return 0;
-	
-	return 1;
 }
 
 /**
@@ -194,15 +172,39 @@ uint8_t CAN_SendMsg(CAN_HandleTypeDef* hcan, uint32_t ID, uint8_t* Data)
   */
 void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 {
-	if(hcan->pRxMsg->IDE == CAN_ID_STD && hcan->pRxMsg->RTR == CAN_RTR_DATA)
-	{
-		CAN_MotorRxMsgConv(hcan);
-		if (hcan->pRxMsg->StdId == CHASSIS_L_ID)	//判断是否是底盘左电机ID
+		if(hcan->pRxMsg->IDE == CAN_ID_STD && hcan->pRxMsg->RTR == CAN_RTR_DATA)
+		{
+			CAN_MotorRxMsgConv(hcan);
+			if (hcan->pRxMsg->StdId == CHASSIS_L_ID)	//判断是否是底盘左电机ID
+			{
+				CAN_MotorTxMsgConv(hcan, 1000, 0, 0, 0);
+				CAN_SendMsg(hcan, FIRST_FOUR_ID);
+			}
+			//if (hcan->pRxMsg->StdId == CHASSIS_R_ID)	//判断是否是底盘右电机ID
 			
-		if (hcan->pRxMsg->StdId == CHASSIS_R_ID)	//判断是否是底盘右电机ID
-		
-		__HAL_CAN_ENABLE_IT(hcan, CAN_IT_FMP0);
-	}
+			__HAL_CAN_ENABLE_IT(hcan, CAN_IT_FMP0);
+		}
+}
+
+/**
+  *	@brief	从CAN线发送某个ID的信息，固定为RTR格式的数据帧
+  *	@param	hcan:	CAN_HandleTypeDef结构体指针，给pTxMsg中的参数赋值
+  *	@param	ID:		数据帧的ID值
+  *	@retval	1 发送成功
+  *			0 发送失败
+  */
+uint8_t CAN_SendMsg(CAN_HandleTypeDef* hcan, uint32_t ID)
+{
+	hcan->pTxMsg->StdId = ID;
+	hcan->pTxMsg->ExtId = ID;
+	hcan->pTxMsg->IDE = CAN_ID_STD;		//标准格式
+	hcan->pTxMsg->RTR = CAN_RTR_DATA;	//数据帧
+	hcan->pTxMsg->DLC = DLC_LEN;
+	
+	if(HAL_CAN_Transmit(hcan, 10) != HAL_OK)
+		return 0;
+	
+	return 1;
 }
 
 /**
@@ -213,20 +215,20 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 	*	@param	ID4Msg message sent to the ID4 C610
 	*	@retval None
 	*/
-void CAN_MotorTxMsgConv(uint8_t* Data, int16_t ID1Msg, int16_t ID2Msg, 
+void CAN_MotorTxMsgConv(CAN_HandleTypeDef* hcan, int16_t ID1Msg, int16_t ID2Msg, 
 									   int16_t ID3Msg, int16_t ID4Msg)
 {
-	Data[0] = (uint8_t)(ID1Msg >> 8);
-	Data[1] = (uint8_t)ID1Msg;
+	hcan->pTxMsg->Data[0] = (uint8_t)(ID1Msg >> 8);
+	hcan->pTxMsg->Data[1] = (uint8_t)ID1Msg;
 	
-	Data[2] = (uint8_t)(ID2Msg >> 8);
-	Data[3] = (uint8_t)ID2Msg;
+	hcan->pTxMsg->Data[2] = (uint8_t)(ID2Msg >> 8);
+	hcan->pTxMsg->Data[3] = (uint8_t)ID2Msg;
 	
-	Data[4] = (uint8_t)(ID3Msg >> 8);
-	Data[5] = (uint8_t)ID3Msg;
+	hcan->pTxMsg->Data[4] = (uint8_t)(ID3Msg >> 8);
+	hcan->pTxMsg->Data[5] = (uint8_t)ID3Msg;
 	
-	Data[6] = (uint8_t)(ID4Msg >> 8);
-	Data[7] = (uint8_t)ID4Msg;
+	hcan->pTxMsg->Data[6] = (uint8_t)(ID4Msg >> 8);
+	hcan->pTxMsg->Data[7] = (uint8_t)ID4Msg;
 }
 
 /**
@@ -237,24 +239,25 @@ void CAN_MotorTxMsgConv(uint8_t* Data, int16_t ID1Msg, int16_t ID2Msg,
   */
 void CAN_MotorRxMsgConv(CAN_HandleTypeDef* hcan)
 {
-	switch(hcan->pRxMsg->StdId)
-	{
-	case CHASSIS_L_ID:
-		chassisL.rawPos = ((uint16_t)hcan->pRxMsg->Data[0] << 8) | (uint16_t)hcan->pRxMsg->Data[1];
-		chassisL.posBuf[1] = chassisL.posBuf[0];
-		chassisL.posBuf[0] = chassisL.rawPos;
-		chassisL.rawRotateSpeed = ((uint16_t)hcan->pRxMsg->Data[2] << 8) | 
-								   (uint16_t)hcan->pRxMsg->Data[3];
-		break;
-	case CHASSIS_R_ID:
-		chassisR.rawPos = ((uint16_t)hcan->pRxMsg->Data[0] << 8) | (uint16_t)hcan->pRxMsg->Data[1];
-		chassisR.posBuf[1] = chassisR.posBuf[0];
-		chassisR.posBuf[0] = chassisR.rawPos;
-		chassisR.rawRotateSpeed = ((uint16_t)hcan->pRxMsg->Data[2] << 8) | 
-								   (uint16_t)hcan->pRxMsg->Data[3];
-		break;
-	}
+	/* 如果是从CAN1发送来的数据 */
+		switch(hcan->pRxMsg->StdId)
+		{
+		case CHASSIS_L_ID:
+			chassisL.rawPos = (int16_t)(hcan->pRxMsg->Data[0] << 8 | hcan->pRxMsg->Data[1]);
+			chassisL.posBuf[1] = chassisL.posBuf[0];
+			chassisL.posBuf[0] = chassisL.rawPos;
+			chassisL.rawRotateSpeed = (int16_t)(hcan->pRxMsg->Data[2] << 8 | hcan->pRxMsg->Data[3]);
+			break;
+		case CHASSIS_R_ID:
+			chassisR.rawPos = hcan->pRxMsg->Data[0] << 8 | hcan->pRxMsg->Data[1];
+			chassisR.posBuf[1] = chassisR.posBuf[0];
+			chassisR.posBuf[0] = chassisR.rawPos;
+			chassisR.rawRotateSpeed = hcan->pRxMsg->Data[2] << 8 | hcan->pRxMsg->Data[3];
+			break;
+		}
 }
+
+
 
 /* USER CODE END 1 */
 
