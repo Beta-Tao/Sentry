@@ -45,10 +45,11 @@
 /* USER CODE BEGIN 0 */
 #include "motor.h"
 #include "PID.h"
+
+static int8_t revCount = 0;
 /* USER CODE END 0 */
 
 CAN_HandleTypeDef hcan1;
-
 
 /* CAN1 init function */
 void MX_CAN1_Init(void)
@@ -172,18 +173,34 @@ void CANFilter_Init(CAN_HandleTypeDef* hcan)
   */
 void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 {
+	//如果是CAN1
+	if (hcan == &hcan1)
+	{
 		if(hcan->pRxMsg->IDE == CAN_ID_STD && hcan->pRxMsg->RTR == CAN_RTR_DATA)
 		{
 			CAN_MotorRxMsgConv(hcan);
 			if (hcan->pRxMsg->StdId == CHASSIS_L_ID)	//判断是否是底盘左电机ID
 			{
-				CAN_MotorTxMsgConv(hcan, 1000, 0, 0, 0);
+				CAN_MotorTxMsgConv(hcan, 50, 50, 0, 0);
 				CAN_SendMsg(hcan, FIRST_FOUR_ID);
 			}
-			//if (hcan->pRxMsg->StdId == CHASSIS_R_ID)	//判断是否是底盘右电机ID
-			
-			__HAL_CAN_ENABLE_IT(hcan, CAN_IT_FMP0);
+			if (hcan->pRxMsg->StdId == CHASSIS_R_ID)	//判断是否是底盘右电机ID
+			{
+				CAN_MotorTxMsgConv(hcan, 50, 50, 0, 0);
+				CAN_SendMsg(hcan, FIRST_FOUR_ID);
+			}
+			revCount++;
+			if (revCount >= 30)
+			{
+				PID_Debug(chassisL.rawRotateSpeed, chassisL.rawPos, 0,
+						  chassisR.rawRotateSpeed, chassisR.rawPos, 0,
+						  0, 0, 0, 
+						  0);
+				revCount = 0;
+			}
 		}
+		__HAL_CAN_ENABLE_IT(hcan, CAN_IT_FMP0);		//重新打开CAN中断
+	}
 }
 
 /**
@@ -240,6 +257,8 @@ void CAN_MotorTxMsgConv(CAN_HandleTypeDef* hcan, int16_t ID1Msg, int16_t ID2Msg,
 void CAN_MotorRxMsgConv(CAN_HandleTypeDef* hcan)
 {
 	/* 如果是从CAN1发送来的数据 */
+	if (hcan == &hcan1)
+	{
 		switch(hcan->pRxMsg->StdId)
 		{
 		case CHASSIS_L_ID:
@@ -249,12 +268,13 @@ void CAN_MotorRxMsgConv(CAN_HandleTypeDef* hcan)
 			chassisL.rawRotateSpeed = (int16_t)(hcan->pRxMsg->Data[2] << 8 | hcan->pRxMsg->Data[3]);
 			break;
 		case CHASSIS_R_ID:
-			chassisR.rawPos = hcan->pRxMsg->Data[0] << 8 | hcan->pRxMsg->Data[1];
+			chassisR.rawPos = (int16_t)(hcan->pRxMsg->Data[0] << 8 | hcan->pRxMsg->Data[1]);
 			chassisR.posBuf[1] = chassisR.posBuf[0];
 			chassisR.posBuf[0] = chassisR.rawPos;
-			chassisR.rawRotateSpeed = hcan->pRxMsg->Data[2] << 8 | hcan->pRxMsg->Data[3];
+			chassisR.rawRotateSpeed = (int16_t)(hcan->pRxMsg->Data[2] << 8 | hcan->pRxMsg->Data[3]);
 			break;
 		}
+	}
 }
 
 
