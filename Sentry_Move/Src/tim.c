@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * File Name          : gpio.c
+  * File Name          : TIM.c
   * Description        : This file provides code for the configuration
-  *                      of all used GPIO pins.
+  *                      of the TIM instances.
   ******************************************************************************
   ** This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
@@ -38,73 +38,111 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "gpio.h"
+#include "tim.h"
+
 /* USER CODE BEGIN 0 */
 
+#include "motor.h"
 #include "Remote_Ctrl.h"
 #include "macro.h"
-#include "motor.h"
+#include "Remote_Decode.h"
 
 /* USER CODE END 0 */
 
-/*----------------------------------------------------------------------------*/
-/* Configure GPIO                                                             */
-/*----------------------------------------------------------------------------*/
-/* USER CODE BEGIN 1 */
+TIM_HandleTypeDef htim6;
 
-/* USER CODE END 1 */
-
-/** Configure pins as 
-        * Analog 
-        * Input 
-        * Output
-        * EVENT_OUT
-        * EXTI
-*/
-void MX_GPIO_Init(void)
+/* TIM6 init function */
+void MX_TIM6_Init(void)
 {
+  TIM_MasterConfigTypeDef sMasterConfig;
 
-  GPIO_InitTypeDef GPIO_InitStruct;
+  htim6.Instance = TIM6;
+  htim6.Init.Prescaler = 83;
+  htim6.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim6.Init.Period = 1999;
+  if (HAL_TIM_Base_Init(&htim6) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
 
-  /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOB_CLK_ENABLE();
-  __HAL_RCC_GPIOD_CLK_ENABLE();
-  __HAL_RCC_GPIOH_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOE_CLK_ENABLE();
-
-  /*Configure GPIO pin : PA0 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 2);
-  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim6, &sMasterConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
 
 }
 
-/* USER CODE BEGIN 2 */
-
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
 {
-	if (GPIO_Pin == GPIO_PIN_0)
+
+  if(tim_baseHandle->Instance==TIM6)
+  {
+  /* USER CODE BEGIN TIM6_MspInit 0 */
+
+  /* USER CODE END TIM6_MspInit 0 */
+    /* TIM6 clock enable */
+    __HAL_RCC_TIM6_CLK_ENABLE();
+
+    /* TIM6 interrupt Init */
+    HAL_NVIC_SetPriority(TIM6_DAC_IRQn, 1, 2);
+    HAL_NVIC_EnableIRQ(TIM6_DAC_IRQn);
+  /* USER CODE BEGIN TIM6_MspInit 1 */
+
+  /* USER CODE END TIM6_MspInit 1 */
+  }
+}
+
+void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
+{
+
+  if(tim_baseHandle->Instance==TIM6)
+  {
+  /* USER CODE BEGIN TIM6_MspDeInit 0 */
+
+  /* USER CODE END TIM6_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_TIM6_CLK_DISABLE();
+
+    /* TIM6 interrupt Deinit */
+    HAL_NVIC_DisableIRQ(TIM6_DAC_IRQn);
+  /* USER CODE BEGIN TIM6_MspDeInit 1 */
+
+  /* USER CODE END TIM6_MspDeInit 1 */
+  }
+} 
+
+/* USER CODE BEGIN 1 */
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+	if (htim == &htim6)		//如果是定时器六，则为底盘控制定时器
 	{
-		if (autoMode == SENTRY_DETECT || 
-			autoMode == SENTRY_DODGE)		//如果是巡逻模式或者躲避模式则巡逻速度反向
+		if (RemoteCtrlData.remote.ch2 < RC_CH_VALUE_MIN || 
+			RemoteCtrlData.remote.ch2 > RC_CH_VALUE_MAX)	//遥控器没有打开的时候，底盘不动
 		{
-			chassisSpeedDetect = -chassisSpeedDetect;
-			return;
+			chassisSpeedRef = 0;
+			Remote_InitFlag();
 		}
-		if (autoMode == SENTRY_REMOTE)		//遥控模式则不做处理
+		else
 		{
-			return;
+			switch (autoMode)
+			{
+				case SENTRY_REMOTE:		//遥控模式则底盘速度和遥控器通道数值线性相关
+					chassisSpeedRef = RemoteCtrlData.remote.ch2 - RC_CH_VALUE_OFFSET;
+					Motor_UpdateCMRef();
+					break;
+				case SENTRY_DETECT:		//巡逻模式则底盘速度为当前的巡逻速度值
+					chassisSpeedRef = chassisSpeedDetect;
+					Motor_UpdateCMRef();
+					break;
+			}
 		}
 	}
 }
 
-/* USER CODE END 2 */
+/* USER CODE END 1 */
 
 /**
   * @}

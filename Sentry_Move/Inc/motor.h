@@ -22,8 +22,9 @@ extern volatile Motor_t chassisL;	//左轮电机
 extern volatile Motor_t chassisR;	//右轮电机
 
 extern int16_t chassisSpeedRef;
+extern int16_t chassisSpeedDetect;
 
-void Motor_SetRotateSpeed(Motor_t *motor, int16_t speed);
+void Motor_SetRotateSpeed(volatile Motor_t *motor, int16_t speed);
 void Motor_SetPos(Motor_t *motor, int16_t pos);
 void Motor_UpdateCMRef(void);
 

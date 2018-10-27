@@ -45,6 +45,8 @@
 /* USER CODE BEGIN 0 */
 #include "motor.h"
 #include "PID.h"
+#include "Remote_Ctrl.h"
+#include "macro.h"
 
 static int8_t revCount = 0;
 /* USER CODE END 0 */
@@ -71,6 +73,7 @@ void MX_CAN1_Init(void)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
+
 }
 
 void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)

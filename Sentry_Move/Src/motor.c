@@ -6,6 +6,7 @@ volatile Motor_t chassisL;	//左轮电机
 volatile Motor_t chassisR;	//右轮电机
 
 int16_t chassisSpeedRef;
+int16_t chassisSpeedDetect = 150;
 
 /**
   * @brief	给电机赋期望速度值
@@ -14,7 +15,7 @@ int16_t chassisSpeedRef;
   * @retval	None
   * @note	注意电机速度方向和实际需要的方向是否相同
   */
-void Motor_SetRotateSpeed(Motor_t *motor, int16_t speed)
+void Motor_SetRotateSpeed(volatile Motor_t *motor, int16_t speed)
 {
 	motor->refRotateSpeed = speed;
 }
@@ -37,6 +38,8 @@ void Motor_SetPos(Motor_t *motor, int16_t pos)
   */
 void Motor_UpdateCMRef(void)
 {
-	chassisL.refRotateSpeed = (float)(chassisSpeedRef / RC_CH_VALUE_RANGE * CM_ROTATE_SPEED_MAX);
-	chassisR.refRotateSpeed = (float)(chassisSpeedRef / RC_CH_VALUE_RANGE * CM_ROTATE_SPEED_MAX);
+	Motor_SetRotateSpeed(&chassisL, 
+						 (float)(chassisSpeedRef / RC_CH_VALUE_RANGE * CM_ROTATE_SPEED_MAX));
+	Motor_SetRotateSpeed(&chassisR, 
+						 (float)(chassisSpeedRef / RC_CH_VALUE_RANGE * CM_ROTATE_SPEED_MAX));
 }

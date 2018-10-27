@@ -37,11 +37,15 @@
 #define CM_CURRENT_MAX				15000
 #define CM_CURRENT_MIN				-15000
 #define CM_ROTATE_SPEED_MAX			6000
-#define CM_ROTATE_SPEED_MIN			-6000	
+#define CM_ROTATE_SPEED_MIN			-6000
 
-/************************控制flag*********************/
-#define SENTRY_AUTO							1u
-#define SENTRY_NOAUTO						0u
+/************************各模式常量*********************/
+
+
+/************************模式flag*********************/
+#define SENTRY_REMOTE						0u
+#define SENTRY_DETECT						1u
+#define SENTRY_DODGE						2u
 
 #define SENTRY_CEASE_FIRE					0u
 #define SENTRY_AIM							1u

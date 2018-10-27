@@ -4,6 +4,7 @@
 "sentry_move\gpio.o"
 "sentry_move\can.o"
 "sentry_move\dma.o"
+"sentry_move\tim.o"
 "sentry_move\usart.o"
 "sentry_move\stm32f4xx_it.o"
 "sentry_move\stm32f4xx_hal_msp.o"

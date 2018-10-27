@@ -28,9 +28,13 @@ sentry_move\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ex.h
 sentry_move\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ramfunc.h
 sentry_move\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h
 sentry_move\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h
+sentry_move\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h
+sentry_move\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h
 sentry_move\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
 sentry_move\main.o: ../Inc/can.h
 sentry_move\main.o: ../Inc/dma.h
+sentry_move\main.o: ../Inc/tim.h
 sentry_move\main.o: ../Inc/usart.h
 sentry_move\main.o: ../Inc/gpio.h
 sentry_move\main.o: ../Inc/Transmit_Receive.h
+sentry_move\main.o: ../Inc/Remote_Ctrl.h

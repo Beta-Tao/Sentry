@@ -7,6 +7,6 @@ extern uint8_t autoMode;
 extern uint8_t shootMode;
 
 void Remote_Process(void);
-void Ctrl_Init(void);
+void Remote_InitFlag(void);
 
 #endif
