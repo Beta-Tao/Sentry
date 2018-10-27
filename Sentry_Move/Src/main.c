@@ -45,7 +45,7 @@
 #include "gpio.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "Transmit_Receive.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -101,6 +101,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_UART7_Init();
   /* USER CODE BEGIN 2 */
+	RemoteCtl_Data_Receive_Start();
 	CANFilter_Init(&hcan1);
   /* USER CODE END 2 */
 

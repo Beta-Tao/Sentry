@@ -1,7 +1,7 @@
 /**********本文件包含各种宏定义*****/
 
-#ifndef _MACRO_H
-#define _MACRO_H
+#ifndef _MACRO_H_
+#define _MACRO_H_
 
 /*********************通信波特率*********************/
 #define DEBUS_BDR						100000u
@@ -15,19 +15,37 @@
 /**********************遥控器输入********************/
 #define REMOTE_INPUT					1u
 #define KEY_MOUSE_INPUT					3u
-#define REMOTE_STICK_OFFSET				1024u
 #define REMOTE_CHASIS_SPEED_TO_REF		1.197f          //1219*0.5/660f
 #define REMOTE_PITCH_ANGLE_TO_REF		0.004f
 #define REMOTE_YAW_ANGLE_TO_REF			0.004f
 #define ROTATE_TO_REF					0.8f
 
-/***********************键盘鼠标输入*****************/
-#define MOUSE_PITCH_ANGLE_TO_FACT		0.075f
-#define MOUSE_YAW_ANGLE_TO_FACT			0.075f
+#define RC_CH_VALUE_MIN					((uint16_t)364)
+#define RC_CH_VALUE_OFFSET				((uint16_t)1024)
+#define RC_CH_VALUE_MAX					((uint16_t)1684)
+#define RC_CH_VALUE_RANGE				660.0f
+
+#define RC_SW_UP						((uint16_t)1)
+#define RC_SW_MID						((uint16_t)3)
+#define RC_SW_DOWN						((uint16_t)2)
+
+#define RC_FRAME_LENGTH					18u
+
+/************************电调最值*********************/
+#define CM_POSITION_MAX				8191u
+#define CM_POSITION_MIN				0
+#define CM_CURRENT_MAX				15000
+#define CM_CURRENT_MIN				-15000
+#define CM_ROTATE_SPEED_MAX			6000
+#define CM_ROTATE_SPEED_MIN			-6000	
 
 /************************控制flag*********************/
-#define AUTO							1u
-#define NOAUTO							0u
+#define SENTRY_AUTO							1u
+#define SENTRY_NOAUTO						0u
+
+#define SENTRY_CEASE_FIRE					0u
+#define SENTRY_AIM							1u
+#define SENTRY_OPEN_FIRE					2u
 
 /**********************云台角度最大值*****************/
 #define YAW_FORWARDANGLE				180    //该值需要根据具体角度确定
@@ -51,6 +69,5 @@
 //点亮多盏灯请进行异或操作
 /***********************云台电机******************/
 #define RATE_BUF_SIZE					6
-
 
 #endif

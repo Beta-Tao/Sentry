@@ -71,7 +71,6 @@ void MX_CAN1_Init(void)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
-
 }
 
 void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
@@ -181,14 +180,19 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 			CAN_MotorRxMsgConv(hcan);
 			if (hcan->pRxMsg->StdId == CHASSIS_L_ID)	//判断是否是底盘左电机ID
 			{
-				CAN_MotorTxMsgConv(hcan, 50, 50, 0, 0);
+				/* 计算PID，并通过CAN线给电机赋值 */
+				PID_Calc(&CMSpeedPID_L, chassisL.rawRotateSpeed, chassisL.refRotateSpeed);
+				CAN_MotorTxMsgConv(hcan, CMSpeedPID_L.output, CMSpeedPID_R.output, 0, 0);
 				CAN_SendMsg(hcan, FIRST_FOUR_ID);
 			}
 			if (hcan->pRxMsg->StdId == CHASSIS_R_ID)	//判断是否是底盘右电机ID
 			{
-				CAN_MotorTxMsgConv(hcan, 50, 50, 0, 0);
+				PID_Calc(&CMSpeedPID_R, chassisR.rawRotateSpeed, chassisR.refRotateSpeed);
+				CAN_MotorTxMsgConv(hcan, CMSpeedPID_L.output, CMSpeedPID_R.output, 0, 0);
 				CAN_SendMsg(hcan, FIRST_FOUR_ID);
 			}
+			
+			/* 通过串口发送调试数据 */
 			revCount++;
 			if (revCount >= 30)
 			{
@@ -262,6 +266,7 @@ void CAN_MotorRxMsgConv(CAN_HandleTypeDef* hcan)
 		switch(hcan->pRxMsg->StdId)
 		{
 		case CHASSIS_L_ID:
+			/* 获取电机数据 */
 			chassisL.rawPos = (int16_t)(hcan->pRxMsg->Data[0] << 8 | hcan->pRxMsg->Data[1]);
 			chassisL.posBuf[1] = chassisL.posBuf[0];
 			chassisL.posBuf[0] = chassisL.rawPos;

@@ -51,7 +51,6 @@ void RC_DataHandle(uint8_t *pData)
 	/* pData[14],pData[15]为键盘值 */
 	RemoteCtrlData.key.v 		 = (int16_t)(pData[14] | pData[15] << 8);
 	
-	/* 判断输入类型并进行转换为控制量 */
-	Remode_Input_Judge();
+	/* 利用传进来的数据进行控制 */
+	Remote_Process();
 }
-

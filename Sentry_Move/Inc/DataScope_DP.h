@@ -111,8 +111,8 @@
 ******************************************************************************************************/
 //头文件内容：
 
-#ifndef __DATA_PRTOCOL_H
-#define __DATA_PRTOCOL_H
+#ifndef _DATA_PRTOCOL_H_
+#define _DATA_PRTOCOL_H_
  
 extern unsigned char DataScope_OutPut_Buffer[42];	   //待发送帧数据缓存区
 

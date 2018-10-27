@@ -1,7 +1,8 @@
 sentry_move\pid.o: ..\Src\PID.c
 sentry_move\pid.o: ../Inc/PID.h
 sentry_move\pid.o: ../Inc/main.h
-sentry_move\pid.o: ../Inc/motor.h
+sentry_move\pid.o: ../Inc/DataScope_DP.h
+sentry_move\pid.o: ../Inc/usart.h
 sentry_move\pid.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h
 sentry_move\pid.o: ../Inc/stm32f4xx_hal_conf.h
 sentry_move\pid.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h
@@ -31,5 +32,4 @@ sentry_move\pid.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ramfu
 sentry_move\pid.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h
 sentry_move\pid.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h
 sentry_move\pid.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
-sentry_move\pid.o: ../Inc/DataScope_DP.h
-sentry_move\pid.o: ../Inc/usart.h
+sentry_move\pid.o: ../Inc/macro.h

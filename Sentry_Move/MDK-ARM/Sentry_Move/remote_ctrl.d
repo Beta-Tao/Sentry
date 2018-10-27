@@ -32,3 +32,5 @@ sentry_move\remote_ctrl.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr
 sentry_move\remote_ctrl.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
 sentry_move\remote_ctrl.o: ../Inc/Remote_Decode.h
 sentry_move\remote_ctrl.o: ../Inc/macro.h
+sentry_move\remote_ctrl.o: ../Inc/motor.h
+sentry_move\remote_ctrl.o: ../Inc/PID.h

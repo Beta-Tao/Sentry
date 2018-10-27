@@ -1,42 +1,35 @@
 #include "PID.h"
 #include "DataScope_DP.h"
 #include "usart.h"
+#include "macro.h"
 
-PID_t CWPosPID_R = //左轮电机位置PID	chassis wheel
-	{	0, 0,		//ref, fdb
-		0, 0, 0,	//kp, ki, kd
+PID_t CMPosPID_L = //左轮电机位置PID	chassis wheel
+	{	0, 0, 0,	//kp, ki, kd
 		0, 0,		//diff, integ
 		0, 0,	//err[0]->error_now	error[1]->error_last
 		0,		//output
-		16384, -16384,	//outputMax, outputMin
-		POSITION //PIDType
+		CM_ROTATE_SPEED_MAX, CM_ROTATE_SPEED_MIN,	//outputMax, outputMin
 	};
-PID_t CWSpeedPID_R = //左轮电机速度PID
-	{	0, 0,		//ref, fdb
-		0, 0, 0,	//kp, ki, kd
+PID_t CMSpeedPID_L = //左轮电机速度PID
+	{	20, 1.0, 1.5,	//kp, ki, kd
 		0, 0,		//diff, integ
 		0, 0,	//err[0]->error_now	error[1]->error_last
 		0,		//output
-		4000, -4000,	//outputMax, outputMin
-		POSITION //PIDType
+		CM_CURRENT_MAX, CM_CURRENT_MIN,	//outputMax, outputMin
 	};
-PID_t CWPosPID_L = //右轮电机位置PID
-	{	0, 0,		//ref, fdb
-		0, 0, 0,	//kp, ki, kd
+PID_t CMPosPID_R = //右轮电机位置PID
+	{	0, 0, 0,	//kp, ki, kd
 		0, 0,		//diff, integ
 		0, 0,	//err[0]->error_now	error[1]->error_last
 		0,		//output
-		16384, -16384,	//outputMax, outputMin
-		POSITION //PIDType
+		CM_ROTATE_SPEED_MAX, CM_ROTATE_SPEED_MIN,	//outputMax, outputMin
 	};
-PID_t CWSpeedPID_L = //右轮电机速度PID
-	{	0, 0,		//ref, fdb
-		0, 0, 0,	//kp, ki, kd
+PID_t CMSpeedPID_R = //右轮电机速度PID
+	{	20, 1.0, 1.5,	//kp, ki, kd
 		0, 0,		//diff, integ
 		0, 0,	//err[0]->error_now	error[1]->error_last
 		0,		//output
-		4000, -4000,	//outputMax, outputMin
-		POSITION //PIDType
+		CM_CURRENT_MAX, CM_CURRENT_MIN	//outputMax, outputMin
 	};
 
 /**
@@ -45,17 +38,11 @@ PID_t CWSpeedPID_L = //右轮电机速度PID
   *	@param	motor:	Motor_t结构体的指针
   *	@retval	None
   */
-void PID_Calc(PID_t *PID, volatile Motor_t *motor)
-{
-	/* 判断是什么类型的PID，以获取不同的参考值*/
-	if (PID->PIDType == POSITION)
-		PID->fdb = motor->rawPos;
-	else if (PID->PIDType == SPEED)
-		PID->fdb = motor->rawRotateSpeed;
-	
+void PID_Calc(PID_t *PID, float fdb, float ref)
+{	
 	/* 计算误差值，err[0]保存当前的误差，err[1]保存上一次的误差 */
 	PID->err[1] = PID->err[0];
-	PID->err[0] = PID->ref - PID->fdb;
+	PID->err[0] = ref - fdb;
 	
 	/* 计算积分值，注意末尾积分限幅 */
 	PID->integ += PID->err[0];
@@ -75,31 +62,6 @@ void PID_Calc(PID_t *PID, volatile Motor_t *motor)
 		PID->output = PID->outputMax;
 	if(PID->output <= PID->outputMin)
 		PID->output = PID->outputMin;
-}
-
-/**
-  * @brief	给电机速度赋值
-  * @param	PID:	PID_t结构体的指针
-  * @param	speed:	预设的速度值
-  * @retval	None
-  * @note	注意电机速度方向和实际需要的方向是否相同
-  */
-void Motor_SetSpeed(PID_t *PID, float speed)
-{
-	if (PID->PIDType == SPEED)
-		PID->ref = speed;
-}
-
-/**
-  * @brief	给电机位置赋值
-  * @param	PID:	PID_t结构体的指针
-  * @param	pos:	预设的位置值
-  * @retval	None
-  */
-void Motor_SetPosition(PID_t *PID, float pos)
-{
-	if (PID->PIDType == POSITION)
-		PID->ref = pos;
 }
 
 void PID_Debug(float data1, float data2, float data3, float data4, 

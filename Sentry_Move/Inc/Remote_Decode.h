@@ -11,7 +11,7 @@ typedef struct
 		uint16_t ch3;//通道3
 		uint8_t  s1;//开关1
 		uint8_t  s2;//开关2
-	}remote;
+	} remote;
 	
 	struct
 	{
@@ -20,19 +20,16 @@ typedef struct
 		int16_t  z;//鼠标z
 		uint8_t  press_l;//鼠标左键
 		uint8_t  press_r;//鼠标右键
-	}mouse;
+	} mouse;
 	
 	struct
 	{
 		uint16_t v;//键盘
-	}key;
+	} key;
+	
 }RemoteCtrl_t;
-
-
 
 extern RemoteCtrl_t RemoteCtrlData;
 void RC_DataHandle(uint8_t *pData);
-
-
 
 #endif
