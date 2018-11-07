@@ -181,26 +181,29 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 		if(hcan->pRxMsg->IDE == CAN_ID_STD && hcan->pRxMsg->RTR == CAN_RTR_DATA)
 		{
 			CAN_MotorRxMsgConv(hcan);
-			if (hcan->pRxMsg->StdId == CHASSIS_L_ID)	//判断是否是底盘左电机ID
+			switch (hcan->pRxMsg->StdId)
 			{
-				/* 计算PID，并通过CAN线给电机赋值 */
-				PID_Calc(&CMSpeedPID_L, chassisL.rawRotateSpeed, chassisL.refRotateSpeed);
-				CAN_MotorTxMsgConv(hcan, CMSpeedPID_L.output, CMSpeedPID_R.output, 0, 0);
-				CAN_SendMsg(hcan, FIRST_FOUR_ID);
+				case CHASSIS_L_ID:
+					/* 计算PID，并通过CAN线给电机赋值 */
+					PID_Calc(&CMSpeedPID_L, chassisL.rawSpeed, chassisL.refSpeed);
+					CAN_MotorTxMsgConv(hcan, CMSpeedPID_L.output, CMSpeedPID_R.output, 0, 0);
+					CAN_SendMsg(hcan, FIRST_FOUR_ID);
+					break;
+				case CHASSIS_R_ID:
+					PID_Calc(&CMSpeedPID_R, chassisR.rawSpeed, chassisR.refSpeed);
+					CAN_MotorTxMsgConv(hcan, CMSpeedPID_L.output, CMSpeedPID_R.output, 0, 0);
+					CAN_SendMsg(hcan, FIRST_FOUR_ID);
+					break;
+				default:
+					break;
 			}
-			if (hcan->pRxMsg->StdId == CHASSIS_R_ID)	//判断是否是底盘右电机ID
-			{
-				PID_Calc(&CMSpeedPID_R, chassisR.rawRotateSpeed, chassisR.refRotateSpeed);
-				CAN_MotorTxMsgConv(hcan, CMSpeedPID_L.output, CMSpeedPID_R.output, 0, 0);
-				CAN_SendMsg(hcan, FIRST_FOUR_ID);
-			}
-			
+
 			/* 通过串口发送调试数据 */
 			revCount++;
 			if (revCount >= 30)
 			{
-				PID_Debug(chassisL.rawRotateSpeed, chassisL.rawPos, 0,
-						  chassisR.rawRotateSpeed, chassisR.rawPos, 0,
+				PID_Debug(chassisL.rawSpeed, chassisL.rawPos, 0,
+						  chassisR.rawSpeed, chassisR.rawPos, 0,
 						  0, 0, 0, 
 						  0);
 				revCount = 0;
@@ -273,13 +276,13 @@ void CAN_MotorRxMsgConv(CAN_HandleTypeDef* hcan)
 			chassisL.rawPos = (int16_t)(hcan->pRxMsg->Data[0] << 8 | hcan->pRxMsg->Data[1]);
 			chassisL.posBuf[1] = chassisL.posBuf[0];
 			chassisL.posBuf[0] = chassisL.rawPos;
-			chassisL.rawRotateSpeed = (int16_t)(hcan->pRxMsg->Data[2] << 8 | hcan->pRxMsg->Data[3]);
+			chassisL.rawSpeed = (int16_t)(hcan->pRxMsg->Data[2] << 8 | hcan->pRxMsg->Data[3]);
 			break;
 		case CHASSIS_R_ID:
 			chassisR.rawPos = (int16_t)(hcan->pRxMsg->Data[0] << 8 | hcan->pRxMsg->Data[1]);
 			chassisR.posBuf[1] = chassisR.posBuf[0];
 			chassisR.posBuf[0] = chassisR.rawPos;
-			chassisR.rawRotateSpeed = (int16_t)(hcan->pRxMsg->Data[2] << 8 | hcan->pRxMsg->Data[3]);
+			chassisR.rawSpeed = (int16_t)(hcan->pRxMsg->Data[2] << 8 | hcan->pRxMsg->Data[3]);
 			break;
 		}
 	}

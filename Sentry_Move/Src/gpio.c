@@ -94,7 +94,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 		if (autoMode == SENTRY_DETECT || 
 			autoMode == SENTRY_DODGE)		//如果是巡逻模式或者躲避模式则巡逻速度反向
 		{
-			chassisSpeedDetect = -chassisSpeedDetect;
+			chassisDir = -chassisDir;
 			return;
 		}
 		if (autoMode == SENTRY_REMOTE)		//遥控模式则不做处理

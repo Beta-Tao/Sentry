@@ -43,9 +43,7 @@
 /* USER CODE BEGIN 0 */
 
 #include "motor.h"
-#include "Remote_Ctrl.h"
 #include "macro.h"
-#include "Remote_Decode.h"
 
 /* USER CODE END 0 */
 
@@ -119,26 +117,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if (htim == &htim6)		//如果是定时器六，则为底盘控制定时器
 	{
-		if (RemoteCtrlData.remote.ch2 < RC_CH_VALUE_MIN || 
-			RemoteCtrlData.remote.ch2 > RC_CH_VALUE_MAX)	//遥控器没有打开的时候，底盘不动
-		{
-			chassisSpeedRef = 0;
-			Remote_InitFlag();
-		}
-		else
-		{
-			switch (autoMode)
-			{
-				case SENTRY_REMOTE:		//遥控模式则底盘速度和遥控器通道数值线性相关
-					chassisSpeedRef = RemoteCtrlData.remote.ch2 - RC_CH_VALUE_OFFSET;
-					Motor_UpdateCMRef();
-					break;
-				case SENTRY_DETECT:		//巡逻模式则底盘速度为当前的巡逻速度值
-					chassisSpeedRef = chassisSpeedDetect;
-					Motor_UpdateCMRef();
-					break;
-			}
-		}
+		Motor_CtrChassis();
 	}
 }
 

@@ -46,8 +46,9 @@
 #include "gpio.h"
 
 /* USER CODE BEGIN Includes */
-#include "Transmit_Receive.h"
+
 #include "Remote_Ctrl.h"
+
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -100,9 +101,9 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_CAN1_Init();
-  MX_USART1_UART_Init();
-  MX_UART7_Init();
-  MX_TIM6_Init();
+  MX_USART1_UART_Init();		//Ò£¿ØÆ÷½ÓÊÕ
+	MX_UART7_Init();			//À¶ÑÀµ÷ÊÔ
+  MX_TIM6_Init();				//µ×ÅÌ¿ØÖÆ
   /* USER CODE BEGIN 2 */
 	Remote_InitFlag();
 	RemoteCtl_Data_Receive_Start();

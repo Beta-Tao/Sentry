@@ -556,11 +556,6 @@
               <FileType>1</FileType>
               <FilePath>..\Src\DataScope_DP.C</FilePath>
             </File>
-            <File>
-              <FileName>Transmit_Receive.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\Transmit_Receive.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>

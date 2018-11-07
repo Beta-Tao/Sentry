@@ -36,5 +36,4 @@ sentry_move\main.o: ../Inc/dma.h
 sentry_move\main.o: ../Inc/tim.h
 sentry_move\main.o: ../Inc/usart.h
 sentry_move\main.o: ../Inc/gpio.h
-sentry_move\main.o: ../Inc/Transmit_Receive.h
 sentry_move\main.o: ../Inc/Remote_Ctrl.h

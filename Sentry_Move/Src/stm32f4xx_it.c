@@ -37,7 +37,6 @@
 
 /* USER CODE BEGIN 0 */
 
-#include "Transmit_Receive.h"
 #include "motor.h"
 #include "Remote_Ctrl.h"
 #include "macro.h"

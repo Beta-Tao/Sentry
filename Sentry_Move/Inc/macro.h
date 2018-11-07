@@ -40,7 +40,7 @@
 #define CM_ROTATE_SPEED_MIN			-6000
 
 /************************各模式常量*********************/
-
+#define SENTRY_DETECT_SPEED				4000
 
 /************************模式flag*********************/
 #define SENTRY_REMOTE						0u

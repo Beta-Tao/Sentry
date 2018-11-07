@@ -1,5 +1,5 @@
 sentry_move\remote_ctrl.o: ..\Src\Remote_Ctrl.c
-sentry_move\remote_ctrl.o: ../Inc/Remote_Ctrl.h
+sentry_move\remote_ctrl.o: ../Inc/usart.h
 sentry_move\remote_ctrl.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h
 sentry_move\remote_ctrl.o: ../Inc/stm32f4xx_hal_conf.h
 sentry_move\remote_ctrl.o: ../Inc/main.h
@@ -32,6 +32,8 @@ sentry_move\remote_ctrl.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr
 sentry_move\remote_ctrl.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h
 sentry_move\remote_ctrl.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h
 sentry_move\remote_ctrl.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
+sentry_move\remote_ctrl.o: ../Inc/can.h
+sentry_move\remote_ctrl.o: ../Inc/Remote_Ctrl.h
 sentry_move\remote_ctrl.o: ../Inc/Remote_Decode.h
 sentry_move\remote_ctrl.o: ../Inc/macro.h
 sentry_move\remote_ctrl.o: ../Inc/motor.h

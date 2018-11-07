@@ -30,7 +30,6 @@
 "sentry_move\remote_ctrl.o"
 "sentry_move\remote_decode.o"
 "sentry_move\datascope_dp_1.o"
-"sentry_move\transmit_receive.o"
 --library_type=microlib --strict --scatter "Sentry_Move\Sentry_Move.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
