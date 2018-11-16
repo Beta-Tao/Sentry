@@ -1,51 +1,47 @@
 /**
-  ******************************************************************************
   * @file       Remote_Ctrl.c
-  * @brief      遥控器控制命令转换       
-  ****************************************************************************
+  * @brief      遥控器控制命令转换
   */
-
 #include "usart.h"
 #include "can.h"
 #include "Remote_Ctrl.h"
 #include "Remote_Decode.h"
-#include "macro.h"
-#include "motor.h"
+#include "Motor_Ctrl.h"
 
 uint8_t USART1_DMA_RX_BUF[BSP_USART1_DMA_RX_BUF_LEN];  //定义一个数组用于存放从DMA接收到的遥控器数据
 
-uint8_t autoMode;	//自动模式标志位
-uint8_t shootMode;	//发射及供弹模式标志位
- 
+uint8_t g_AutoMode;		//自动模式标志位
+uint8_t g_ShootMode;	//发射及供弹模式标志位
+
 /**
   * @brief	对应的遥控器解码函数
   * @param	None
   * @retval	None
-  */	
+  */
 void Remote_Process(void)
 {
 	switch (RemoteCtrlData.remote.s1)
 	{
 		case RC_SW_UP:		//当s1在上时，为巡逻模式
-			autoMode = SENTRY_DETECT;
+			g_AutoMode = SENTRY_DETECT;
 			break;
 		case RC_SW_MID:		//当s1在中时，为遥控模式
-			autoMode = SENTRY_REMOTE;
+			g_AutoMode = SENTRY_REMOTE;
 			break;
 		case RC_SW_DOWN:	//当s1在下时，为躲避模式
-			autoMode = SENTRY_DODGE;
+			g_AutoMode = SENTRY_DODGE;
 			break;
 	}
 	switch (RemoteCtrlData.remote.s2)
 	{
 		case RC_SW_UP:							//当s2在上时，为停火模式
-			shootMode = SENTRY_CEASE_FIRE;
+			g_ShootMode = SENTRY_CEASE_FIRE;
 			break;
 		case RC_SW_MID:							//当s2在中时，为瞄准模式
-			shootMode = SENTRY_CEASE_FIRE;
+			g_ShootMode = SENTRY_CEASE_FIRE;
 			break;
 		case RC_SW_DOWN:						//当s2在下时，为开火模式
-			shootMode = SENTRY_CEASE_FIRE;
+			g_ShootMode = SENTRY_CEASE_FIRE;
 			break;
 	}
 }
@@ -58,16 +54,16 @@ void Remote_Process(void)
   */
 void Remote_InitFlag(void)
 {
-	autoMode = SENTRY_REMOTE;			//初始化为遥控模式
-	shootMode = SENTRY_CEASE_FIRE;		//初始化为停火模式
+	g_AutoMode = SENTRY_REMOTE;			//初始化为遥控模式
+	g_ShootMode = SENTRY_CEASE_FIRE;		//初始化为停火模式
 }
 
-/***
-	*函数名称：RemotreCtl_Data_Receive
-	*函数功能：接收遥控器数据，位于USART1的中断函数中
-	*入口参数：无
-	*返回值  ：无
-***/
+/**
+  *函数名称：RemotreCtl_Data_Receive
+  *函数功能：接收遥控器数据，位于USART1的中断函数中
+  *入口参数：无
+  *返回值  ：无
+  */
 void RemoteCtl_Data_Receive(void)
 {
 	uint32_t rx_data_len = 0;															//本次接收长度
@@ -87,12 +83,12 @@ void RemoteCtl_Data_Receive(void)
 	}
 }
 
-/***
-	*函数名称：RemotreCtl_Data_Receive
-	*函数功能：接收遥控器数据，位于USART1的中断函数中
-	*入口参数：无
-	*返回值  ：无
-***/
+/**
+  *函数名称：RemotreCtl_Data_Receive
+  *函数功能：接收遥控器数据，位于USART1的中断函数中
+  *入口参数：无
+  *返回值  ：无
+  */
 void RemoteCtl_Data_Receive_Start(void)
 {
 	__HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);                                   //开启不定长中断

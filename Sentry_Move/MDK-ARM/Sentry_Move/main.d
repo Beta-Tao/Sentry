@@ -32,8 +32,10 @@ sentry_move\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h
 sentry_move\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h
 sentry_move\main.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
 sentry_move\main.o: ../Inc/can.h
+sentry_move\main.o: ../Inc/Motor_Ctrl.h
 sentry_move\main.o: ../Inc/dma.h
 sentry_move\main.o: ../Inc/tim.h
 sentry_move\main.o: ../Inc/usart.h
 sentry_move\main.o: ../Inc/gpio.h
 sentry_move\main.o: ../Inc/Remote_Ctrl.h
+sentry_move\main.o: ../Inc/Chassis_Ctrl.h

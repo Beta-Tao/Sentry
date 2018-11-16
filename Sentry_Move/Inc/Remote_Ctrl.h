@@ -5,8 +5,8 @@
 
 #define BSP_USART1_DMA_RX_BUF_LEN 30u                            //遥控器数据接收DMA存储长度
 
-extern uint8_t autoMode;
-extern uint8_t shootMode;
+extern uint8_t g_AutoMode;
+extern uint8_t g_ShootMode;
 
 extern uint8_t USART1_DMA_RX_BUF[BSP_USART1_DMA_RX_BUF_LEN];
 void RemoteCtl_Data_Receive_Start(void);

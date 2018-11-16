@@ -51,6 +51,6 @@ void RC_DataHandle(uint8_t *pData)
 	/* pData[14],pData[15]为键盘值 */
 	RemoteCtrlData.key.v 		 = (int16_t)(pData[14] | pData[15] << 8);
 	
-	/* 利用传进来的数据进行控制 */
+	/* 拨动开关进行解码 */
 	Remote_Process();
 }

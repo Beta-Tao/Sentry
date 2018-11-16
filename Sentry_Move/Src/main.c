@@ -48,6 +48,7 @@
 /* USER CODE BEGIN Includes */
 
 #include "Remote_Ctrl.h"
+#include "Chassis_Ctrl.h"
 
 /* USER CODE END Includes */
 
@@ -101,14 +102,18 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_CAN1_Init();
-  MX_USART1_UART_Init();		//Ò£¿ØÆ÷½ÓÊÕ
-	MX_UART7_Init();			//À¶ÑÀµ÷ÊÔ
-  MX_TIM6_Init();				//µ×ÅÌ¿ØÖÆ
+  MX_USART1_UART_Init();
+  MX_UART7_Init();
+  MX_TIM6_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
 	Remote_InitFlag();
 	RemoteCtl_Data_Receive_Start();
+	Chassis_CtrlInit();
+	
 	CANFilter_Init(&hcan1);
 	HAL_TIM_Base_Start_IT(&htim6);
+	//HAL_TIM_Base_Start_IT(&htim7);
   /* USER CODE END 2 */
 
   /* Infinite loop */

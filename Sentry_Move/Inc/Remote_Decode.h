@@ -1,6 +1,26 @@
 #ifndef _REOMTE__DECODE_H_
 #define _REOMTE__DECODE_H_
 #include "stm32f4xx_hal.h"
+
+/**********************遥控器输入********************/
+#define REMOTE_INPUT					1u
+#define KEY_MOUSE_INPUT					3u
+#define REMOTE_CHASIS_SPEED_TO_REF		1.197f          //1219*0.5/660f
+#define REMOTE_PITCH_ANGLE_TO_REF		0.004f
+#define REMOTE_YAW_ANGLE_TO_REF			0.004f
+#define ROTATE_TO_REF					0.8f
+
+#define RC_CH_VALUE_MIN					((uint16_t)364)
+#define RC_CH_VALUE_OFFSET				((uint16_t)1024)
+#define RC_CH_VALUE_MAX					((uint16_t)1684)
+#define RC_CH_VALUE_RANGE				660.0f
+
+#define RC_SW_UP						((uint16_t)1)
+#define RC_SW_MID						((uint16_t)3)
+#define RC_SW_DOWN						((uint16_t)2)
+
+#define RC_FRAME_LENGTH					18u
+
 typedef struct
 {
 	struct

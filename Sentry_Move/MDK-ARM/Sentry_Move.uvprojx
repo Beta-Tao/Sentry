@@ -337,7 +337,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F427xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;          ../Drivers/STM32F4xx_HAL_Driver/Inc;          ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;          ../Drivers/CMSIS/Device/ST/STM32F4xx/Include;          ../Drivers/CMSIS/Include</IncludePath>
+              <IncludePath>../Inc;           ../Drivers/STM32F4xx_HAL_Driver/Inc;           ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;           ../Drivers/CMSIS/Device/ST/STM32F4xx/Include;           ../Drivers/CMSIS/Include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -532,16 +532,6 @@
           <GroupName>Application/Control</GroupName>
           <Files>
             <File>
-              <FileName>motor.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\motor.c</FilePath>
-            </File>
-            <File>
-              <FileName>PID.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\PID.c</FilePath>
-            </File>
-            <File>
               <FileName>Remote_Ctrl.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\Remote_Ctrl.c</FilePath>
@@ -555,6 +545,21 @@
               <FileName>DataScope_DP.C</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\DataScope_DP.C</FilePath>
+            </File>
+            <File>
+              <FileName>Motor_Ctrl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\Motor_Ctrl.c</FilePath>
+            </File>
+            <File>
+              <FileName>Chassis_Ctrl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\Chassis_Ctrl.c</FilePath>
+            </File>
+            <File>
+              <FileName>Gimbal_Ctrl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\Gimbal_Ctrl.c</FilePath>
             </File>
           </Files>
         </Group>

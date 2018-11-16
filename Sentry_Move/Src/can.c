@@ -43,10 +43,9 @@
 #include "gpio.h"
 
 /* USER CODE BEGIN 0 */
-#include "motor.h"
-#include "PID.h"
 #include "Remote_Ctrl.h"
-#include "macro.h"
+#include "Chassis_Ctrl.h"
+#include "Gimbal_Ctrl.h"
 
 static int8_t revCount = 0;
 /* USER CODE END 0 */
@@ -180,18 +179,39 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 	{
 		if(hcan->pRxMsg->IDE == CAN_ID_STD && hcan->pRxMsg->RTR == CAN_RTR_DATA)
 		{
-			CAN_MotorRxMsgConv(hcan);
 			switch (hcan->pRxMsg->StdId)
 			{
-				case CHASSIS_L_ID:
-					/* 计算PID，并通过CAN线给电机赋值 */
-					PID_Calc(&CMSpeedPID_L, chassisL.rawSpeed, chassisL.refSpeed);
-					CAN_MotorTxMsgConv(hcan, CMSpeedPID_L.output, CMSpeedPID_R.output, 0, 0);
+				/* CAN中提取位置和速度反馈，随后进行控制并发送 */
+				case CM_L_ID:			//底盘左轮电机
+					CAN_MotorRxMsgConv(hcan, &CM_Left);
+					Chassis_MotorCtrl(&CM_Left);
+					CAN_MotorTxMsgConv(hcan, 
+									   CM_Left.velCtrl.output, CM_Right.velCtrl.output,
+									   GM_Pitch.velCtrl.output, GM_Yaw.velCtrl.output);
 					CAN_SendMsg(hcan, FIRST_FOUR_ID);
 					break;
-				case CHASSIS_R_ID:
-					PID_Calc(&CMSpeedPID_R, chassisR.rawSpeed, chassisR.refSpeed);
-					CAN_MotorTxMsgConv(hcan, CMSpeedPID_L.output, CMSpeedPID_R.output, 0, 0);
+				case CM_R_ID:			//底盘右轮电机
+					CAN_MotorRxMsgConv(hcan, &CM_Right);
+					Chassis_MotorCtrl(&CM_Right);
+					CAN_MotorTxMsgConv(hcan, 
+									   CM_Left.velCtrl.output, CM_Right.velCtrl.output,
+									   GM_Pitch.velCtrl.output, GM_Yaw.velCtrl.output);
+					CAN_SendMsg(hcan, FIRST_FOUR_ID);
+					break;
+				case GM_P_ID:			//云台Pitch轴电机
+					CAN_MotorRxMsgConv(hcan, &GM_Pitch);
+					Chassis_MotorCtrl(&GM_Pitch);
+					CAN_MotorTxMsgConv(hcan, 
+									   CM_Left.velCtrl.output, CM_Right.velCtrl.output,
+									   GM_Pitch.velCtrl.output, GM_Yaw.velCtrl.output);
+					CAN_SendMsg(hcan, FIRST_FOUR_ID);
+					break;
+				case GM_Y_ID:			//云台Yaw轴电机
+					CAN_MotorRxMsgConv(hcan, &GM_Yaw);
+					Chassis_MotorCtrl(&GM_Yaw);
+					CAN_MotorTxMsgConv(hcan, 
+									   CM_Left.velCtrl.output, CM_Right.velCtrl.output,
+									   GM_Pitch.velCtrl.output, GM_Yaw.velCtrl.output);
 					CAN_SendMsg(hcan, FIRST_FOUR_ID);
 					break;
 				default:
@@ -202,8 +222,8 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 			revCount++;
 			if (revCount >= 30)
 			{
-				PID_Debug(chassisL.rawSpeed, chassisL.rawPos, 0,
-						  chassisR.rawSpeed, chassisR.rawPos, 0,
+				CtrlDebug(CM_Left.velCtrl.rawVel, CM_Left.posCtrl.rawPos, 0,
+						  CM_Right.velCtrl.rawVel, CM_Right.posCtrl.rawPos, 0,
 						  0, 0, 0, 
 						  0);
 				revCount = 0;
@@ -264,31 +284,11 @@ void CAN_MotorTxMsgConv(CAN_HandleTypeDef* hcan, int16_t ID1Msg, int16_t ID2Msg,
   *         the configuration information for the specified CAN.
   *	@retval	None
   */
-void CAN_MotorRxMsgConv(CAN_HandleTypeDef* hcan)
+void CAN_MotorRxMsgConv(CAN_HandleTypeDef *hcan, Motor_t *motor)
 {
-	/* 如果是从CAN1发送来的数据 */
-	if (hcan == &hcan1)
-	{
-		switch(hcan->pRxMsg->StdId)
-		{
-		case CHASSIS_L_ID:
-			/* 获取电机数据 */
-			chassisL.rawPos = (int16_t)(hcan->pRxMsg->Data[0] << 8 | hcan->pRxMsg->Data[1]);
-			chassisL.posBuf[1] = chassisL.posBuf[0];
-			chassisL.posBuf[0] = chassisL.rawPos;
-			chassisL.rawSpeed = (int16_t)(hcan->pRxMsg->Data[2] << 8 | hcan->pRxMsg->Data[3]);
-			break;
-		case CHASSIS_R_ID:
-			chassisR.rawPos = (int16_t)(hcan->pRxMsg->Data[0] << 8 | hcan->pRxMsg->Data[1]);
-			chassisR.posBuf[1] = chassisR.posBuf[0];
-			chassisR.posBuf[0] = chassisR.rawPos;
-			chassisR.rawSpeed = (int16_t)(hcan->pRxMsg->Data[2] << 8 | hcan->pRxMsg->Data[3]);
-			break;
-		}
-	}
+	motor->posCtrl.rawPos = (int16_t)(hcan->pRxMsg->Data[0] << 8 | hcan->pRxMsg->Data[1]);
+	motor->velCtrl.rawVel = (int16_t)(hcan->pRxMsg->Data[2] << 8 | hcan->pRxMsg->Data[3]);
 }
-
-
 
 /* USER CODE END 1 */
 

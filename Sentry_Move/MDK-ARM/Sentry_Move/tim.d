@@ -32,6 +32,6 @@ sentry_move\tim.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h
 sentry_move\tim.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h
 sentry_move\tim.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h
 sentry_move\tim.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
-sentry_move\tim.o: ../Inc/motor.h
-sentry_move\tim.o: ../Inc/PID.h
-sentry_move\tim.o: ../Inc/macro.h
+sentry_move\tim.o: ../Inc/Chassis_Ctrl.h
+sentry_move\tim.o: ../Inc/Motor_Ctrl.h
+sentry_move\tim.o: ../Inc/Gimbal_Ctrl.h
