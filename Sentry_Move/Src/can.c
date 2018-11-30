@@ -45,7 +45,7 @@
 /* USER CODE BEGIN 0 */
 #include "Remote_Ctrl.h"
 #include "Chassis_Ctrl.h"
-#include "Gimbal_Ctrl.h"
+#include "Loader_Ctrl.h"
 
 static int8_t revCount = 0;
 /* USER CODE END 0 */
@@ -59,15 +59,15 @@ void MX_CAN1_Init(void)
   hcan1.Instance = CAN1;
   hcan1.Init.Prescaler = 2;
   hcan1.Init.Mode = CAN_MODE_NORMAL;
-  hcan1.Init.SJW = CAN_SJW_1TQ;
-  hcan1.Init.BS1 = CAN_BS1_14TQ;
-  hcan1.Init.BS2 = CAN_BS2_6TQ;
-  hcan1.Init.TTCM = DISABLE;
-  hcan1.Init.ABOM = DISABLE;
-  hcan1.Init.AWUM = DISABLE;
-  hcan1.Init.NART = ENABLE;
-  hcan1.Init.RFLM = DISABLE;
-  hcan1.Init.TXFP = ENABLE;
+  hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
+  hcan1.Init.TimeSeg1 = CAN_BS1_14TQ;
+  hcan1.Init.TimeSeg2 = CAN_BS2_6TQ;
+  hcan1.Init.TimeTriggeredMode = DISABLE;
+  hcan1.Init.AutoBusOff = DISABLE;
+  hcan1.Init.AutoWakeUp = DISABLE;
+  hcan1.Init.AutoRetransmission = ENABLE;
+  hcan1.Init.ReceiveFifoLocked = DISABLE;
+  hcan1.Init.TransmitFifoPriority = ENABLE;
   if (HAL_CAN_Init(&hcan1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -182,12 +182,12 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 			switch (hcan->pRxMsg->StdId)
 			{
 				/* CAN中提取位置和速度反馈，随后进行控制并发送 */
-				case CM_L_ID:			//底盘左轮电机
+				/*case CM_L_ID:			//底盘左轮电机
 					CAN_MotorRxMsgConv(hcan, &CM_Left);
 					Chassis_MotorCtrl(&CM_Left);
 					CAN_MotorTxMsgConv(hcan, 
 									   CM_Left.velCtrl.output, CM_Right.velCtrl.output,
-									   GM_Pitch.velCtrl.output, GM_Yaw.velCtrl.output);
+									   LM.velCtrl.output, 0);
 					CAN_SendMsg(hcan, FIRST_FOUR_ID);
 					break;
 				case CM_R_ID:			//底盘右轮电机
@@ -195,23 +195,16 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 					Chassis_MotorCtrl(&CM_Right);
 					CAN_MotorTxMsgConv(hcan, 
 									   CM_Left.velCtrl.output, CM_Right.velCtrl.output,
-									   GM_Pitch.velCtrl.output, GM_Yaw.velCtrl.output);
+									   LM.velCtrl.output, 0);
 					CAN_SendMsg(hcan, FIRST_FOUR_ID);
-					break;
-				case GM_P_ID:			//云台Pitch轴电机
-					CAN_MotorRxMsgConv(hcan, &GM_Pitch);
-					Chassis_MotorCtrl(&GM_Pitch);
+					break;*/
+				case LM_ID:				//供弹电机
+					CAN_MotorRxMsgConv(hcan, &LM);
+					Loader_UpdateState(&LM);		//根据电机运行情况更改状态
+					Loader_MotorCtrl(&LM);
 					CAN_MotorTxMsgConv(hcan, 
 									   CM_Left.velCtrl.output, CM_Right.velCtrl.output,
-									   GM_Pitch.velCtrl.output, GM_Yaw.velCtrl.output);
-					CAN_SendMsg(hcan, FIRST_FOUR_ID);
-					break;
-				case GM_Y_ID:			//云台Yaw轴电机
-					CAN_MotorRxMsgConv(hcan, &GM_Yaw);
-					Chassis_MotorCtrl(&GM_Yaw);
-					CAN_MotorTxMsgConv(hcan, 
-									   CM_Left.velCtrl.output, CM_Right.velCtrl.output,
-									   GM_Pitch.velCtrl.output, GM_Yaw.velCtrl.output);
+									   LM.velCtrl.output, 0);
 					CAN_SendMsg(hcan, FIRST_FOUR_ID);
 					break;
 				default:
@@ -224,7 +217,7 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 			{
 				CtrlDebug(CM_Left.velCtrl.rawVel, CM_Left.posCtrl.rawPos, 0,
 						  CM_Right.velCtrl.rawVel, CM_Right.posCtrl.rawPos, 0,
-						  0, 0, 0, 
+						  LM.velCtrl.rawVel, LM.posCtrl.relaPos, 0, 
 						  0);
 				revCount = 0;
 			}
@@ -286,8 +279,32 @@ void CAN_MotorTxMsgConv(CAN_HandleTypeDef* hcan, int16_t ID1Msg, int16_t ID2Msg,
   */
 void CAN_MotorRxMsgConv(CAN_HandleTypeDef *hcan, Motor_t *motor)
 {
+	float detaPos;
+	motor->posCtrl.rawPosLast = motor->posCtrl.rawPos;
+	
 	motor->posCtrl.rawPos = (int16_t)(hcan->pRxMsg->Data[0] << 8 | hcan->pRxMsg->Data[1]);
 	motor->velCtrl.rawVel = (int16_t)(hcan->pRxMsg->Data[2] << 8 | hcan->pRxMsg->Data[3]);
+	
+	detaPos = motor->posCtrl.rawPos - motor->posCtrl.rawPosLast;
+	
+	if (motor->escType == C610)
+	{
+		if (detaPos > ((float)C610_POS_RANGE) / 2)	//反转过一圈
+			motor->posCtrl.relaPos += detaPos - C610_POS_RANGE;
+		else if (detaPos < ((float)-C610_POS_RANGE) / 2)	//正转过一圈
+			motor->posCtrl.relaPos += detaPos + C610_POS_RANGE;
+		else 
+			motor->posCtrl.relaPos += detaPos;
+	}
+	if (motor->escType == C620)
+	{
+		if (detaPos > ((float)C620_POS_RANGE) / 2)	//反转过一圈
+			motor->posCtrl.relaPos += detaPos - C620_POS_RANGE;
+		else if (detaPos < ((float)-C620_POS_RANGE) / 2)	//正转过一圈
+			motor->posCtrl.relaPos += detaPos + C620_POS_RANGE;
+		else 
+			motor->posCtrl.relaPos += detaPos;
+	}
 }
 
 /* USER CODE END 1 */

@@ -412,11 +412,6 @@
               <FilePath>../Src/dma.c</FilePath>
             </File>
             <File>
-              <FileName>tim.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Src/tim.c</FilePath>
-            </File>
-            <File>
               <FileName>usart.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Src/usart.c</FilePath>
@@ -557,9 +552,9 @@
               <FilePath>..\Src\Chassis_Ctrl.c</FilePath>
             </File>
             <File>
-              <FileName>Gimbal_Ctrl.c</FileName>
+              <FileName>Loader_Ctrl.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Src\Gimbal_Ctrl.c</FilePath>
+              <FilePath>..\Src\Loader_Ctrl.c</FilePath>
             </File>
           </Files>
         </Group>

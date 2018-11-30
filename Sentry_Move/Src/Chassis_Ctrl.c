@@ -20,16 +20,14 @@ void Chassis_CtrlInit(void)
 	CM_Left.escType = C620;
 	Motor_VelCtrlInit(&CM_Left, 
 					  CHASSIS_MOTOR_ACC, CHASSIS_MOTOR_DEC, 	//acc, dec	控制周期是1ms，所以单位意义是每ms增加的转速
-					  20, 1.0, 1.5, 							//kp, ki, kd
-					  C620_CUR_MIN, C620_CUR_MAX				//outputMin, outputMax
+					  20, 1.0, 1.5 							//kp, ki, kd
 					  );
 	
 	CM_Right.motorType = M_3508;
 	CM_Right.escType = C620;
 	Motor_VelCtrlInit(&CM_Right, 
 					  CHASSIS_MOTOR_ACC, CHASSIS_MOTOR_DEC, 			//acc, dec
-					  20, 1.0, 1.5, 									//kp, ki, kd
-					  C620_CUR_MIN, C620_CUR_MAX						//outputMin, outputMax
+					  20, 1.0, 1.5 									//kp, ki, kd
 					  );
 }
 
@@ -37,43 +35,10 @@ void Chassis_CtrlInit(void)
   * @brief	将遥控器通道值映射到底盘电机速度
   * @retval	None
   */
-void Chassis_UpdateCMRef(void)
+void Chassis_UpdateRef(void)
 {
 	Motor_SetVel(&CM_Left.velCtrl, (float)(chassisVel / RC_CH_VALUE_RANGE * CM_VEL_MAX));
 	Motor_SetVel(&CM_Right.velCtrl, (float)(chassisVel / RC_CH_VALUE_RANGE * CM_VEL_MAX));
-}
-
-/**
-  * @brief	更新底盘状态，包括运动模式及底盘速度
-  * @note	在定时器六中进行定时器中断
-  * @retvel	None
-  */
-void Chassis_UpdateState(void)
-{
-	if (RemoteCtrlData.remote.ch2 < RC_CH_VALUE_MIN || 
-			RemoteCtrlData.remote.ch2 > RC_CH_VALUE_MAX)	//遥控器没有打开的时候，底盘不动
-	{
-		chassisVel = 0;
-		Remote_InitFlag();
-	}
-	else
-	{
-		switch (g_AutoMode)
-		{
-			case SENTRY_REMOTE:		//遥控模式则底盘速度和遥控器通道数值线性相关
-				chassisVel = -(RemoteCtrlData.remote.ch2 - RC_CH_VALUE_OFFSET);	//根据实际左右变换正负号
-				Chassis_UpdateCMRef();		//根据底盘速度更新底盘电机速度
-				break;
-			case SENTRY_DETECT:		//巡逻模式则底盘速度为当前的巡逻速度值
-				chassisVel = SENTRY_DETECT_VEL * chassisDir;	//巡逻速度
-				Chassis_UpdateCMRef();
-				break;
-			case SENTRY_DODGE:
-				break;
-			default:
-				break;
-		}
-	}
 }
 
 /**
@@ -84,5 +49,23 @@ void Chassis_UpdateState(void)
   */
  void Chassis_MotorCtrl(Motor_t *motor)
 {
+	switch (g_AutoMode)				//根据运动模式改变底盘速度
+	{
+		case SENTRY_REMOTE:		//遥控模式则底盘速度和遥控器通道数值线性相关
+			chassisVel = -(RemoteCtrlData.remote.ch2 - RC_CH_VALUE_OFFSET);	//根据实际左右变换正负号
+			Chassis_UpdateRef();		//根据底盘速度更新底盘电机速度
+			break;
+		case SENTRY_DETECT:		//巡逻模式则底盘速度为当前的巡逻速度值
+			chassisVel = SENTRY_DETECT_VEL * chassisDir;	//巡逻速度
+			Chassis_UpdateRef();
+			break;
+		case SENTRY_STOP:
+			chassisVel = 0;
+			Chassis_UpdateRef();
+		case SENTRY_DODGE:
+			break;
+		default:
+			break;
+	}
 	Motor_VelCtrl(&(motor->velCtrl));
 }

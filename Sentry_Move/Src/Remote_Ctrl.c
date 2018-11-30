@@ -20,18 +20,25 @@ uint8_t g_ShootMode;	//发射及供弹模式标志位
   */
 void Remote_Process(void)
 {
-	switch (RemoteCtrlData.remote.s1)
+	if (RemoteCtrlData.remote.ch2 < RC_CH_VALUE_MIN || 
+			RemoteCtrlData.remote.ch2 > RC_CH_VALUE_MAX)	//遥控器没有打开的时候，底盘停止
+		g_AutoMode = SENTRY_STOP;
+	else													//否则根据开关状态改变运动模式
 	{
-		case RC_SW_UP:		//当s1在上时，为巡逻模式
-			g_AutoMode = SENTRY_DETECT;
-			break;
-		case RC_SW_MID:		//当s1在中时，为遥控模式
-			g_AutoMode = SENTRY_REMOTE;
-			break;
-		case RC_SW_DOWN:	//当s1在下时，为躲避模式
-			g_AutoMode = SENTRY_DODGE;
-			break;
+		switch (RemoteCtrlData.remote.s1)
+		{
+			case RC_SW_UP:		//当s1在上时，为巡逻模式
+				g_AutoMode = SENTRY_DETECT;
+				break;
+			case RC_SW_MID:		//当s1在中时，为遥控模式
+				g_AutoMode = SENTRY_REMOTE;
+				break;
+			case RC_SW_DOWN:	//当s1在下时，为躲避模式
+				g_AutoMode = SENTRY_DODGE;
+				break;
+		}
 	}
+	
 	switch (RemoteCtrlData.remote.s2)
 	{
 		case RC_SW_UP:							//当s2在上时，为停火模式

@@ -36,4 +36,4 @@ sentry_move\can.o: ../Inc/Motor_Ctrl.h
 sentry_move\can.o: ../Inc/gpio.h
 sentry_move\can.o: ../Inc/Remote_Ctrl.h
 sentry_move\can.o: ../Inc/Chassis_Ctrl.h
-sentry_move\can.o: ../Inc/Gimbal_Ctrl.h
+sentry_move\can.o: ../Inc/Loader_Ctrl.h

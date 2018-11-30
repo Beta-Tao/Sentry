@@ -9,8 +9,16 @@
 #define C620_CUR_MAX			15000
 #define C610_CUR_MIN			-15000
 #define C610_CUR_MAX			15000
+
 #define C620_POS_MIN			0			//返回的位置
-#define C620_POS_MAX			8191u
+#define C620_POS_MAX			8191
+#define C620_POS_RANGE			C620_POS_MAX - C620_POS_MIN
+#define C610_POS_MIN			0			//返回的位置
+#define C610_POS_MAX			8191
+#define C610_POS_RANGE			C610_POS_MAX - C610_POS_MIN
+
+#define POS_CTRL_UNREADY		0u
+#define POS_CTRL_READY			1u
 
 /* 模式常量 */
 #define SENTRY_DETECT_VEL			4000
@@ -19,6 +27,7 @@
 #define SENTRY_REMOTE				0u
 #define SENTRY_DETECT				1u
 #define SENTRY_DODGE				2u
+#define SENTRY_STOP					3u
 
 /* 发射模式flag */
 #define SENTRY_CEASE_FIRE			0u
@@ -67,8 +76,11 @@ typedef struct
 /* 电机位置控制结构体 */
 typedef struct
 {
-	float refPos;
-	float rawPos;
+	float refPos;		//位置期望是相对位置
+	float relaPos;		//相对位移
+	
+	float rawPos;		//当前位置
+	float rawPosLast;	//上一次的位置
 	
 	float acc;			//位置控制只有减速段需要有加速度，和速度控制中dec一致
 	
@@ -81,6 +93,8 @@ typedef struct
 	float output;
 	float outputMin;
 	float outputMax;
+	
+	uint8_t posReady;
 }PosCtrl_t;
 
 /* 电机结构体 */
@@ -101,16 +115,15 @@ void Motor_SetPos(PosCtrl_t *pos_t, float pos);
 
 void Motor_VelCtrlInit(Motor_t *motor, 
 					   float acc, float dec, 
-					   float kp, float ki, float kd, 
-					   float outputMin, float outputMax);
+					   float kp, float ki, float kd);
 					   
 void Motor_PosCtrlInit(Motor_t *motor, float acc, 
 					   float kp, float ki, float kd,
 					   float outputMin, float outputMax);
 
-void Motor_PosCtrl(PosCtrl_t *pos);
+void Motor_PosCtrl(PosCtrl_t *pos_t);
 
-void Motor_VelCtrl(VelCtrl_t *vel);
+void Motor_VelCtrl(VelCtrl_t *vel_t);
 
 void CtrlDebug(float data1, float data2, float data3, float data4, 
 				float data5, float data6, float data7, float data8, 

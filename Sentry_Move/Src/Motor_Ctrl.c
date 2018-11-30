@@ -7,8 +7,7 @@
 
 void Motor_VelCtrlInit(Motor_t *motor, 
 					   float acc, float dec, 
-					   float kp, float ki, float kd, 
-					   float outputMin, float outputMax)
+					   float kp, float ki, float kd)
 {
 	motor->velCtrl.refVel = 0;
 	motor->velCtrl.refVel_Soft = 0;
@@ -23,8 +22,19 @@ void Motor_VelCtrlInit(Motor_t *motor,
 	motor->velCtrl.errLast = 0.0f;
 
 	motor->velCtrl.output = 0.0f;
-	motor->velCtrl.outputMin = outputMin;
-	motor->velCtrl.outputMax = outputMax;
+	
+	if (motor->escType == C610)
+	{
+		motor->velCtrl.outputMin = C610_CUR_MIN;
+		motor->velCtrl.outputMax = C610_CUR_MAX;
+	}
+	else if (motor->escType == C620)
+	{
+		motor->velCtrl.outputMin = C620_CUR_MIN;
+		motor->velCtrl.outputMax = C620_CUR_MAX;
+	}
+	else
+		return;
 }
 
 void Motor_PosCtrlInit(Motor_t *motor, float acc, 
@@ -32,6 +42,7 @@ void Motor_PosCtrlInit(Motor_t *motor, float acc,
 					   float outputMin, float outputMax)
 {
 	motor->posCtrl.refPos = 0;
+	motor->posCtrl.relaPos = 0;
 	
 	motor->posCtrl.acc = acc;		//位置环加速度和速度环减速加速度一致
 	
@@ -45,6 +56,8 @@ void Motor_PosCtrlInit(Motor_t *motor, float acc,
 	motor->posCtrl.output = 0.0f;
 	motor->posCtrl.outputMax = outputMin;
 	motor->posCtrl.outputMin = outputMax;
+	
+	motor->posCtrl.posReady = POS_CTRL_READY;
 }
 
 /**
@@ -63,98 +76,110 @@ void Motor_SetVel(VelCtrl_t *vel_t, float vel)
 /**
   * @brief	给电机赋期望位置值
   * @param	motor:	Motor_t结构体的指针
-  * @param	pos:	预设的位置值
+  * @param	pos_t:	预设的位置值
   * @note	注意电机转子位置范围
   * @retval	None
   */
 void Motor_SetPos(PosCtrl_t *pos_t, float pos)
 {
 	pos_t->refPos = pos;
+	pos_t->posReady = POS_CTRL_UNREADY;
 	return;
 }
-
+ 
 /**
   * @brief	进行电机位置控制
   * @note	在减速段使用了固定加速度逼近
   *	@param	pos:	PosCtrl_t结构体的指针，电机位置控制结构体的指针
   *	@retval	None
   */
-void Motor_PosCtrl(PosCtrl_t *pos)
+void Motor_PosCtrl(PosCtrl_t *pos_t)
 {
 	float diff;
 	float refVel;
 	float sign = 1.0f;
 	
 	/* 计算误差值，err保存当前的误差，errLast保存上一次的误差 */
-	pos->errLast = pos->err;
-	pos->err = pos->refPos - pos->rawPos;
+	pos_t->errLast = pos_t->err;
+	pos_t->err = pos_t->refPos - pos_t->relaPos;
 	
-	/* 保证当前的控制极性 */
-	if (pos->err < 0.0f)
-		sign = -1.0f;
+	if (pos_t->err > -2 && pos_t->err < 2)		//判断已经完成位置闭环
+	{
+		pos_t->refPos = 0;
+		pos_t->relaPos = pos_t->refPos;
+		pos_t->posReady = POS_CTRL_READY;
+	}
 	
-	/* 计算积分值，注意末尾积分限幅 */
-	pos->integ += pos->err;
-	if(pos->integ >= 10000)
-		pos->integ = 10000;
-	if(pos->integ <= -10000)
-		pos->integ = -10000;
-	
-	diff = pos->err - pos->errLast;	//计算误差变化率
-	
-	/* 绝对式方法计算PID输出 */
-	pos->output = pos->kp * pos->err + pos->ki * pos->integ + pos->kd * diff;
-	//PID->output = kp * PID->err[0] + ki * PID->integ + kd * PID->diff;
-	
-	/* 用固定加速度逼近终值 */
-	refVel = sign * __sqrtf(2.0f * 0.8f * pos->acc * sign * pos->err);
-	
-	/* 如果接近终值则切换成PID控制 */
-	if (fabsf(refVel) < fabsf(pos->output))
-		pos->output = refVel;
-	
-	/* 输出限幅 */
-	if(pos->output >= pos->outputMax)
-		pos->output = pos->outputMax;
-	if(pos->output <= pos->outputMin)
-		pos->output = pos->outputMin;
+	if (pos_t->posReady == POS_CTRL_UNREADY)
+	{
+		/* 保证当前的控制极性 */
+		if (pos_t->err < 0.0f)
+			sign = -1.0f;
+		
+		/* 计算积分值，注意末尾积分限幅 */
+		pos_t->integ += pos_t->err;
+		if(pos_t->integ >= 10000)
+			pos_t->integ = 10000;
+		if(pos_t->integ <= -10000)
+			pos_t->integ = -10000;
+		
+		diff = pos_t->err - pos_t->errLast;	//计算误差变化率
+		
+		/* 绝对式方法计算PID输出 */
+		pos_t->output = pos_t->kp * pos_t->err + pos_t->ki * pos_t->integ + pos_t->kd * diff;
+		//PID->output = kp * PID->err[0] + ki * PID->integ + kd * PID->diff;
+		
+		/* 用固定加速度逼近终值 */
+		refVel = sign * __sqrtf(2.0f * 0.8f * pos_t->acc * sign * pos_t->err);
+		
+		/* 如果接近终值则切换成PID控制 */
+		if (fabsf(refVel) < fabsf(pos_t->output))
+			pos_t->output = refVel;
+		
+		/* 输出限幅 */
+		if(pos_t->output >= pos_t->outputMax)
+			pos_t->output = pos_t->outputMax;
+		if(pos_t->output <= pos_t->outputMin)
+			pos_t->output = pos_t->outputMin;
+	}
 }
 
 /**
   * @brief	进行电机速度控制
   * @note	加速度用固定加速度控制，减速段前期使用固定加速度减速，后期使用PID逼近终值
-  *	@param	pos:	PosCtrl_t结构体的指针，电机位置控制结构体的指针
+  *	@param	pos_t:	PosCtrl_t结构体的指针，电机位置控制结构体的指针
   *	@retval	None
   */
-void Motor_VelCtrl(VelCtrl_t *vel)
+void Motor_VelCtrl(VelCtrl_t *vel_t)
 {
 	float diff;
 	
 	/* 加减速斜坡 */
-	if (vel->refVel_Soft < (vel->refVel - vel->acc))		//需要加速，使用加速加速度
-		vel->refVel_Soft += vel->acc;
-	else if (vel->refVel_Soft > (vel->refVel + vel->acc))	//需要减速，使用减速加速度
-		vel->refVel_Soft -= vel->dec;
+	if (vel_t->refVel_Soft < (vel_t->refVel - vel_t->acc))		//需要加速，使用加速加速度
+		vel_t->refVel_Soft += vel_t->acc;
+	else if (vel_t->refVel_Soft > (vel_t->refVel + vel_t->dec))	//需要减速，使用减速加速度
+		vel_t->refVel_Soft -= vel_t->dec;
 	else													//在线性加速度范围内使用PID调节
-		vel->refVel_Soft = vel->refVel;
+		vel_t->refVel_Soft = vel_t->refVel;
 	
 	/* 速度PID */
-	vel->err = vel->refVel_Soft - vel->rawVel;		//使用vel->refVel_Soft作为速度期望
-	diff = vel->err - vel->errLast;
-	vel->integ += vel->err;
+	vel_t->err = vel_t->refVel_Soft - vel_t->rawVel;		//使用vel_t->refVel_Soft作为速度期望
+	diff = vel_t->err - vel_t->errLast;
+	vel_t->integ += vel_t->err;
 	 
 	/* 积分限幅 */
-	if (vel->integ >= 10000)
-		vel->integ = 10000;
-	if (vel->integ >= -10000)
-		vel->integ = -10000;
-	vel->output = vel->kp * vel->err + vel->ki * vel->integ + vel->kd * diff;
+	if (vel_t->integ >= 10000)
+		vel_t->integ = 10000;
+	if (vel_t->integ <= -10000)
+		vel_t->integ = -10000;
+		
+	vel_t->output = vel_t->kp * vel_t->err + vel_t->ki * vel_t->integ + vel_t->kd * diff;
 	
 	/* 输出限幅 */
-	if(vel->output >= vel->outputMax)
-		vel->output = vel->outputMax;
-	if(vel->output <= vel->outputMin)
-		vel->output = vel->outputMin;
+	if(vel_t->output >= vel_t->outputMax)
+		vel_t->output = vel_t->outputMax;
+	if(vel_t->output <= vel_t->outputMin)
+		vel_t->output = vel_t->outputMin;
 }
 
 /**

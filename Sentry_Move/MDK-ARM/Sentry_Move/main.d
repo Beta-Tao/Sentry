@@ -39,3 +39,4 @@ sentry_move\main.o: ../Inc/usart.h
 sentry_move\main.o: ../Inc/gpio.h
 sentry_move\main.o: ../Inc/Remote_Ctrl.h
 sentry_move\main.o: ../Inc/Chassis_Ctrl.h
+sentry_move\main.o: ../Inc/Loader_Ctrl.h

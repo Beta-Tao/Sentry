@@ -41,7 +41,6 @@
 #include "stm32f4xx_hal.h"
 #include "can.h"
 #include "dma.h"
-#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -49,6 +48,7 @@
 
 #include "Remote_Ctrl.h"
 #include "Chassis_Ctrl.h"
+#include "Loader_Ctrl.h"
 
 /* USER CODE END Includes */
 
@@ -104,16 +104,13 @@ int main(void)
   MX_CAN1_Init();
   MX_USART1_UART_Init();
   MX_UART7_Init();
-  MX_TIM6_Init();
-  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
 	Remote_InitFlag();
 	RemoteCtl_Data_Receive_Start();
 	Chassis_CtrlInit();
+	Loader_CtrlInit();
 	
 	CANFilter_Init(&hcan1);
-	HAL_TIM_Base_Start_IT(&htim6);
-	//HAL_TIM_Base_Start_IT(&htim7);
   /* USER CODE END 2 */
 
   /* Infinite loop */
