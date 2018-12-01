@@ -120,7 +120,7 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGUARM</Key>
-          <Name></Name>
+          <Name>P舐</Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -169,6 +169,16 @@
           <count>2</count>
           <WinNumber>1</WinNumber>
           <ItemText>g_LoadVel</ItemText>
+        </Ww>
+        <Ww>
+          <count>3</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>RemoteCtrlData,0x0A</ItemText>
+        </Ww>
+        <Ww>
+          <count>4</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>isRevRemoteData,0x0A</ItemText>
         </Ww>
       </WatchWindow1>
       <Tracepoint>
@@ -624,7 +634,7 @@
       <GroupNumber>5</GroupNumber>
       <FileNumber>31</FileNumber>
       <FileType>1</FileType>
-      <tvExp>0</tvExp>
+      <tvExp>1</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\Src\Loader_Ctrl.c</PathWithFileName>

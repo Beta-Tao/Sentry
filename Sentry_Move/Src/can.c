@@ -59,15 +59,15 @@ void MX_CAN1_Init(void)
   hcan1.Instance = CAN1;
   hcan1.Init.Prescaler = 2;
   hcan1.Init.Mode = CAN_MODE_NORMAL;
-  hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
-  hcan1.Init.TimeSeg1 = CAN_BS1_14TQ;
-  hcan1.Init.TimeSeg2 = CAN_BS2_6TQ;
-  hcan1.Init.TimeTriggeredMode = DISABLE;
-  hcan1.Init.AutoBusOff = DISABLE;
-  hcan1.Init.AutoWakeUp = DISABLE;
-  hcan1.Init.AutoRetransmission = ENABLE;
-  hcan1.Init.ReceiveFifoLocked = DISABLE;
-  hcan1.Init.TransmitFifoPriority = ENABLE;
+  hcan1.Init.SJW = CAN_SJW_1TQ;
+  hcan1.Init.BS1 = CAN_BS1_14TQ;
+  hcan1.Init.BS2 = CAN_BS2_6TQ;
+  hcan1.Init.TTCM = DISABLE;
+  hcan1.Init.ABOM = DISABLE;
+  hcan1.Init.AWUM = DISABLE;
+  hcan1.Init.NART = ENABLE;
+  hcan1.Init.RFLM = DISABLE;
+  hcan1.Init.TXFP = ENABLE;
   if (HAL_CAN_Init(&hcan1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -281,8 +281,8 @@ void CAN_MotorRxMsgConv(CAN_HandleTypeDef *hcan, Motor_t *motor)
 {
 	float detaPos;
 	motor->posCtrl.rawPosLast = motor->posCtrl.rawPos;
-	
 	motor->posCtrl.rawPos = (int16_t)(hcan->pRxMsg->Data[0] << 8 | hcan->pRxMsg->Data[1]);
+	
 	motor->velCtrl.rawVel = (int16_t)(hcan->pRxMsg->Data[2] << 8 | hcan->pRxMsg->Data[3]);
 	
 	detaPos = motor->posCtrl.rawPos - motor->posCtrl.rawPosLast;

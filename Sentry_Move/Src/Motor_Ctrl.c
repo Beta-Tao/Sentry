@@ -54,8 +54,8 @@ void Motor_PosCtrlInit(Motor_t *motor, float acc,
 	motor->posCtrl.errLast = 0.0f;
 
 	motor->posCtrl.output = 0.0f;
-	motor->posCtrl.outputMax = outputMin;
-	motor->posCtrl.outputMin = outputMax;
+	motor->posCtrl.outputMin = outputMin;
+	motor->posCtrl.outputMax = outputMax;
 	
 	motor->posCtrl.posReady = POS_CTRL_READY;
 }
@@ -86,7 +86,7 @@ void Motor_SetPos(PosCtrl_t *pos_t, float pos)
 	pos_t->posReady = POS_CTRL_UNREADY;
 	return;
 }
- 
+
 /**
   * @brief	进行电机位置控制
   * @note	在减速段使用了固定加速度逼近
@@ -98,49 +98,85 @@ void Motor_PosCtrl(PosCtrl_t *pos_t)
 	float diff;
 	float refVel;
 	float sign = 1.0f;
+	static uint8_t readyCount = 0;				//设置计数避免误判
 	
-	/* 计算误差值，err保存当前的误差，errLast保存上一次的误差 */
-	pos_t->errLast = pos_t->err;
-	pos_t->err = pos_t->refPos - pos_t->relaPos;
-	
-	if (pos_t->err > -2 && pos_t->err < 2)		//判断已经完成位置闭环
+	switch (pos_t->posReady)
 	{
-		pos_t->refPos = 0;
-		pos_t->relaPos = pos_t->refPos;
-		pos_t->posReady = POS_CTRL_READY;
-	}
-	
-	if (pos_t->posReady == POS_CTRL_UNREADY)
-	{
-		/* 保证当前的控制极性 */
-		if (pos_t->err < 0.0f)
-			sign = -1.0f;
+		case POS_CTRL_READY:
+		{
+			/* 重置参数 */
+			pos_t->refPos = 0;
+			pos_t->relaPos = pos_t->refPos;
+			pos_t->err = 0;
+			pos_t->errLast = 0;
+			pos_t->integ = 0;
+			pos_t->output = 0;
+			pos_t->posReady = POS_CTRL_READY;
+			break;
+		}
+		case POS_CTRL_UNREADY:
+		{
+			/* 计算误差值，err保存当前的误差，errLast保存上一次的误差 */
+			pos_t->errLast = pos_t->err;
+			pos_t->err = pos_t->refPos - pos_t->relaPos;
 		
-		/* 计算积分值，注意末尾积分限幅 */
-		pos_t->integ += pos_t->err;
-		if(pos_t->integ >= 10000)
-			pos_t->integ = 10000;
-		if(pos_t->integ <= -10000)
-			pos_t->integ = -10000;
-		
-		diff = pos_t->err - pos_t->errLast;	//计算误差变化率
-		
-		/* 绝对式方法计算PID输出 */
-		pos_t->output = pos_t->kp * pos_t->err + pos_t->ki * pos_t->integ + pos_t->kd * diff;
-		//PID->output = kp * PID->err[0] + ki * PID->integ + kd * PID->diff;
-		
-		/* 用固定加速度逼近终值 */
-		refVel = sign * __sqrtf(2.0f * 0.8f * pos_t->acc * sign * pos_t->err);
-		
-		/* 如果接近终值则切换成PID控制 */
-		if (fabsf(refVel) < fabsf(pos_t->output))
-			pos_t->output = refVel;
-		
-		/* 输出限幅 */
-		if(pos_t->output >= pos_t->outputMax)
-			pos_t->output = pos_t->outputMax;
-		if(pos_t->output <= pos_t->outputMin)
-			pos_t->output = pos_t->outputMin;
+			/* 判断是否已经完成位置闭环 */
+			if (pos_t->err > -20 && pos_t->err < 20)		//已经完成
+			{
+				readyCount++;
+				if (readyCount == 10)
+				{
+					readyCount = 0;						//重置计数值
+					
+					/* 重置参数 */
+					pos_t->refPos = 0;
+					pos_t->relaPos = pos_t->refPos;
+					pos_t->err = 0;
+					pos_t->errLast = 0;
+					pos_t->integ = 0;
+					pos_t->output = 0;
+					pos_t->posReady = POS_CTRL_READY;
+					return;
+				}
+			}
+			else										//没有完成，继续位置闭环
+			{
+				readyCount = 0;
+			
+				/* 保证当前的控制极性 */
+				if (pos_t->err < 0.0f)
+					sign = -1.0f;
+				
+				/* 计算积分值，注意末尾积分限幅 */
+				pos_t->integ += pos_t->err;
+				if(pos_t->integ >= 10000)
+					pos_t->integ = 10000;
+				if(pos_t->integ <= -10000)
+					pos_t->integ = -10000;
+				
+				diff = pos_t->err - pos_t->errLast;	//计算误差变化率
+				
+				/* 绝对式方法计算PID输出 */
+				pos_t->output = pos_t->kp * pos_t->err + pos_t->ki * pos_t->integ + pos_t->kd * diff;
+				//PID->output = kp * PID->err[0] + ki * PID->integ + kd * PID->diff;
+				
+				/* 用固定加速度逼近终值 */
+				refVel = sign * __sqrtf(2.0f * 0.8f * pos_t->acc * sign * pos_t->err);
+				
+				/* 如果接近终值则切换成PID控制 */
+				if (fabsf(refVel) < fabsf(pos_t->output))
+					pos_t->output = refVel;
+				
+				/* 输出限幅 */
+				if(pos_t->output >= pos_t->outputMax)
+					pos_t->output = pos_t->outputMax;
+				if(pos_t->output <= pos_t->outputMin)
+					pos_t->output = pos_t->outputMin;
+			}
+			break;
+		}
+		default:
+			break;
 	}
 }
 

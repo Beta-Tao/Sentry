@@ -20,8 +20,7 @@ uint8_t g_ShootMode;	//发射及供弹模式标志位
   */
 void Remote_Process(void)
 {
-	if (RemoteCtrlData.remote.ch2 < RC_CH_VALUE_MIN || 
-			RemoteCtrlData.remote.ch2 > RC_CH_VALUE_MAX)	//遥控器没有打开的时候，底盘停止
+	if (isRevRemoteData == 0)	//遥控器没有打开的时候，底盘停止
 		g_AutoMode = SENTRY_STOP;
 	else													//否则根据开关状态改变运动模式
 	{
@@ -37,6 +36,7 @@ void Remote_Process(void)
 				g_AutoMode = SENTRY_DODGE;
 				break;
 		}
+		isRevRemoteData = 0;	//处理完数据之后标志位置0，表示没有接受到数据
 	}
 	
 	switch (RemoteCtrlData.remote.s2)
@@ -74,6 +74,7 @@ void Remote_InitFlag(void)
 void RemoteCtl_Data_Receive(void)
 {
 	uint32_t rx_data_len = 0;															//本次接收长度
+	isRevRemoteData = 1;																//接收到数据
 	if((__HAL_UART_GET_FLAG(&huart1,UART_FLAG_IDLE)!=RESET)) 
 	{
 		__HAL_UART_CLEAR_IDLEFLAG(&huart1);												//清除空闲中断的标志

@@ -2,6 +2,7 @@
 #include "Remote_Ctrl.h"
 
 RemoteCtrl_t RemoteCtrlData;       //遥控器输入
+int8_t isRevRemoteData = 0;			//遥控器接收标志位
 
 /**
   * @brief	根据遥控器协议对进行接收到的数据进行处理
@@ -10,14 +11,14 @@ RemoteCtrl_t RemoteCtrlData;       //遥控器输入
   */
 void RC_DataHandle(uint8_t *pData)
 {
-	if(pData == NULL)
+	if (pData == NULL)
     {
         return;
     }
 	
 	/* pData[0]为ch0的低8位，Data[1]的低3位ch0的高3位 */
 	RemoteCtrlData.remote.ch0 = (uint16_t)(pData[0] | pData[1] << 8) & 0x07FF;
-		
+	
 	/* pData[1]的高5位为ch1的低5位，pData[2]的低6位为ch1的高6位 */
 	RemoteCtrlData.remote.ch1 = (uint16_t)(pData[1] >> 3 | pData[2] << 5) & 0x07FF;
 	

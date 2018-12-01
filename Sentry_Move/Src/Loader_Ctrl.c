@@ -23,12 +23,12 @@ void Loader_CtrlInit(void)
 					  );
 	Motor_PosCtrlInit(&LM, 
 					  LOADER_MOTOR_DEC,
-					  0, 0, 0, 						//kp, ki, kd
+					  0.15, 0, 0, 						//kp, ki, kd
 					  LM_VEL_MIN, LM_VEL_MAX			//outputMin, outputMax
 					  );
 	
-	g_LoaderMode = LOADER_STOP;
-	g_LoadVel = -1000;
+	g_LoaderMode = LOADER_RUN;
+	g_LoadVel = -5000;				//负数送弹
 }
 
 /**
@@ -38,17 +38,23 @@ void Loader_CtrlInit(void)
   */
 void Loader_UpdateState(Motor_t *motor)
 {
+	static uint8_t jamCount = 0;			//判断是否卡弹的计数位，避免误测以及启动转动时的误判
 	switch(g_LoaderMode)
 	{
 		case LOADER_RUN:							//供弹状态
 			if (motor->velCtrl.refVel != 0 && motor->velCtrl.rawVel == 0)
-										//供弹模式下望转速不为0但实际转速为0，判断为堵转状态
+										//供弹模式下期望转速不为0但实际转速为0，判断为堵转状态
 			{
-				g_LoaderMode = LOADER_JAM;
+				jamCount++;
+				if (jamCount == 10)
+				{
+					g_LoaderMode = LOADER_JAM;
+					jamCount = 0;
+				}
 				break;
 			}
-			break;
-		case LOADER_STOP:							//停止状态		
+			else
+				jamCount = 0;
 			break;
 		case LOADER_JAM:							//卡弹状态
 			if (motor->posCtrl.posReady == POS_CTRL_READY)	//堵转模式位置到达预期，则继续供弹
@@ -57,7 +63,7 @@ void Loader_UpdateState(Motor_t *motor)
 				break;
 			}
 			break;
-		default:
+		default:									//停转状态
 			break;
 	}
 }
@@ -75,13 +81,15 @@ void Loader_MotorCtrl(Motor_t *motor)
 		case LOADER_RUN:				//供弹模式
 			Motor_SetVel(&(LM.velCtrl), g_LoadVel);
 			Motor_VelCtrl(&(motor->velCtrl));
+			Loader_RelaPosReset(&(motor->posCtrl));		//供弹状态重置位置控制参数
 			break;
 		case LOADER_STOP:
 			Motor_SetVel(&(LM.velCtrl), 0);	
 			Motor_VelCtrl(&(motor->velCtrl));
+			Loader_RelaPosReset(&(motor->posCtrl));		//停止状态重置位置控制参数
 			break;
 		case LOADER_JAM:				//堵转模式，则位置闭环
-			Motor_SetPos(&(LM.posCtrl), LOADER_MOTOR_REVPOS);
+			Motor_SetPos(&(LM.posCtrl), C610_POS_MAX);		//转子反转一圈
 			Motor_PosCtrl(&(motor->posCtrl));
 			Motor_SetVel(&(motor->velCtrl), motor->posCtrl.output);
 			Motor_VelCtrl(&(motor->velCtrl));
@@ -89,4 +97,15 @@ void Loader_MotorCtrl(Motor_t *motor)
 		default:
 			break;
 	}
+}
+
+/**
+  * @brief	重置位置控制参数
+  * @param	pos_t:	PosCtrl_t结构体指针
+  * @note	重置相对位置、误差、
+  * @retvel	None
+  */
+void Loader_RelaPosReset(PosCtrl_t *pos_t)
+{
+	pos_t->relaPos = 0;
 }
