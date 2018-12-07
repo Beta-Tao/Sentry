@@ -102,7 +102,7 @@ void Motor_PosCtrl(PosCtrl_t *pos_t)
 	
 	switch (pos_t->posReady)
 	{
-		case POS_CTRL_READY:
+		case POS_CTRL_READY:					//到达预定位置
 		{
 			/* 重置参数 */
 			pos_t->refPos = 0;
@@ -114,7 +114,7 @@ void Motor_PosCtrl(PosCtrl_t *pos_t)
 			pos_t->posReady = POS_CTRL_READY;
 			break;
 		}
-		case POS_CTRL_UNREADY:
+		case POS_CTRL_UNREADY:					//没有到达预定位置
 		{
 			/* 计算误差值，err保存当前的误差，errLast保存上一次的误差 */
 			pos_t->errLast = pos_t->err;
@@ -124,17 +124,9 @@ void Motor_PosCtrl(PosCtrl_t *pos_t)
 			if (pos_t->err > -20 && pos_t->err < 20)		//已经完成
 			{
 				readyCount++;
-				if (readyCount == 10)
+				if (readyCount == 10)					//到达预定位置
 				{
 					readyCount = 0;						//重置计数值
-					
-					/* 重置参数 */
-					pos_t->refPos = 0;
-					pos_t->relaPos = pos_t->refPos;
-					pos_t->err = 0;
-					pos_t->errLast = 0;
-					pos_t->integ = 0;
-					pos_t->output = 0;
 					pos_t->posReady = POS_CTRL_READY;
 					return;
 				}
@@ -160,7 +152,7 @@ void Motor_PosCtrl(PosCtrl_t *pos_t)
 				pos_t->output = pos_t->kp * pos_t->err + pos_t->ki * pos_t->integ + pos_t->kd * diff;
 				//PID->output = kp * PID->err[0] + ki * PID->integ + kd * PID->diff;
 				
-				/* 用固定加速度逼近终值 */
+				/* 用固定加速度逼近终值， 0.8为积分裕量，用来削减积分值和实际值之间的偏差 */
 				refVel = sign * __sqrtf(2.0f * 0.8f * pos_t->acc * sign * pos_t->err);
 				
 				/* 如果接近终值则切换成PID控制 */

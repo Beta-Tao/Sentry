@@ -21,11 +21,6 @@ void Loader_CtrlInit(void)
 					  LOADER_MOTOR_ACC, LOADER_MOTOR_DEC, 	//acc, dec	控制周期是1ms，所以单位意义是每ms增加的转速
 					  20, 1.0, 1.5 						//kp, ki, kd
 					  );
-	Motor_PosCtrlInit(&LM, 
-					  LOADER_MOTOR_DEC,
-					  0.15, 0, 0, 						//kp, ki, kd
-					  LM_VEL_MIN, LM_VEL_MAX			//outputMin, outputMax
-					  );
 	
 	g_LoaderMode = LOADER_RUN;
 	g_LoadVel = -5000;				//负数送弹
@@ -38,7 +33,7 @@ void Loader_CtrlInit(void)
   */
 void Loader_UpdateState(Motor_t *motor)
 {
-	static uint8_t jamCount = 0;			//判断是否卡弹的计数位，避免误测以及启动转动时的误判
+	static uint8_t jamCount = 0, covCount = 0;			//判断是否卡弹的计数位，避免误测以及启动转动时的误判
 	switch(g_LoaderMode)
 	{
 		case LOADER_RUN:							//供弹状态
@@ -46,7 +41,7 @@ void Loader_UpdateState(Motor_t *motor)
 										//供弹模式下期望转速不为0但实际转速为0，判断为堵转状态
 			{
 				jamCount++;
-				if (jamCount == 10)
+				if (jamCount >= 10)
 				{
 					g_LoaderMode = LOADER_JAM;
 					jamCount = 0;
@@ -57,9 +52,11 @@ void Loader_UpdateState(Motor_t *motor)
 				jamCount = 0;
 			break;
 		case LOADER_JAM:							//卡弹状态
-			if (motor->posCtrl.posReady == POS_CTRL_READY)	//堵转模式位置到达预期，则继续供弹
+			covCount++;								//开始反转计数
+			if (covCount >= 10)						//反转达到十个周期，则反转结束
 			{
 				g_LoaderMode = LOADER_RUN;
+				covCount = 0;
 				break;
 			}
 			break;
@@ -79,33 +76,18 @@ void Loader_MotorCtrl(Motor_t *motor)
 	switch (g_LoaderMode)
 	{
 		case LOADER_RUN:				//供弹模式
-			Motor_SetVel(&(LM.velCtrl), g_LoadVel);
+			Motor_SetVel(&(motor->velCtrl), g_LoadVel);
 			Motor_VelCtrl(&(motor->velCtrl));
-			Loader_RelaPosReset(&(motor->posCtrl));		//供弹状态重置位置控制参数
 			break;
 		case LOADER_STOP:
-			Motor_SetVel(&(LM.velCtrl), 0);	
+			Motor_SetVel(&(motor->velCtrl), 0);	
 			Motor_VelCtrl(&(motor->velCtrl));
-			Loader_RelaPosReset(&(motor->posCtrl));		//停止状态重置位置控制参数
 			break;
-		case LOADER_JAM:				//堵转模式，则位置闭环
-			Motor_SetPos(&(LM.posCtrl), C610_POS_MAX);		//转子反转一圈
-			Motor_PosCtrl(&(motor->posCtrl));
-			Motor_SetVel(&(motor->velCtrl), motor->posCtrl.output);
+		case LOADER_JAM:				//堵转模式，则开始反转
+			Motor_SetVel(&(motor->velCtrl), 500);
 			Motor_VelCtrl(&(motor->velCtrl));
 			break;
 		default:
 			break;
 	}
-}
-
-/**
-  * @brief	重置位置控制参数
-  * @param	pos_t:	PosCtrl_t结构体指针
-  * @note	重置相对位置、误差、
-  * @retvel	None
-  */
-void Loader_RelaPosReset(PosCtrl_t *pos_t)
-{
-	pos_t->relaPos = 0;
 }

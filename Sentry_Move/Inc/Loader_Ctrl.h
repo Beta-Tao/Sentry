@@ -8,7 +8,7 @@
 #define LM_VEL_MAX				10000
 
 #define LOADER_MOTOR_ACC		300
-#define	LOADER_MOTOR_DEC		80
+#define	LOADER_MOTOR_DEC		300
 
 #define LOADER_STOP				0
 #define LOADER_RUN				1
@@ -28,7 +28,5 @@ void Loader_CtrlInit(void);
 void Loader_UpdateState(Motor_t *motor);
 
 void Loader_MotorCtrl(Motor_t *motor);
-
-void Loader_RelaPosReset(PosCtrl_t *pos_t);
 
 #endif
