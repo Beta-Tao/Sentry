@@ -3,7 +3,21 @@
 #include "Remote_Ctrl.h"
 #include "Remote_Decode.h"
 #include "usart.h"
+#include "can.h"
 #include "math.h"
+
+uint8_t g_AimMode;					//瞄准模式，控制云台
+uint8_t g_MoveMode;					//移动模式，控制底盘
+uint8_t g_LoadMode;					//供弹模式，控制拨盘
+uint8_t g_ShootMode;				//发射模式，控制摩擦轮
+
+void Motor_InitFlag(void)
+{
+	g_AimMode = SENTRY_STOP;					//云台静止
+	g_MoveMode = SENTRY_STOP;					//底盘静止
+	g_LoadMode = SENTRY_LOAD_STOP;				//拨盘静止
+	g_ShootMode = SENTRY_CEASE_FIRE;
+}
 
 void Motor_VelCtrlInit(Motor_t *motor, 
 					   float acc, float dec, 
@@ -211,34 +225,45 @@ void Motor_VelCtrl(VelCtrl_t *vel_t)
 }
 
 /**
-  * @brief	串口调试电机控制参数
-  *	@param	data1~10:	共十个通道的数据
-  * @note	通过串口7发送
+  *	@brief	转换发送给Motor的数据格式 
+  *	@param	hcan pointer to a CAN_HandleTypeDef structure that contains
+  *         the configuration information for the specified CAN.
   *	@retval	None
   */
-void CtrlDebug(float data1, float data2, float data3, float data4, 
-				float data5, float data6, float data7, float data8, 
-				float data9, float data10)
+void Motor_CanRxMsgConv(CAN_HandleTypeDef *hcan, Motor_t *motor)
 {
-	unsigned char Send_Count;
-	int i;
-
-	DataScope_Get_Channel_Data(data1, 1); //将数据 1.0  写入通道 1
-    DataScope_Get_Channel_Data(data2, 2); //将数据 2.0  写入通道 2
-    DataScope_Get_Channel_Data(data3, 3); //将数据 3.0  写入通道 3
-    DataScope_Get_Channel_Data(data4, 4); //将数据 4.0  写入通道 4
-	DataScope_Get_Channel_Data(data5, 5); //将数据 5.0  写入通道 5
-    DataScope_Get_Channel_Data(data6, 6); //将数据 6.0  写入通道 6
-	DataScope_Get_Channel_Data(data7, 7); //将数据 7.0  写入通道 7
-    DataScope_Get_Channel_Data(data8, 8); //将数据 8.0  写入通道 8
-	DataScope_Get_Channel_Data(data9, 9); //将数据 9.0  写入通道 9
-    DataScope_Get_Channel_Data(data10, 10); //将数据 10.0 写入通道 10
-
-	Send_Count = DataScope_Data_Generate(10); //生成10个通道的格式化帧数据，返回帧数据长度
+	float detaPos;
+	motor->posCtrl.rawPosLast = motor->posCtrl.rawPos;
+	motor->posCtrl.rawPos = (int16_t)(hcan->pRxMsg->Data[0] << 8 | hcan->pRxMsg->Data[1]);
 	
-	//HAL_UART_Transmit(&huart8, DataScope_OutPut_Buffer, Send_Count, 50);
-	for( i = 0 ; i < Send_Count; i++)  //循环发送,直到发送完毕  
+	motor->velCtrl.rawVel = (int16_t)(hcan->pRxMsg->Data[2] << 8 | hcan->pRxMsg->Data[3]);
+	
+	detaPos = motor->posCtrl.rawPos - motor->posCtrl.rawPosLast;
+	
+	if (motor->escType == C610)
 	{
-		HAL_UART_Transmit(&huart7, DataScope_OutPut_Buffer + i, 1, 50);
+		if (detaPos > ((float)C610_POS_RANGE) / 2)	//反转过一圈
+			motor->posCtrl.relaPos += detaPos - C610_POS_RANGE;
+		else if (detaPos < ((float)-C610_POS_RANGE) / 2)	//正转过一圈
+			motor->posCtrl.relaPos += detaPos + C610_POS_RANGE;
+		else
+			motor->posCtrl.relaPos += detaPos;
 	}
+	if (motor->escType == C620)
+	{
+		if (detaPos > ((float)C620_POS_RANGE) / 2)	//反转过一圈
+			motor->posCtrl.relaPos += detaPos - C620_POS_RANGE;
+		else if (detaPos < ((float)-C620_POS_RANGE) / 2)	//正转过一圈
+			motor->posCtrl.relaPos += detaPos + C620_POS_RANGE;
+		else
+			motor->posCtrl.relaPos += detaPos;
+	}
+}
+
+void Motor_CANSendMsg(CAN_HandleTypeDef* hcan, uint32_t num, 
+					int16_t ID1Msg, int16_t ID2Msg, int16_t ID3Msg, int16_t ID4Msg)
+{
+	CAN_MotorTxMsgConv(hcan, ID1Msg, ID2Msg, ID3Msg, ID4Msg);
+	
+	CAN_SendMsg(hcan, num);
 }

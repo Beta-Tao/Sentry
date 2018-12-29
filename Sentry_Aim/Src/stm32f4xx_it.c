@@ -36,12 +36,19 @@
 #include "stm32f4xx_it.h"
 
 /* USER CODE BEGIN 0 */
-
+#include "AHRS_Update.h"
+#include "can.h"
+#include "Gimbal_Ctrl.h"
+#include "DataScope_DP.h"
+#include "Master_Comm.h"
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
 extern CAN_HandleTypeDef hcan1;
-extern TIM_HandleTypeDef htim6;
+extern DMA_HandleTypeDef hdma_uart8_rx;
+extern DMA_HandleTypeDef hdma_usart6_rx;
+extern UART_HandleTypeDef huart8;
+extern UART_HandleTypeDef huart6;
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
@@ -194,6 +201,20 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
+* @brief This function handles DMA1 stream6 global interrupt.
+*/
+void DMA1_Stream6_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Stream6_IRQn 0 */
+
+  /* USER CODE END DMA1_Stream6_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_uart8_rx);
+  /* USER CODE BEGIN DMA1_Stream6_IRQn 1 */
+
+  /* USER CODE END DMA1_Stream6_IRQn 1 */
+}
+
+/**
 * @brief This function handles CAN1 RX0 interrupts.
 */
 void CAN1_RX0_IRQHandler(void)
@@ -208,20 +229,89 @@ void CAN1_RX0_IRQHandler(void)
 }
 
 /**
-* @brief This function handles TIM6 global interrupt, DAC1 and DAC2 underrun error interrupts.
+* @brief This function handles DMA2 stream1 global interrupt.
 */
-void TIM6_DAC_IRQHandler(void)
+void DMA2_Stream1_IRQHandler(void)
 {
-  /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
+  /* USER CODE BEGIN DMA2_Stream1_IRQn 0 */
 
-  /* USER CODE END TIM6_DAC_IRQn 0 */
-  HAL_TIM_IRQHandler(&htim6);
-  /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
+  /* USER CODE END DMA2_Stream1_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart6_rx);
+  /* USER CODE BEGIN DMA2_Stream1_IRQn 1 */
 
-  /* USER CODE END TIM6_DAC_IRQn 1 */
+  /* USER CODE END DMA2_Stream1_IRQn 1 */
+}
+
+/**
+* @brief This function handles USART6 global interrupt.
+*/
+void USART6_IRQHandler(void)
+{
+  /* USER CODE BEGIN USART6_IRQn 0 */
+	AHRS_RevData();
+	//Gimbal_MotorCtrl();
+	//Motor_CANSendMsg(&hcan1, FIRST_FOUR_ID, GM_Yaw.velCtrl.output, GM_Pitch.velCtrl.output, 0, 0);
+  /* USER CODE END USART6_IRQn 0 */
+  //HAL_UART_IRQHandler(&huart6);
+  /* USER CODE BEGIN USART6_IRQn 1 */
+
+  /* USER CODE END USART6_IRQn 1 */
+}
+
+/**
+* @brief This function handles UART8 global interrupt.
+*/
+void UART8_IRQHandler(void)
+{
+  /* USER CODE BEGIN UART8_IRQn 0 */
+	Comm_RevData();
+  /* USER CODE END UART8_IRQn 0 */
+  //HAL_UART_IRQHandler(&huart8);
+  /* USER CODE BEGIN UART8_IRQn 1 */
+
+  /* USER CODE END UART8_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */
+
+void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
+{
+	static uint8_t revCount = 0;
+	//如果是CAN1
+	if (hcan == &hcan1)
+	{
+		if(hcan->pRxMsg->IDE == CAN_ID_STD && hcan->pRxMsg->RTR == CAN_RTR_DATA)
+		{
+			switch (hcan->pRxMsg->StdId)
+			{
+				case GM_YAW_ID:
+					Motor_CanRxMsgConv(hcan, &GM_Yaw);
+					Gimbal_MotorCtrl(&GM_Yaw);
+					Motor_CANSendMsg(hcan, FIRST_FOUR_ID, 
+									GM_Yaw.velCtrl.output, GM_Pitch.velCtrl.output, 0, 0);
+				case GM_PITCH_ID:
+					Motor_CanRxMsgConv(hcan, &GM_Pitch);
+					Gimbal_MotorCtrl(&GM_Pitch);
+					Motor_CANSendMsg(hcan, FIRST_FOUR_ID, 
+									GM_Yaw.velCtrl.output, GM_Pitch.velCtrl.output, 0, 0);
+				default:
+					break;
+			}
+		}
+		
+		revCount++;
+		if (revCount == 30)
+		{
+			DataScope_Debug(4, GM_Yaw.velCtrl.rawVel, GM_Yaw.velCtrl.refVel, 
+								GM_Pitch.velCtrl.rawVel, GM_Pitch.velCtrl.refVel);
+			revCount = 0;
+		}
+		
+		__HAL_CAN_ENABLE_IT(hcan, CAN_IT_FMP0);		//重新打开CAN中断
+	}
+	
+	
+}
 
 /* USER CODE END 1 */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

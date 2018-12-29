@@ -20,14 +20,14 @@ void Chassis_CtrlInit(void)
 	CM_Left.escType = C620;
 	Motor_VelCtrlInit(&CM_Left, 
 					  CHASSIS_MOTOR_ACC, CHASSIS_MOTOR_DEC, 	//acc, dec	控制周期是1ms，所以单位意义是每ms增加的转速
-					  20, 1.0, 1.5 							//kp, ki, kd
+					  10, 0, 0 									//kp, ki, kd 20 1.0 1.5
 					  );
 	
 	CM_Right.motorType = M_3508;
 	CM_Right.escType = C620;
 	Motor_VelCtrlInit(&CM_Right, 
 					  CHASSIS_MOTOR_ACC, CHASSIS_MOTOR_DEC, 			//acc, dec
-					  20, 1.0, 1.5 									//kp, ki, kd
+					  10, 0, 0 									//kp, ki, kd 20 1.0 1.5
 					  );
 }
 
@@ -47,9 +47,9 @@ void Chassis_UpdateRef(void)
   * @param	motor:	Motor_t结构体指针
   * @retvel	None
   */
- void Chassis_MotorCtrl(Motor_t *motor)
+void Chassis_MotorCtrl(Motor_t *motor)
 {
-	switch (g_AutoMode)				//根据运动模式改变底盘速度
+	switch (g_MoveMode)				//根据运动模式改变底盘速度
 	{
 		case SENTRY_REMOTE:		//遥控模式则底盘速度和遥控器通道数值线性相关
 			chassisVel = -(RemoteCtrlData.remote.ch2 - RC_CH_VALUE_OFFSET);	//根据实际左右变换正负号

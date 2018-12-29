@@ -2,7 +2,7 @@
 #include "Remote_Decode.h"
 #include "Remote_Ctrl.h"
 
-Motor_t LM;		//供弹电机  
+Motor_t LM;		//供弹电机
 
 float g_LoadVel;			//供弹速度
 uint8_t g_LoaderMode;		//是否瞄准决定是否开始供弹
@@ -22,8 +22,8 @@ void Loader_CtrlInit(void)
 					  20, 1.0, 1.5 						//kp, ki, kd
 					  );
 	
-	g_LoaderMode = LOADER_RUN;
-	g_LoadVel = -5000;				//负数送弹
+	g_LoaderMode = SENTRY_LOAD_RUN;
+	g_LoadVel = -4000;				//负数送弹
 }
 
 /**
@@ -36,14 +36,14 @@ void Loader_UpdateState(Motor_t *motor)
 	static uint8_t jamCount = 0, covCount = 0;			//判断是否卡弹的计数位，避免误测以及启动转动时的误判
 	switch(g_LoaderMode)
 	{
-		case LOADER_RUN:							//供弹状态
+		case SENTRY_LOAD_RUN:							//供弹状态
 			if (motor->velCtrl.refVel != 0 && motor->velCtrl.rawVel == 0)
 										//供弹模式下期望转速不为0但实际转速为0，判断为堵转状态
 			{
 				jamCount++;
-				if (jamCount >= 10)
+				if (jamCount >= 5)
 				{
-					g_LoaderMode = LOADER_JAM;
+					g_LoaderMode = SENTRY_LOAD_JAM;
 					jamCount = 0;
 				}
 				break;
@@ -51,11 +51,11 @@ void Loader_UpdateState(Motor_t *motor)
 			else
 				jamCount = 0;
 			break;
-		case LOADER_JAM:							//卡弹状态
+		case SENTRY_LOAD_JAM:							//卡弹状态
 			covCount++;								//开始反转计数
-			if (covCount >= 10)						//反转达到十个周期，则反转结束
+			if (covCount >= 200)						//反转达到十个周期，则反转结束
 			{
-				g_LoaderMode = LOADER_RUN;
+				g_LoaderMode = SENTRY_LOAD_RUN;
 				covCount = 0;
 				break;
 			}
@@ -75,19 +75,19 @@ void Loader_MotorCtrl(Motor_t *motor)
 {	
 	switch (g_LoaderMode)
 	{
-		case LOADER_RUN:				//供弹模式
+		case SENTRY_LOAD_RUN:				//供弹模式
 			Motor_SetVel(&(motor->velCtrl), g_LoadVel);
 			Motor_VelCtrl(&(motor->velCtrl));
 			break;
-		case LOADER_STOP:
+		case SENTRY_LOAD_STOP:
 			Motor_SetVel(&(motor->velCtrl), 0);	
 			Motor_VelCtrl(&(motor->velCtrl));
 			break;
-		case LOADER_JAM:				//堵转模式，则开始反转
+		case SENTRY_LOAD_JAM:				//堵转模式，则开始反转
 			Motor_SetVel(&(motor->velCtrl), 500);
 			Motor_VelCtrl(&(motor->velCtrl));
 			break;
 		default:
-			break;
+			 break;
 	}
 }

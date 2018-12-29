@@ -2,7 +2,7 @@
 #include "Remote_Ctrl.h"
 
 RemoteCtrl_t RemoteCtrlData;       //遥控器输入
-int8_t isRevRemoteData = 0;			//遥控器接收标志位
+uint8_t isRevRemoteData = 0;			//遥控器接收标志位
 
 /**
   * @brief	根据遥控器协议对进行接收到的数据进行处理

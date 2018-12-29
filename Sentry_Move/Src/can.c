@@ -47,7 +47,19 @@
 #include "Chassis_Ctrl.h"
 #include "Loader_Ctrl.h"
 
-static int8_t revCount = 0;
+/* 用于CAN配置，CubeMX生成的版本偏前 */
+/*
+  hcan1.Init.SJW = CAN_SJW_1TQ;
+  hcan1.Init.BS1 = CAN_BS1_14TQ;
+  hcan1.Init.BS2 = CAN_BS2_6TQ;
+  hcan1.Init.TTCM = DISABLE;
+  hcan1.Init.ABOM = DISABLE;
+  hcan1.Init.AWUM = DISABLE;
+  hcan1.Init.NART = ENABLE;
+  hcan1.Init.RFLM = DISABLE;
+  hcan1.Init.TXFP = ENABLE;
+ */
+
 /* USER CODE END 0 */
 
 CAN_HandleTypeDef hcan1;
@@ -167,66 +179,6 @@ void CANFilter_Init(CAN_HandleTypeDef* hcan)
 }
 
 /**
-  *	@brief	receive callback function
-  *	@param	hcan pointer to a CAN_HandleTypeDef structure that contains
-  *         the configuration information for the specified CAN.
-  *	@retval	None
-  */
-void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
-{
-	//如果是CAN1
-	if (hcan == &hcan1)
-	{
-		if(hcan->pRxMsg->IDE == CAN_ID_STD && hcan->pRxMsg->RTR == CAN_RTR_DATA)
-		{
-			switch (hcan->pRxMsg->StdId)
-			{
-				/* CAN中提取位置和速度反馈，随后进行控制并发送 */
-				/*case CM_L_ID:			//底盘左轮电机
-					CAN_MotorRxMsgConv(hcan, &CM_Left);
-					Chassis_MotorCtrl(&CM_Left);
-					CAN_MotorTxMsgConv(hcan, 
-									   CM_Left.velCtrl.output, CM_Right.velCtrl.output,
-									   LM.velCtrl.output, 0);
-					CAN_SendMsg(hcan, FIRST_FOUR_ID);
-					break;
-				case CM_R_ID:			//底盘右轮电机
-					CAN_MotorRxMsgConv(hcan, &CM_Right);
-					Chassis_MotorCtrl(&CM_Right);
-					CAN_MotorTxMsgConv(hcan, 
-									   CM_Left.velCtrl.output, CM_Right.velCtrl.output,
-									   LM.velCtrl.output, 0);
-					CAN_SendMsg(hcan, FIRST_FOUR_ID);
-					break;*/
-				case LM_ID:				//供弹电机
-					CAN_MotorRxMsgConv(hcan, &LM);
-					Loader_UpdateState(&LM);		//根据电机运行情况更改状态
-					Loader_MotorCtrl(&LM);
-					CAN_MotorTxMsgConv(hcan, 
-									   CM_Left.velCtrl.output, CM_Right.velCtrl.output,
-									   LM.velCtrl.output, 0);
-					CAN_SendMsg(hcan, FIRST_FOUR_ID);
-					break;
-				default:
-					break;
-			}
-
-			/* 通过串口发送调试数据 */
-			revCount++;
-			if (revCount >= 30)
-			{
-				CtrlDebug(CM_Left.velCtrl.rawVel, CM_Left.posCtrl.rawPos, 0,
-						  CM_Right.velCtrl.rawVel, CM_Right.posCtrl.rawPos, 0,
-						  LM.velCtrl.rawVel, LM.posCtrl.relaPos, 0, 
-						  0);
-				revCount = 0;
-			}
-		}
-		__HAL_CAN_ENABLE_IT(hcan, CAN_IT_FMP0);		//重新打开CAN中断
-	}
-}
-
-/**
   *	@brief	从CAN线发送某个ID的信息，固定为RTR格式的数据帧
   *	@param	hcan:	CAN_HandleTypeDef结构体指针，给pTxMsg中的参数赋值
   *	@param	ID:		数据帧的ID值
@@ -269,42 +221,6 @@ void CAN_MotorTxMsgConv(CAN_HandleTypeDef* hcan, int16_t ID1Msg, int16_t ID2Msg,
 	
 	hcan->pTxMsg->Data[6] = (uint8_t)(ID4Msg >> 8);
 	hcan->pTxMsg->Data[7] = (uint8_t)ID4Msg;
-}
-
-/**
-  *	@brief	转换发送给Motor的数据格式 
-  *	@param	hcan pointer to a CAN_HandleTypeDef structure that contains
-  *         the configuration information for the specified CAN.
-  *	@retval	None
-  */
-void CAN_MotorRxMsgConv(CAN_HandleTypeDef *hcan, Motor_t *motor)
-{
-	float detaPos;
-	motor->posCtrl.rawPosLast = motor->posCtrl.rawPos;
-	motor->posCtrl.rawPos = (int16_t)(hcan->pRxMsg->Data[0] << 8 | hcan->pRxMsg->Data[1]);
-	
-	motor->velCtrl.rawVel = (int16_t)(hcan->pRxMsg->Data[2] << 8 | hcan->pRxMsg->Data[3]);
-	
-	detaPos = motor->posCtrl.rawPos - motor->posCtrl.rawPosLast;
-	
-	if (motor->escType == C610)
-	{
-		if (detaPos > ((float)C610_POS_RANGE) / 2)	//反转过一圈
-			motor->posCtrl.relaPos += detaPos - C610_POS_RANGE;
-		else if (detaPos < ((float)-C610_POS_RANGE) / 2)	//正转过一圈
-			motor->posCtrl.relaPos += detaPos + C610_POS_RANGE;
-		else 
-			motor->posCtrl.relaPos += detaPos;
-	}
-	if (motor->escType == C620)
-	{
-		if (detaPos > ((float)C620_POS_RANGE) / 2)	//反转过一圈
-			motor->posCtrl.relaPos += detaPos - C620_POS_RANGE;
-		else if (detaPos < ((float)-C620_POS_RANGE) / 2)	//正转过一圈
-			motor->posCtrl.relaPos += detaPos + C620_POS_RANGE;
-		else 
-			motor->posCtrl.relaPos += detaPos;
-	}
 }
 
 /* USER CODE END 1 */

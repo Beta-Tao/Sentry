@@ -10,10 +10,6 @@
 #define LOADER_MOTOR_ACC		300
 #define	LOADER_MOTOR_DEC		300
 
-#define LOADER_STOP				0
-#define LOADER_RUN				1
-#define LOADER_JAM				2
-
 /* ×ÜÏßID */
 #define LM_ID					0x203
 

@@ -32,3 +32,8 @@ sentry_move\stm32f4xx_it.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_ua
 sentry_move\stm32f4xx_it.o: ../Inc/stm32f4xx_it.h
 sentry_move\stm32f4xx_it.o: ../Inc/Remote_Ctrl.h
 sentry_move\stm32f4xx_it.o: ../Inc/Remote_Decode.h
+sentry_move\stm32f4xx_it.o: ../Inc/Master_Comm.h
+sentry_move\stm32f4xx_it.o: ../Inc/macro.h
+sentry_move\stm32f4xx_it.o: ../Inc/Chassis_Ctrl.h
+sentry_move\stm32f4xx_it.o: ../Inc/Motor_Ctrl.h
+sentry_move\stm32f4xx_it.o: ../Inc/Loader_Ctrl.h

@@ -40,12 +40,14 @@
 #include "main.h"
 #include "stm32f4xx_hal.h"
 #include "can.h"
-#include "tim.h"
+#include "dma.h"
 #include "usart.h"
 #include "gpio.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "AHRS_Update.h"
+#include "Gimbal_Ctrl.h"
+#include "Master_Comm.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -84,23 +86,34 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+ 
   /* USER CODE END Init */
 
   /* Configure the system clock */
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+  
+	//USART6获取AHRS信息 DMA
+	//UART7调试接口
+	//UART8 上板通信
+	
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_CAN1_Init();
   MX_UART7_Init();
-  MX_TIM6_Init();
+  MX_USART6_UART_Init();
+  MX_UART8_Init();
   /* USER CODE BEGIN 2 */
-
+	Motor_InitFlag();
+	Comm_RevStart();
+	Gimbal_CtrlInit();
+	//AHRS_Data_Receive_Start();
+	
+	CANFilter_Init(&hcan1);				//开始控制电机
   /* USER CODE END 2 */
 
   /* Infinite loop */

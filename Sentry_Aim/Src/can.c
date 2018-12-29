@@ -44,6 +44,20 @@
 
 /* USER CODE BEGIN 0 */
 
+/* 用于CAN配置，CubeMX生成的版本偏前 */
+/*
+  hcan1.Init.SJW = CAN_SJW_1TQ;
+  hcan1.Init.BS1 = CAN_BS1_14TQ;
+  hcan1.Init.BS2 = CAN_BS2_6TQ;
+  hcan1.Init.TTCM = DISABLE;
+  hcan1.Init.ABOM = DISABLE;
+  hcan1.Init.AWUM = DISABLE;
+  hcan1.Init.NART = ENABLE;
+  hcan1.Init.RFLM = DISABLE;
+  hcan1.Init.TXFP = ENABLE;
+ */
+
+
 /* USER CODE END 0 */
 
 CAN_HandleTypeDef hcan1;
@@ -55,15 +69,15 @@ void MX_CAN1_Init(void)
   hcan1.Instance = CAN1;
   hcan1.Init.Prescaler = 2;
   hcan1.Init.Mode = CAN_MODE_NORMAL;
-  hcan1.Init.SyncJumpWidth = CAN_SJW_1TQ;
-  hcan1.Init.TimeSeg1 = CAN_BS1_14TQ;
-  hcan1.Init.TimeSeg2 = CAN_BS2_6TQ;
-  hcan1.Init.TimeTriggeredMode = DISABLE;
-  hcan1.Init.AutoBusOff = DISABLE;
-  hcan1.Init.AutoWakeUp = DISABLE;
-  hcan1.Init.AutoRetransmission = ENABLE;
-  hcan1.Init.ReceiveFifoLocked = DISABLE;
-  hcan1.Init.TransmitFifoPriority = ENABLE;
+  hcan1.Init.SJW = CAN_SJW_1TQ;
+  hcan1.Init.BS1 = CAN_BS1_14TQ;
+  hcan1.Init.BS2 = CAN_BS2_6TQ;
+  hcan1.Init.TTCM = DISABLE;
+  hcan1.Init.ABOM = DISABLE;
+  hcan1.Init.AWUM = DISABLE;
+  hcan1.Init.NART = ENABLE;
+  hcan1.Init.RFLM = DISABLE;
+  hcan1.Init.TXFP = ENABLE;
   if (HAL_CAN_Init(&hcan1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -98,7 +112,8 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
     HAL_NVIC_SetPriority(CAN1_RX0_IRQn, 2, 2);
     HAL_NVIC_EnableIRQ(CAN1_RX0_IRQn);
   /* USER CODE BEGIN CAN1_MspInit 1 */
-
+	
+	__HAL_CAN_ENABLE_IT(canHandle, CAN_IT_FMP0);
   /* USER CODE END CAN1_MspInit 1 */
   }
 }
@@ -129,6 +144,82 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
 } 
 
 /* USER CODE BEGIN 1 */
+
+/**
+  *	@brief	初始化CAN的过滤器
+  *	@param	hcan:	CAN_HandleTypeDef结构体的指针
+  *	@retval	None
+  */
+void CANFilter_Init(CAN_HandleTypeDef* hcan)
+{
+	static CanTxMsgTypeDef TxMessage;
+	static CanRxMsgTypeDef RxMessage;
+	
+	CAN_FilterConfTypeDef Canfilter;
+	Canfilter.FilterMode = CAN_FILTERMODE_IDMASK;
+	Canfilter.FilterScale = CAN_FILTERSCALE_32BIT;
+	
+	//filtrate any ID you want hereCanfilter.FilterIdHigh = 0x0000;
+	Canfilter.FilterIdLow = 0x0000;
+	Canfilter.FilterMaskIdHigh = 0x0000;
+	Canfilter.FilterMaskIdLow = 0x0000;
+	
+	Canfilter.FilterFIFOAssignment = CAN_FilterFIFO0;	//send the message to FIFO0
+	Canfilter.FilterActivation = ENABLE;
+	Canfilter.BankNumber = 14;
+	
+	Canfilter.FilterNumber = 0;
+	hcan->pTxMsg = &TxMessage;
+	hcan->pRxMsg = &RxMessage;
+	
+	//CAN1 and CAN2 have same filter
+	HAL_CAN_ConfigFilter(hcan, &Canfilter);
+}
+
+/**
+  *	@brief	从CAN线发送某个ID的信息，固定为RTR格式的数据帧
+  *	@param	hcan:	CAN_HandleTypeDef结构体指针，给pTxMsg中的参数赋值
+  *	@param	ID:		数据帧的ID值
+  *	@retval	1 发送成功
+  *			0 发送失败
+  */
+uint8_t CAN_SendMsg(CAN_HandleTypeDef* hcan, uint32_t ID)
+{
+	hcan->pTxMsg->StdId = ID;
+	hcan->pTxMsg->ExtId = ID;
+	hcan->pTxMsg->IDE = CAN_ID_STD;		//标准格式
+	hcan->pTxMsg->RTR = CAN_RTR_DATA;	//数据帧
+	hcan->pTxMsg->DLC = DLC_LEN;
+	
+	if(HAL_CAN_Transmit(hcan, 10) != HAL_OK)
+		return 0;
+	
+	return 1;
+}
+
+/**
+	*	@brief	转换发送给Motor的数据格式
+	*	@param	ID1Msg message sent to the ID1 C610
+	*	@param	ID2Msg message sent to the ID2 C610
+	*	@param	ID3Msg message sent to the ID3 C610
+	*	@param	ID4Msg message sent to the ID4 C610
+	*	@retval None
+	*/
+void CAN_MotorTxMsgConv(CAN_HandleTypeDef* hcan, int16_t ID1Msg, int16_t ID2Msg, 
+									   int16_t ID3Msg, int16_t ID4Msg)
+{
+	hcan->pTxMsg->Data[0] = (uint8_t)(ID1Msg >> 8);
+	hcan->pTxMsg->Data[1] = (uint8_t)ID1Msg;
+	
+	hcan->pTxMsg->Data[2] = (uint8_t)(ID2Msg >> 8);
+	hcan->pTxMsg->Data[3] = (uint8_t)ID2Msg;
+	
+	hcan->pTxMsg->Data[4] = (uint8_t)(ID3Msg >> 8);
+	hcan->pTxMsg->Data[5] = (uint8_t)ID3Msg;
+	
+	hcan->pTxMsg->Data[6] = (uint8_t)(ID4Msg >> 8);
+	hcan->pTxMsg->Data[7] = (uint8_t)ID4Msg;
+}
 
 /* USER CODE END 1 */
 

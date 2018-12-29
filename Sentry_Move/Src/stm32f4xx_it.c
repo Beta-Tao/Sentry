@@ -39,7 +39,9 @@
 
 #include "Remote_Ctrl.h"
 #include "Remote_Decode.h"
-
+#include "Master_Comm.h"
+#include "Chassis_Ctrl.h"
+#include "Loader_Ctrl.h"
 
 /* USER CODE END 0 */
 
@@ -233,6 +235,7 @@ void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
 	RemoteCtl_Data_Receive();
+	Comm_SendData();
   /* USER CODE END USART1_IRQn 0 */
   //HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */
@@ -255,6 +258,51 @@ void DMA2_Stream2_IRQHandler(void)
 }
 
 /* USER CODE BEGIN 1 */
+
+/**
+  *	@brief	receive callback function
+  *	@param	hcan pointer to a CAN_HandleTypeDef structure that contains
+  *         the configuration information for the specified CAN.
+  *	@retval	None
+  */
+void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
+{
+	//如果是CAN1
+	if (hcan == &hcan1)
+	{
+		if(hcan->pRxMsg->IDE == CAN_ID_STD && hcan->pRxMsg->RTR == CAN_RTR_DATA)
+		{
+			switch (hcan->pRxMsg->StdId)
+			{
+				/* CAN中提取位置和速度反馈，随后进行控制并发送 */
+				case CM_L_ID:			//底盘左轮电机
+					Motor_CanRxMsgConv(hcan, &CM_Left);
+					Chassis_MotorCtrl(&CM_Left);
+					Motor_CANSendMsg(hcan, FIRST_FOUR_ID, 
+									   CM_Left.velCtrl.output, CM_Right.velCtrl.output,
+									   LM.velCtrl.output, 0);
+					break;
+				case CM_R_ID:			//底盘右轮电机
+					Motor_CanRxMsgConv(hcan, &CM_Right);
+					Chassis_MotorCtrl(&CM_Right);
+					Motor_CANSendMsg(hcan, FIRST_FOUR_ID, 
+									   CM_Left.velCtrl.output, CM_Right.velCtrl.output,
+									   LM.velCtrl.output, 0);
+				case LM_ID:
+					Motor_CanRxMsgConv(hcan, &LM);
+					Loader_UpdateState(&LM);
+					Loader_MotorCtrl(&LM);
+					Motor_CANSendMsg(hcan, FIRST_FOUR_ID, 
+									   CM_Left.velCtrl.output, CM_Right.velCtrl.output,
+									   LM.velCtrl.output, 0);
+					break;
+				default:
+					break;
+			}
+		}
+		__HAL_CAN_ENABLE_IT(hcan, CAN_IT_FMP0);		//重新打开CAN中断
+	}
+}
 
 /* USER CODE END 1 */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

@@ -10,8 +10,7 @@
 
 uint8_t USART1_DMA_RX_BUF[BSP_USART1_DMA_RX_BUF_LEN];  //定义一个数组用于存放从DMA接收到的遥控器数据
 
-uint8_t g_AutoMode;		//自动模式标志位
-uint8_t g_ShootMode;	//发射及供弹模式标志位
+uint32_t rx_data_len = 0;
 
 /**
   * @brief	对应的遥控器解码函数
@@ -20,49 +19,41 @@ uint8_t g_ShootMode;	//发射及供弹模式标志位
   */
 void Remote_Process(void)
 {
-	if (isRevRemoteData == 0)	//遥控器没有打开的时候，底盘停止
-		g_AutoMode = SENTRY_STOP;
+	if (isRevRemoteData == 0)						//遥控器没有打开的时候，全部机构停止
+	{
+		g_MoveMode = SENTRY_STOP;
+		g_AimMode = SENTRY_STOP;
+	}
 	else													//否则根据开关状态改变运动模式
 	{
 		switch (RemoteCtrlData.remote.s1)
 		{
 			case RC_SW_UP:		//当s1在上时，为巡逻模式
-				g_AutoMode = SENTRY_DETECT;
+				g_MoveMode = SENTRY_DETECT;
 				break;
 			case RC_SW_MID:		//当s1在中时，为遥控模式
-				g_AutoMode = SENTRY_REMOTE;
+				g_MoveMode = SENTRY_REMOTE;
 				break;
 			case RC_SW_DOWN:	//当s1在下时，为躲避模式
-				g_AutoMode = SENTRY_DODGE;
+				g_MoveMode = SENTRY_DODGE;
 				break;
 		}
+		
+		switch (RemoteCtrlData.remote.s2)
+		{
+			case RC_SW_UP:							//当s2在上时，为追踪模式
+				g_AimMode = SENTRY_TRACE;
+				break;
+			case RC_SW_MID:							//当s2在中时，为遥控模式
+				g_AimMode = SENTRY_REMOTE;
+				break;
+			case RC_SW_DOWN:						//当s2在下时，为停止模式
+				g_AimMode = SENTRY_STOP;
+				break;
+		}
+		
 		isRevRemoteData = 0;	//处理完数据之后标志位置0，表示没有接受到数据
 	}
-	
-	switch (RemoteCtrlData.remote.s2)
-	{
-		case RC_SW_UP:							//当s2在上时，为停火模式
-			g_ShootMode = SENTRY_CEASE_FIRE;
-			break;
-		case RC_SW_MID:							//当s2在中时，为瞄准模式
-			g_ShootMode = SENTRY_CEASE_FIRE;
-			break;
-		case RC_SW_DOWN:						//当s2在下时，为开火模式
-			g_ShootMode = SENTRY_CEASE_FIRE;
-			break;
-	}
-}
-
-/**
-  * @brief	遥控器标志位初始化
-  * @note	内含遥控模式以及停火模式
-  * @param	None
-  * @retval	None
-  */
-void Remote_InitFlag(void)
-{
-	g_AutoMode = SENTRY_REMOTE;			//初始化为遥控模式
-	g_ShootMode = SENTRY_CEASE_FIRE;		//初始化为停火模式
 }
 
 /**
@@ -73,7 +64,7 @@ void Remote_InitFlag(void)
   */
 void RemoteCtl_Data_Receive(void)
 {
-	uint32_t rx_data_len = 0;															//本次接收长度
+	//uint32_t rx_data_len = 0;															//本次接收长度
 	isRevRemoteData = 1;																//接收到数据
 	if((__HAL_UART_GET_FLAG(&huart1,UART_FLAG_IDLE)!=RESET)) 
 	{

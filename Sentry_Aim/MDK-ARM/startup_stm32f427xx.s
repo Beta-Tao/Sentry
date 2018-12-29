@@ -1,15 +1,13 @@
 ;******************** (C) COPYRIGHT 2016 STMicroelectronics ********************
-;* File Name          : startup_stm32f429xx.s
+;* File Name          : startup_stm32f427xx.s
 ;* Author             : MCD Application Team
 ;* Version            : V2.5.1
 ;* Date               : 28-June-2016
-;* Description        : STM32F429x devices vector table for MDK-ARM toolchain. 
+;* Description        : STM32F427x devices vector table for MDK-ARM toolchain. 
 ;*                      This module performs:
 ;*                      - Set the initial SP
 ;*                      - Set the initial PC == Reset_Handler
 ;*                      - Set the vector table entries with the exceptions ISR address
-;*                      - Branches to __main in the C library (which eventually
-;*                        calls main()).
 ;*                      After Reset the CortexM4 processor is in Thread mode,
 ;*                      priority is Privileged, and the Stack is set to Main.
 ;* <<< Use Configuration Wizard in Context Menu >>>   
@@ -170,7 +168,7 @@ __Vectors       DCD     __initial_sp               ; Top of Stack
                 DCD     OTG_HS_WKUP_IRQHandler            ; USB OTG HS Wakeup through EXTI                         
                 DCD     OTG_HS_IRQHandler                 ; USB OTG HS                                      
                 DCD     DCMI_IRQHandler                   ; DCMI  
-                DCD     0                          ; Reserved				                              
+                DCD     0                                 ; Reserved				                              
                 DCD     HASH_RNG_IRQHandler               ; Hash and Rng
                 DCD     FPU_IRQHandler                    ; FPU
                 DCD     UART7_IRQHandler                  ; UART7
@@ -179,8 +177,8 @@ __Vectors       DCD     __initial_sp               ; Top of Stack
                 DCD     SPI5_IRQHandler                   ; SPI5
                 DCD     SPI6_IRQHandler                   ; SPI6
                 DCD     SAI1_IRQHandler                   ; SAI1
-                DCD     LTDC_IRQHandler                   ; LTDC
-                DCD     LTDC_ER_IRQHandler                ; LTDC error
+                DCD      0                                ; Reserved
+                DCD      0                                ; Reserved
                 DCD     DMA2D_IRQHandler                  ; DMA2D
                                          
 __Vectors_End
@@ -334,8 +332,6 @@ Default_Handler PROC
                 EXPORT  SPI5_IRQHandler                   [WEAK]
                 EXPORT  SPI6_IRQHandler                   [WEAK]
                 EXPORT  SAI1_IRQHandler                   [WEAK]
-                EXPORT  LTDC_IRQHandler                   [WEAK]
-                EXPORT  LTDC_ER_IRQHandler                [WEAK]
                 EXPORT  DMA2D_IRQHandler                  [WEAK]
 
 WWDG_IRQHandler                                                       
@@ -424,9 +420,7 @@ UART8_IRQHandler
 SPI4_IRQHandler                   
 SPI5_IRQHandler                   
 SPI6_IRQHandler                   
-SAI1_IRQHandler                   
-LTDC_IRQHandler                   
-LTDC_ER_IRQHandler                 
+SAI1_IRQHandler                                 
 DMA2D_IRQHandler                  
                 B       .
 

@@ -50,7 +50,7 @@ typedef struct
 }RemoteCtrl_t;
 
 extern RemoteCtrl_t RemoteCtrlData;
-extern int8_t isRevRemoteData;
+extern uint8_t isRevRemoteData;
 void RC_DataHandle(uint8_t *pData);
 
 #endif

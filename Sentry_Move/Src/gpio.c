@@ -66,11 +66,11 @@ void MX_GPIO_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct;
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
-  __HAL_RCC_GPIOE_CLK_ENABLE();
 
   /*Configure GPIO pin : PA0 */
   GPIO_InitStruct.Pin = GPIO_PIN_0;
@@ -90,13 +90,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
 	if (GPIO_Pin == GPIO_PIN_0)
 	{
-		if (g_AutoMode == SENTRY_DETECT || 
-			g_AutoMode == SENTRY_DODGE)		//如果是巡逻模式或者躲避模式则巡逻速度反向
+		if (g_MoveMode == SENTRY_DETECT || 
+			g_MoveMode == SENTRY_DODGE)		//如果是巡逻模式或者躲避模式则巡逻速度反向
 		{
 			chassisDir = -chassisDir;
 			return;
 		}
-		if (g_AutoMode == SENTRY_REMOTE)		//遥控模式则不做处理
+		if (g_MoveMode == SENTRY_REMOTE)		//遥控模式则不做处理
 		{
 			return;
 		}

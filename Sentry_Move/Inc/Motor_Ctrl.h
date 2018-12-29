@@ -2,6 +2,7 @@
 #define _MOTOR_CTRL_H_
 
 #include "main.h"
+#include "macro.h"
 #include "stm32f4xx.h"
 
 /* 电调控制参数 */
@@ -19,20 +20,6 @@
 
 #define POS_CTRL_UNREADY		0u
 #define POS_CTRL_READY			1u
-
-/* 模式常量 */
-#define SENTRY_DETECT_VEL			4000
-
-/* 移动模式flag */
-#define SENTRY_REMOTE				0u
-#define SENTRY_DETECT				1u
-#define SENTRY_DODGE				2u
-#define SENTRY_STOP					3u
-
-/* 发射模式flag */
-#define SENTRY_CEASE_FIRE			0u
-#define SENTRY_AIM					1u
-#define SENTRY_OPEN_FIRE			2u
 
 /* CAN通讯ID */
 #define FIRST_FOUR_ID				0x200
@@ -109,6 +96,13 @@ typedef struct
 	PosCtrl_t posCtrl;
 }Motor_t;
 
+extern uint8_t g_AimMode;					//瞄准模式，控制云台
+extern uint8_t g_MoveMode;					//移动模式，控制底盘
+extern uint8_t g_LoadMode;					//供弹模式，控制拨盘
+extern uint8_t g_ShootMode;					//发射模式，控制摩擦轮
+
+void Motor_InitFlag(void);
+
 void Motor_SetVel(VelCtrl_t *vel_t, float vel);
 
 void Motor_SetPos(PosCtrl_t *pos_t, float pos);
@@ -125,8 +119,10 @@ void Motor_PosCtrl(PosCtrl_t *pos_t);
 
 void Motor_VelCtrl(VelCtrl_t *vel_t);
 
-void CtrlDebug(float data1, float data2, float data3, float data4, 
-				float data5, float data6, float data7, float data8, 
-				float data9, float data10);
+void Motor_CanRxMsgConv(CAN_HandleTypeDef *hcan, Motor_t *motor);
+
+
+void Motor_CANSendMsg(CAN_HandleTypeDef* hcan, uint32_t num,
+					int16_t ID1Msg, int16_t ID2Msg, int16_t ID3Msg, int16_t ID4Msg);
 
 #endif

@@ -1,4 +1,6 @@
 #include "DataScope_DP.h"
+#include "stdarg.h"
+#include "usart.h"
  
 unsigned char DataScope_OutPut_Buffer[42] = {0};	   //串口发送缓冲区
 
@@ -17,8 +19,7 @@ void Float2Byte(float *target,unsigned char *buf,unsigned char beg)
     buf[beg+2] = point[2];
     buf[beg+3] = point[3];
 }
- 
- 
+
 //函数说明：将待发送通道的单精度浮点数据写入发送缓冲区
 //Data：通道数据
 //Channel：选择通道（1-10）
@@ -90,4 +91,26 @@ unsigned char DataScope_Data_Generate(unsigned char Channel_Number)
    }	 
   }
 	return 0;
+}
+
+void DataScope_Debug(uint8_t dataNum, ...)
+{
+	uint8_t i;
+	unsigned char Send_Count;
+	
+	va_list ap;
+	va_start(ap, dataNum);
+	
+	for (i = 1; i <= dataNum; i++)
+	{
+		DataScope_Get_Channel_Data(va_arg(ap, double), i);
+	}
+	va_end(ap);
+	
+	Send_Count = DataScope_Data_Generate(dataNum);
+	
+	for(i = 0 ; i < Send_Count; i++)  //循环发送,直到发送完毕  
+	{
+		HAL_UART_Transmit(&huart7, DataScope_OutPut_Buffer + i, 1, 50);
+	}
 }

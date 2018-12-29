@@ -33,3 +33,4 @@ sentry_move\gpio.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
 sentry_move\gpio.o: ../Inc/Remote_Ctrl.h
 sentry_move\gpio.o: ../Inc/Chassis_Ctrl.h
 sentry_move\gpio.o: ../Inc/Motor_Ctrl.h
+sentry_move\gpio.o: ../Inc/macro.h
