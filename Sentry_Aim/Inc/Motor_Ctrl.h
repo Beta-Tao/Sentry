@@ -68,9 +68,9 @@ typedef struct
 /* 电机位置控制结构体 */
 typedef struct
 {
-	float refPos;		//位置期望是相对位置
-	float relaPos;		//相对位移
+	float refAbsPos;	//期望绝对位置
 	
+	float absPos;		//绝对位置
 	float rawPos;		//当前位置
 	float rawPosLast;	//上一次的位置
 	

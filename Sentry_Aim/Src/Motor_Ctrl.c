@@ -50,8 +50,7 @@ void Motor_PosCtrlInit(Motor_t *motor, float acc,
 					   float kp, float ki, float kd,
 					   float outputMin, float outputMax)
 {
-	motor->posCtrl.refPos = 0;
-	motor->posCtrl.relaPos = 0;
+	motor->posCtrl.refAbsPos = 0;
 	
 	motor->posCtrl.acc = acc;		//位置环加速度和速度环减速加速度一致
 	
@@ -91,8 +90,7 @@ void Motor_SetVel(VelCtrl_t *vel_t, float vel)
   */
 void Motor_SetPos(PosCtrl_t *pos_t, float pos)
 {
-	pos_t->refPos = pos;
-	pos_t->posReady = POS_CTRL_UNREADY;
+	pos_t->refAbsPos = pos;
 	return;
 }
 
@@ -104,81 +102,55 @@ void Motor_SetPos(PosCtrl_t *pos_t, float pos)
   */
 void Motor_PosCtrl(PosCtrl_t *pos_t)
 {
-	float diff;
-	float refVel;
-	float sign = 1.0f;
-	static uint8_t readyCount = 0;				//设置计数避免误判
+	float diff, detaPos;					//相对位置缓存
 	
-	switch (pos_t->posReady)
-	{
-		case POS_CTRL_READY:					//到达预定位置
-		{
-			/* 重置参数 */
-			pos_t->refPos = 0;
-			pos_t->relaPos = pos_t->refPos;
-			pos_t->err = 0;
-			pos_t->errLast = 0;
-			pos_t->integ = 0;
-			pos_t->output = 0;
-			pos_t->posReady = POS_CTRL_READY;
-			break;
-		}
-		case POS_CTRL_UNREADY:					//没有到达预定位置
-		{
-			/* 计算误差值，err保存当前的误差，errLast保存上一次的误差 */
-			pos_t->errLast = pos_t->err;
-			pos_t->err = pos_t->refPos - pos_t->relaPos;
-		
-			/* 判断是否已经完成位置闭环 */
-			if (pos_t->err > -20 && pos_t->err < 20)		//已经完成
-			{
-				readyCount++;
-				if (readyCount == 10)					//到达预定位置
-				{
-					readyCount = 0;						//重置计数值
-					pos_t->posReady = POS_CTRL_READY;
-					return;
-				}
-			}
-			else										//没有完成，继续位置闭环
-			{
-				readyCount = 0;
-			
-				/* 保证当前的控制极性 */
-				if (pos_t->err < 0.0f)
-					sign = -1.0f;
-				
-				/* 计算积分值，注意末尾积分限幅 */
-				pos_t->integ += pos_t->err;
-				if(pos_t->integ >= 10000)
-					pos_t->integ = 10000;
-				if(pos_t->integ <= -10000)
-					pos_t->integ = -10000;
-				
-				diff = pos_t->err - pos_t->errLast;	//计算误差变化率
-				
-				/* 绝对式方法计算PID输出 */
-				pos_t->output = pos_t->kp * pos_t->err + pos_t->ki * pos_t->integ + pos_t->kd * diff;
-				//PID->output = kp * PID->err[0] + ki * PID->integ + kd * PID->diff;
-				
-				/* 用固定加速度逼近终值， 0.8为积分裕量，用来削减积分值和实际值之间的偏差 */
-				refVel = sign * __sqrtf(2.0f * 0.8f * pos_t->acc * sign * pos_t->err);
-				
-				/* 如果接近终值则切换成PID控制 */
-				if (fabsf(refVel) < fabsf(pos_t->output))
-					pos_t->output = refVel;
-				
-				/* 输出限幅 */
-				if(pos_t->output >= pos_t->outputMax)
-					pos_t->output = pos_t->outputMax;
-				if(pos_t->output <= pos_t->outputMin)
-					pos_t->output = pos_t->outputMin;
-			}
-			break;
-		}
-		default:
-			break;
-	}
+	/* 求出相位转角 */
+	detaPos = pos_t->rawPos - pos_t->rawPosLast;
+	
+	/* 缓存上次数据 */
+	pos_t->rawPosLast = pos_t->rawPos;
+	
+	if (detaPos > 180)	//反转过一圈
+		pos_t->absPos += detaPos - 360;
+	else if (detaPos < -180)	//正转过一圈
+		pos_t->absPos += detaPos + 360;
+	else
+		pos_t->absPos += detaPos;
+	
+	/* 计算误差值，err保存当前的误差，errLast保存上一次的误差 */
+	pos_t->errLast = pos_t->err;
+	
+	pos_t->err = pos_t->refAbsPos - pos_t->absPos;
+
+	/* 保证当前的控制极性 */
+	//if (pos_t->err < 0.0f)
+		//sign = -1.0f;
+	
+	/* 计算积分值，注意末尾积分限幅 */
+	pos_t->integ += pos_t->err;
+	if(pos_t->integ >= 10000)
+		pos_t->integ = 10000;
+	if(pos_t->integ <= -10000)
+		pos_t->integ = -10000;
+	
+	diff = pos_t->err - pos_t->errLast;	//计算误差变化率
+	
+	/* 绝对式方法计算PID输出 */
+	pos_t->output = pos_t->kp * pos_t->err + pos_t->ki * pos_t->integ + pos_t->kd * diff;
+	//PID->output = kp * PID->err[0] + ki * PID->integ + kd * PID->diff;
+	
+	/* 用固定加速度逼近终值， 0.8为积分裕量，用来削减积分值和实际值之间的偏差 */
+	//refVel = sign * __sqrtf(2.0f * 0.8f * pos_t->acc * sign * pos_t->err);
+	
+	/* 如果接近终值则切换成PID控制 */
+	//if (fabsf(refVel) < fabsf(pos_t->output))
+		//pos_t->output = refVel;
+	
+	/* 输出限幅 */
+	if(pos_t->output >= pos_t->outputMax)
+		pos_t->output = pos_t->outputMax;
+	if(pos_t->output <= pos_t->outputMin)
+		pos_t->output = pos_t->outputMin;
 }
 
 /**
@@ -200,6 +172,7 @@ void Motor_VelCtrl(VelCtrl_t *vel_t)
 		vel_t->refVel_Soft = vel_t->refVel;
 	
 	/* 速度PID */
+	vel_t->errLast = vel_t->err;
 	vel_t->err = vel_t->refVel_Soft - vel_t->rawVel;		//使用vel_t->refVel_Soft作为速度期望
 	diff = vel_t->err - vel_t->errLast;
 	vel_t->integ += vel_t->err;
@@ -227,32 +200,10 @@ void Motor_VelCtrl(VelCtrl_t *vel_t)
   */
 void Motor_CanRxMsgConv(CAN_HandleTypeDef *hcan, Motor_t *motor)
 {
-	float detaPos;
 	motor->posCtrl.rawPosLast = motor->posCtrl.rawPos;
 	motor->posCtrl.rawPos = (int16_t)(hcan->pRxMsg->Data[0] << 8 | hcan->pRxMsg->Data[1]);
 	
 	motor->velCtrl.rawVel = (int16_t)(hcan->pRxMsg->Data[2] << 8 | hcan->pRxMsg->Data[3]);
-	
-	detaPos = motor->posCtrl.rawPos - motor->posCtrl.rawPosLast;
-	
-	if (motor->escType == C610)
-	{
-		if (detaPos > ((float)C610_POS_RANGE) / 2)	//反转过一圈
-			motor->posCtrl.relaPos += detaPos - C610_POS_RANGE;
-		else if (detaPos < ((float)-C610_POS_RANGE) / 2)	//正转过一圈
-			motor->posCtrl.relaPos += detaPos + C610_POS_RANGE;
-		else
-			motor->posCtrl.relaPos += detaPos;
-	}
-	if (motor->escType == C620)
-	{
-		if (detaPos > ((float)C620_POS_RANGE) / 2)	//反转过一圈
-			motor->posCtrl.relaPos += detaPos - C620_POS_RANGE;
-		else if (detaPos < ((float)-C620_POS_RANGE) / 2)	//正转过一圈
-			motor->posCtrl.relaPos += detaPos + C620_POS_RANGE;
-		else
-			motor->posCtrl.relaPos += detaPos;
-	}
 }
 
 void Motor_CANSendMsg(CAN_HandleTypeDef* hcan, uint32_t num, 

@@ -109,11 +109,13 @@ int main(void)
   MX_UART8_Init();
   /* USER CODE BEGIN 2 */
 	Motor_InitFlag();
-	Comm_RevStart();
 	Gimbal_CtrlInit();
-	//AHRS_Data_Receive_Start();
-	
 	CANFilter_Init(&hcan1);				//开始控制电机
+	
+	Comm_RevStart();
+	
+	HAL_Delay(8000);					//延时1s等待上述初始化及IMU校准完成
+	AHRS_Data_Receive_Start();
   /* USER CODE END 2 */
 
   /* Infinite loop */

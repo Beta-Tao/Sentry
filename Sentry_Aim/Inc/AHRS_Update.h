@@ -19,6 +19,12 @@ typedef struct
 	float rawAccY;
 	
 	float rawAccZ;
+	
+	float rawVelX;
+	
+	float rawVelY;
+	
+	float rawVelZ;
 
 	float rawMagX;
 	
@@ -49,8 +55,6 @@ void AHRS_Init(void);
 void AHRS_Data_Receive_Start(void);
 
 void AHRS_RevData(void);
-
-void AHRS_UpdateRef(void);
 
 void AHRS_Decode(uint8_t *pData);
 

@@ -41,6 +41,7 @@
 #include "Gimbal_Ctrl.h"
 #include "DataScope_DP.h"
 #include "Master_Comm.h"
+#include "AHRS_Update.h"
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -249,8 +250,11 @@ void USART6_IRQHandler(void)
 {
   /* USER CODE BEGIN USART6_IRQn 0 */
 	AHRS_RevData();
-	//Gimbal_MotorCtrl();
-	//Motor_CANSendMsg(&hcan1, FIRST_FOUR_ID, GM_Yaw.velCtrl.output, GM_Pitch.velCtrl.output, 0, 0);
+	Gimbal_UpdateRawValue();		//更新真实数据
+	Gimbal_MotorCtrl(&GM_Yaw);		//更新期望值
+	Gimbal_MotorCtrl(&GM_Pitch);
+	Motor_CANSendMsg(&hcan1, FIRST_FOUR_ID, 
+									GM_Yaw.velCtrl.output, -GM_Pitch.velCtrl.output, 0, 0);
   /* USER CODE END USART6_IRQn 0 */
   //HAL_UART_IRQHandler(&huart6);
   /* USER CODE BEGIN USART6_IRQn 1 */
@@ -284,16 +288,18 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 		{
 			switch (hcan->pRxMsg->StdId)
 			{
-				case GM_YAW_ID:
+				/*case GM_YAW_ID:
 					Motor_CanRxMsgConv(hcan, &GM_Yaw);
 					Gimbal_MotorCtrl(&GM_Yaw);
 					Motor_CANSendMsg(hcan, FIRST_FOUR_ID, 
 									GM_Yaw.velCtrl.output, GM_Pitch.velCtrl.output, 0, 0);
+					break;
 				case GM_PITCH_ID:
 					Motor_CanRxMsgConv(hcan, &GM_Pitch);
 					Gimbal_MotorCtrl(&GM_Pitch);
 					Motor_CANSendMsg(hcan, FIRST_FOUR_ID, 
 									GM_Yaw.velCtrl.output, GM_Pitch.velCtrl.output, 0, 0);
+					break;*/
 				default:
 					break;
 			}
@@ -302,8 +308,8 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 		revCount++;
 		if (revCount == 30)
 		{
-			DataScope_Debug(4, GM_Yaw.velCtrl.rawVel, GM_Yaw.velCtrl.refVel, 
-								GM_Pitch.velCtrl.rawVel, GM_Pitch.velCtrl.refVel);
+			DataScope_Debug(2, 
+			GM_Yaw.posCtrl.refAbsPos, GM_Yaw.posCtrl.absPos);
 			revCount = 0;
 		}
 		

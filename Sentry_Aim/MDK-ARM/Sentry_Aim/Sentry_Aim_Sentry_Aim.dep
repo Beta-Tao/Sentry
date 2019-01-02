@@ -1,6 +1,6 @@
 Dependencies for Project 'Sentry_Aim', Target 'Sentry_Aim': (DO NOT MODIFY !)
 F (startup_stm32f427xx.s)(0x5C0B3986)(--cpu Cortex-M4.fp -g --apcs=interwork --pd "__MICROLIB SETA 1"-I.\RTE\_Sentry_Aim-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include--pd "__UVISION_VERSION SETA 525" --pd "_RTE_ SETA 1" --pd "STM32F427xx SETA 1"--list startup_stm32f427xx.lst --xref -o sentry_aim\startup_stm32f427xx.o --depend sentry_aim\startup_stm32f427xx.d)
-F (../Src/main.c)(0x5C26CCFC)(--c99 -c --cpu Cortex-M4.fp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include-I.\RTE\_Sentry_Aim-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="525" -D_RTE_ -DSTM32F427xx -DUSE_HAL_DRIVER -DSTM32F427xx-o sentry_aim\main.o --omf_browse sentry_aim\main.crf --depend sentry_aim\main.d)
+F (../Src/main.c)(0x5C2AD44F)(--c99 -c --cpu Cortex-M4.fp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include-I.\RTE\_Sentry_Aim-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="525" -D_RTE_ -DSTM32F427xx -DUSE_HAL_DRIVER -DSTM32F427xx-o sentry_aim\main.o --omf_browse sentry_aim\main.crf --depend sentry_aim\main.d)
 I (../Inc/main.h)(0x5C262EFC)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x57714E12)
 I (../Inc/stm32f4xx_hal_conf.h)(0x5C262EFC)
@@ -34,9 +34,9 @@ I (../Inc/can.h)(0x5C262EFB)
 I (../Inc/dma.h)(0x5C262EFC)
 I (../Inc/usart.h)(0x5C262EFC)
 I (../Inc/gpio.h)(0x5C262EFB)
-I (../Inc/AHRS_Update.h)(0x5C232B93)
-I (../Inc/Gimbal_Ctrl.h)(0x5C26DD10)
-I (../Inc/Motor_Ctrl.h)(0x5C231A5D)
+I (../Inc/AHRS_Update.h)(0x5C29CB48)
+I (../Inc/Gimbal_Ctrl.h)(0x5C2B23CA)
+I (../Inc/Motor_Ctrl.h)(0x5C2B09B8)
 I (../Inc/macro.h)(0x5C231A42)
 I (../Inc/DataScope_DP.h)(0x5C110F4B)
 I (../Inc/Master_Comm.h)(0x5C26CAF9)
@@ -136,7 +136,7 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h)(0x57714E12)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h)(0x57714E12)
 I (../Inc/gpio.h)(0x5C262EFB)
 I (../Inc/dma.h)(0x5C262EFC)
-F (../Src/stm32f4xx_it.c)(0x5C26F29C)(--c99 -c --cpu Cortex-M4.fp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include-I.\RTE\_Sentry_Aim-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="525" -D_RTE_ -DSTM32F427xx -DUSE_HAL_DRIVER -DSTM32F427xx-o sentry_aim\stm32f4xx_it.o --omf_browse sentry_aim\stm32f4xx_it.crf --depend sentry_aim\stm32f4xx_it.d)
+F (../Src/stm32f4xx_it.c)(0x5C2B23E7)(--c99 -c --cpu Cortex-M4.fp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include-I.\RTE\_Sentry_Aim-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="525" -D_RTE_ -DSTM32F427xx -DUSE_HAL_DRIVER -DSTM32F427xx-o sentry_aim\stm32f4xx_it.o --omf_browse sentry_aim\stm32f4xx_it.crf --depend sentry_aim\stm32f4xx_it.d)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x57714E12)
 I (../Inc/stm32f4xx_hal_conf.h)(0x5C262EFC)
 I (../Inc/main.h)(0x5C262EFC)
@@ -167,10 +167,10 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h)(0x57714E12)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h)(0x57714E12)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h)(0x57714E12)
 I (../Inc/stm32f4xx_it.h)(0x5C262EFC)
-I (../Inc/AHRS_Update.h)(0x5C232B93)
+I (../Inc/AHRS_Update.h)(0x5C29CB48)
 I (../Inc/can.h)(0x5C262EFB)
-I (../Inc/Gimbal_Ctrl.h)(0x5C26DD10)
-I (../Inc/Motor_Ctrl.h)(0x5C231A5D)
+I (../Inc/Gimbal_Ctrl.h)(0x5C2B23CA)
+I (../Inc/Motor_Ctrl.h)(0x5C2B09B8)
 I (../Inc/macro.h)(0x5C231A42)
 I (../Inc/DataScope_DP.h)(0x5C110F4B)
 I (../Inc/Master_Comm.h)(0x5C26CAF9)
@@ -204,7 +204,7 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ramfunc.h)(0x57714E12
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h)(0x57714E12)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h)(0x57714E12)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h)(0x57714E12)
-F (..\Src\DataScope_DP.C)(0x5C1112D4)(--c99 -c --cpu Cortex-M4.fp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include-I.\RTE\_Sentry_Aim-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="525" -D_RTE_ -DSTM32F427xx -DUSE_HAL_DRIVER -DSTM32F427xx-o sentry_aim\datascope_dp.o --omf_browse sentry_aim\datascope_dp.crf --depend sentry_aim\datascope_dp.d)
+F (..\Src\DataScope_DP.C)(0x5C291B8E)(--c99 -c --cpu Cortex-M4.fp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include-I.\RTE\_Sentry_Aim-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="525" -D_RTE_ -DSTM32F427xx -DUSE_HAL_DRIVER -DSTM32F427xx-o sentry_aim\datascope_dp.o --omf_browse sentry_aim\datascope_dp.crf --depend sentry_aim\datascope_dp.d)
 I (../Inc/DataScope_DP.h)(0x5C110F4B)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x57714E12)
 I (../Inc/stm32f4xx_hal_conf.h)(0x5C262EFC)
@@ -268,8 +268,8 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ramfunc.h)(0x57714E12
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h)(0x57714E12)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h)(0x57714E12)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h)(0x57714E12)
-F (..\Src\AHRS_Update.c)(0x5C262362)(--c99 -c --cpu Cortex-M4.fp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include-I.\RTE\_Sentry_Aim-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="525" -D_RTE_ -DSTM32F427xx -DUSE_HAL_DRIVER -DSTM32F427xx-o sentry_aim\ahrs_update.o --omf_browse sentry_aim\ahrs_update.crf --depend sentry_aim\ahrs_update.d)
-I (../Inc/AHRS_Update.h)(0x5C232B93)
+F (..\Src\AHRS_Update.c)(0x5C29CB1F)(--c99 -c --cpu Cortex-M4.fp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include-I.\RTE\_Sentry_Aim-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="525" -D_RTE_ -DSTM32F427xx -DUSE_HAL_DRIVER -DSTM32F427xx-o sentry_aim\ahrs_update.o --omf_browse sentry_aim\ahrs_update.crf --depend sentry_aim\ahrs_update.d)
+I (../Inc/AHRS_Update.h)(0x5C29CB48)
 I (../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h)(0x577291DE)
 I (../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f427xx.h)(0x577291DE)
 I (../Drivers/CMSIS/Include/core_cm4.h)(0x577127D5)
@@ -303,7 +303,7 @@ I (../Inc/usart.h)(0x5C262EFC)
 I (../Inc/DataScope_DP.h)(0x5C110F4B)
 I (../Inc/Remote_Decode.h)(0x5C109B6E)
 I (../Inc/Remote_Ctrl.h)(0x5BE3F36C)
-F (..\Src\Master_Comm.c)(0x5C26CB61)(--c99 -c --cpu Cortex-M4.fp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include-I.\RTE\_Sentry_Aim-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="525" -D_RTE_ -DSTM32F427xx -DUSE_HAL_DRIVER -DSTM32F427xx-o sentry_aim\master_comm.o --omf_browse sentry_aim\master_comm.crf --depend sentry_aim\master_comm.d)
+F (..\Src\Master_Comm.c)(0x5C2B25A6)(--c99 -c --cpu Cortex-M4.fp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include-I.\RTE\_Sentry_Aim-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="525" -D_RTE_ -DSTM32F427xx -DUSE_HAL_DRIVER -DSTM32F427xx-o sentry_aim\master_comm.o --omf_browse sentry_aim\master_comm.crf --depend sentry_aim\master_comm.d)
 I (../Inc/Master_Comm.h)(0x5C26CAF9)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x57714E12)
 I (../Inc/stm32f4xx_hal_conf.h)(0x5C262EFC)
@@ -336,10 +336,10 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h)(0x57714E12)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h)(0x57714E12)
 I (../Inc/macro.h)(0x5C231A42)
 I (../Inc/usart.h)(0x5C262EFC)
-I (../Inc/Motor_Ctrl.h)(0x5C231A5D)
+I (../Inc/Motor_Ctrl.h)(0x5C2B09B8)
 I (../Inc/can.h)(0x5C262EFB)
 I (../Inc/DataScope_DP.h)(0x5C110F4B)
-I (../Inc/AHRS_Update.h)(0x5C232B93)
+I (../Inc/AHRS_Update.h)(0x5C29CB48)
 I (F:\Keil_v5\ARM\ARMCC\include\string.h)(0x599ECD2C)
 F (../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_can.c)(0x57714E07)(--c99 -c --cpu Cortex-M4.fp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include-I.\RTE\_Sentry_Aim-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="525" -D_RTE_ -DSTM32F427xx -DUSE_HAL_DRIVER -DSTM32F427xx-o sentry_aim\stm32f4xx_hal_can.o --omf_browse sentry_aim\stm32f4xx_hal_can.crf --depend sentry_aim\stm32f4xx_hal_can.d)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x57714E12)
@@ -431,7 +431,7 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ramfunc.h)(0x57714E12
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h)(0x57714E12)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h)(0x57714E12)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h)(0x57714E12)
-F (../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c)(0x57714E08)(--c99 -c --cpu Cortex-M4.fp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include-I.\RTE\_Sentry_Aim-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="525" -D_RTE_ -DSTM32F427xx -DUSE_HAL_DRIVER -DSTM32F427xx-o sentry_aim\stm32f4xx_hal_uart.o --omf_browse sentry_aim\stm32f4xx_hal_uart.crf --depend sentry_aim\stm32f4xx_hal_uart.d)
+F (../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c)(0x5C29BEED)(--c99 -c --cpu Cortex-M4.fp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include-I.\RTE\_Sentry_Aim-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="525" -D_RTE_ -DSTM32F427xx -DUSE_HAL_DRIVER -DSTM32F427xx-o sentry_aim\stm32f4xx_hal_uart.o --omf_browse sentry_aim\stm32f4xx_hal_uart.crf --depend sentry_aim\stm32f4xx_hal_uart.d)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x57714E12)
 I (../Inc/stm32f4xx_hal_conf.h)(0x5C262EFC)
 I (../Inc/main.h)(0x5C262EFC)
@@ -851,8 +851,8 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ramfunc.h)(0x57714E12
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h)(0x57714E12)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h)(0x57714E12)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h)(0x57714E12)
-F (..\Src\Motor_Ctrl.c)(0x5C24D074)(--c99 -c --cpu Cortex-M4.fp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include-I.\RTE\_Sentry_Aim-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="525" -D_RTE_ -DSTM32F427xx -DUSE_HAL_DRIVER -DSTM32F427xx-o sentry_aim\motor_ctrl.o --omf_browse sentry_aim\motor_ctrl.crf --depend sentry_aim\motor_ctrl.d)
-I (../Inc/Motor_Ctrl.h)(0x5C231A5D)
+F (..\Src\Motor_Ctrl.c)(0x5C2B0D5B)(--c99 -c --cpu Cortex-M4.fp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include-I.\RTE\_Sentry_Aim-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="525" -D_RTE_ -DSTM32F427xx -DUSE_HAL_DRIVER -DSTM32F427xx-o sentry_aim\motor_ctrl.o --omf_browse sentry_aim\motor_ctrl.crf --depend sentry_aim\motor_ctrl.d)
+I (../Inc/Motor_Ctrl.h)(0x5C2B09B8)
 I (../Inc/main.h)(0x5C262EFC)
 I (../Inc/macro.h)(0x5C231A42)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x57714E12)
@@ -886,9 +886,9 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h)(0x57714E12)
 I (../Inc/can.h)(0x5C262EFB)
 I (../Inc/DataScope_DP.h)(0x5C110F4B)
 I (F:\Keil_v5\ARM\ARMCC\include\math.h)(0x599ECD2E)
-F (..\Src\Gimbal_Ctrl.c)(0x5C26F19F)(--c99 -c --cpu Cortex-M4.fp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include-I.\RTE\_Sentry_Aim-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="525" -D_RTE_ -DSTM32F427xx -DUSE_HAL_DRIVER -DSTM32F427xx-o sentry_aim\gimbal_ctrl.o --omf_browse sentry_aim\gimbal_ctrl.crf --depend sentry_aim\gimbal_ctrl.d)
-I (../Inc/Gimbal_Ctrl.h)(0x5C26DD10)
-I (../Inc/Motor_Ctrl.h)(0x5C231A5D)
+F (..\Src\Gimbal_Ctrl.c)(0x5C2B256D)(--c99 -c --cpu Cortex-M4.fp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ../Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include-I.\RTE\_Sentry_Aim-IF:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include-IF:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="525" -D_RTE_ -DSTM32F427xx -DUSE_HAL_DRIVER -DSTM32F427xx-o sentry_aim\gimbal_ctrl.o --omf_browse sentry_aim\gimbal_ctrl.crf --depend sentry_aim\gimbal_ctrl.d)
+I (../Inc/Gimbal_Ctrl.h)(0x5C2B23CA)
+I (../Inc/Motor_Ctrl.h)(0x5C2B09B8)
 I (../Inc/main.h)(0x5C262EFC)
 I (../Inc/macro.h)(0x5C231A42)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x57714E12)
@@ -921,4 +921,4 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h)(0x57714E12)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h)(0x57714E12)
 I (../Inc/can.h)(0x5C262EFB)
 I (../Inc/DataScope_DP.h)(0x5C110F4B)
-I (../Inc/AHRS_Update.h)(0x5C232B93)
+I (../Inc/AHRS_Update.h)(0x5C29CB48)

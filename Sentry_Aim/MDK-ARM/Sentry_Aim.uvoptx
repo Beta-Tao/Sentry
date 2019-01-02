@@ -120,7 +120,7 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGUARM</Key>
-          <Name>?</Name>
+          <Name>h鰶</Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -158,35 +158,30 @@
         <Ww>
           <count>0</count>
           <WinNumber>1</WinNumber>
-          <ItemText>Gimbal_t,0x0A</ItemText>
+          <ItemText>g_AimMode,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_AimMode,0x0A</ItemText>
+          <ItemText>g_LoadMode,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_LoadMode,0x0A</ItemText>
+          <ItemText>g_ShootMode,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>g_ShootMode,0x0A</ItemText>
+          <ItemText>isRevData,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>isRevData,0x0A</ItemText>
+          <ItemText>USART6_DMA_RX_BUF</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>UART8_DMA_RX_BUF,0x10</ItemText>
-        </Ww>
-        <Ww>
-          <count>6</count>
           <WinNumber>1</WinNumber>
           <ItemText>rx_data_len,0x0A</ItemText>
         </Ww>
@@ -195,22 +190,22 @@
         <Ww>
           <count>0</count>
           <WinNumber>2</WinNumber>
-          <ItemText>hdma_uart8_rx,0x0A</ItemText>
+          <ItemText>g_AimMode,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>1</count>
           <WinNumber>2</WinNumber>
-          <ItemText>GM_Yaw</ItemText>
+          <ItemText>Gimbal_t</ItemText>
         </Ww>
         <Ww>
           <count>2</count>
           <WinNumber>2</WinNumber>
-          <ItemText>refVel</ItemText>
+          <ItemText>GM_Yaw</ItemText>
         </Ww>
         <Ww>
           <count>3</count>
           <WinNumber>2</WinNumber>
-          <ItemText>GM_Pitch,0x0A</ItemText>
+          <ItemText>GM_Pitch</ItemText>
         </Ww>
       </WatchWindow2>
       <Tracepoint>
@@ -642,7 +637,7 @@
       <GroupNumber>5</GroupNumber>
       <FileNumber>29</FileNumber>
       <FileType>1</FileType>
-      <tvExp>0</tvExp>
+      <tvExp>1</tvExp>
       <tvExpOptDlg>0</tvExpOptDlg>
       <bDave2>0</bDave2>
       <PathWithFileName>..\Src\Motor_Ctrl.c</PathWithFileName>
