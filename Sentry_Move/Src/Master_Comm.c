@@ -38,8 +38,8 @@ void Comm_GetData(void)
 	switch (g_AimMode)
 	{
 		case SENTRY_REMOTE:
-			refYawVel = ((float)((RemoteCtrlData.remote.ch0 - RC_CH_VALUE_OFFSET) / 
-									RC_CH_VALUE_RANGE * GM_YAW_VEL_MAX / 2));		//转速降低二十倍
+			refYawVel = (-(float)((RemoteCtrlData.remote.ch0 - RC_CH_VALUE_OFFSET) / 
+									RC_CH_VALUE_RANGE * GM_YAW_VEL_MAX / 20));		//转速降低二十倍
 			refPitchVel= ((float)((RemoteCtrlData.remote.ch1 - RC_CH_VALUE_OFFSET) / 
 									RC_CH_VALUE_RANGE * GM_PITCH_VEL_MAX / 20));
 			break;
@@ -58,8 +58,6 @@ void Comm_GetData(void)
 
 void Comm_SendData(void)
 {
-	//uint8_t i;
-	
 	Comm_GetData();
 	
 	Comm_GenerateData();

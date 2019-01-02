@@ -426,11 +426,6 @@
               <FileType>1</FileType>
               <FilePath>../Src/stm32f4xx_hal_msp.c</FilePath>
             </File>
-            <File>
-              <FileName>Master_Comm.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\Master_Comm.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -560,6 +555,21 @@
               <FileName>Loader_Ctrl.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\Loader_Ctrl.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Application/Comm</GroupName>
+          <Files>
+            <File>
+              <FileName>Master_Comm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\Master_Comm.c</FilePath>
+            </File>
+            <File>
+              <FileName>Referee_Comm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\Referee_Comm.c</FilePath>
             </File>
           </Files>
         </Group>

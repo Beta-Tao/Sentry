@@ -7,7 +7,6 @@
 "sentry_move\usart.o"
 "sentry_move\stm32f4xx_it.o"
 "sentry_move\stm32f4xx_hal_msp.o"
-"sentry_move\master_comm.o"
 "sentry_move\stm32f4xx_hal_can.o"
 "sentry_move\stm32f4xx_hal_tim.o"
 "sentry_move\stm32f4xx_hal_tim_ex.o"
@@ -31,6 +30,8 @@
 "sentry_move\motor_ctrl.o"
 "sentry_move\chassis_ctrl.o"
 "sentry_move\loader_ctrl.o"
+"sentry_move\master_comm.o"
+"sentry_move\referee_comm.o"
 --library_type=microlib --strict --scatter "Sentry_Move\Sentry_Move.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

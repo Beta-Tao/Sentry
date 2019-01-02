@@ -105,6 +105,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_UART7_Init();
   MX_UART8_Init();
+  MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
 	Motor_InitFlag();
 	RemoteCtl_Data_Receive_Start();

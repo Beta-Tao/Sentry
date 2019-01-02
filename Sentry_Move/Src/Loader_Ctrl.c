@@ -37,8 +37,9 @@ void Loader_UpdateState(Motor_t *motor)
 	switch(g_LoaderMode)
 	{
 		case SENTRY_LOAD_RUN:							//供弹状态
-			if (motor->velCtrl.refVel != 0 && motor->velCtrl.rawVel == 0)
-										//供弹模式下期望转速不为0但实际转速为0，判断为堵转状态
+			if (motor->velCtrl.refVel != 0 && 
+				motor->velCtrl.rawVel <= 20 && motor->velCtrl.rawVel >= -20)
+										//供弹模式下期望转速不为0但实际转速较小，判断为堵转状态
 			{
 				jamCount++;
 				if (jamCount >= 5)
