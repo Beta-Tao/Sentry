@@ -337,7 +337,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F427xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;           ../Drivers/STM32F4xx_HAL_Driver/Inc;           ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;           ../Drivers/CMSIS/Device/ST/STM32F4xx/Include;           ../Drivers/CMSIS/Include</IncludePath>
+              <IncludePath>..\Inc;     ../Drivers/STM32F4xx_HAL_Driver/Inc;     ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;     ../Drivers/CMSIS/Device/ST/STM32F4xx/Include;     ../Drivers/CMSIS/Include;    ../Inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -410,6 +410,11 @@
               <FileName>dma.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Src/dma.c</FilePath>
+            </File>
+            <File>
+              <FileName>tim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Src/tim.c</FilePath>
             </File>
             <File>
               <FileName>usart.c</FileName>
@@ -527,21 +532,6 @@
           <GroupName>Application/Control</GroupName>
           <Files>
             <File>
-              <FileName>Remote_Ctrl.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\Remote_Ctrl.c</FilePath>
-            </File>
-            <File>
-              <FileName>Remote_Decode.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\Remote_Decode.c</FilePath>
-            </File>
-            <File>
-              <FileName>DataScope_DP.C</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\DataScope_DP.C</FilePath>
-            </File>
-            <File>
               <FileName>Motor_Ctrl.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\Motor_Ctrl.c</FilePath>
@@ -552,9 +542,9 @@
               <FilePath>..\Src\Chassis_Ctrl.c</FilePath>
             </File>
             <File>
-              <FileName>Loader_Ctrl.c</FileName>
+              <FileName>Gimbal_Ctrl.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Src\Loader_Ctrl.c</FilePath>
+              <FilePath>..\Src\Gimbal_Ctrl.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -570,6 +560,26 @@
               <FileName>Referee_Comm.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\Referee_Comm.c</FilePath>
+            </File>
+            <File>
+              <FileName>CRC.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\CRC.c</FilePath>
+            </File>
+            <File>
+              <FileName>DataScope_DP.C</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\DataScope_DP.C</FilePath>
+            </File>
+            <File>
+              <FileName>Remote_Comm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\Remote_Comm.c</FilePath>
+            </File>
+            <File>
+              <FileName>PC_Comm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\PC_Comm.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -1,8 +1,8 @@
 sentry_move\tim.o: ../Src/tim.c
-sentry_move\tim.o: ../Inc/tim.h
+sentry_move\tim.o: ..\Inc\tim.h
+sentry_move\tim.o: ..\Inc\main.h
 sentry_move\tim.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h
-sentry_move\tim.o: ../Inc/stm32f4xx_hal_conf.h
-sentry_move\tim.o: ../Inc/main.h
+sentry_move\tim.o: ..\Inc\stm32f4xx_hal_conf.h
 sentry_move\tim.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h
 sentry_move\tim.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h
 sentry_move\tim.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h
@@ -32,6 +32,3 @@ sentry_move\tim.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h
 sentry_move\tim.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h
 sentry_move\tim.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h
 sentry_move\tim.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
-sentry_move\tim.o: ../Inc/Chassis_Ctrl.h
-sentry_move\tim.o: ../Inc/Motor_Ctrl.h
-sentry_move\tim.o: ../Inc/Loader_Ctrl.h

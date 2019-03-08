@@ -1,5 +1,9 @@
 #include "Referee_Comm.h"
 #include "usart.h"
+#include "string.h"
+#include "DataScope_DP.h"
+
+extRefereeData_t RefereeData_t;
 
 uint8_t USART6_DMA_RX_BUF[BSP_USART6_DMA_RX_BUF_LEN];
 uint8_t USART6_DMA_TX_BUF[BSP_USART6_DMA_TX_BUF_LEN];
@@ -11,7 +15,7 @@ void Referee_Data_Receive_Start(void)
 }
 
 void Referee_Data_Receive(void)
-{	                                                          //本次接收长度
+{
 	if((__HAL_UART_GET_FLAG(&huart6,UART_FLAG_IDLE)!=RESET)) 
 	{
 		__HAL_UART_CLEAR_IDLEFLAG(&huart6);                                           //清除空闲中断的标志
@@ -20,7 +24,7 @@ void Referee_Data_Receive(void)
 		__HAL_DMA_CLEAR_FLAG(&hdma_usart6_rx,DMA_FLAG_TCIF1_5);                       //清除 DMA2_Steam1传输完成标志
 		HAL_UART_DMAStop(&huart6);                                                    //传输完成以后关闭串口DMA
 		HAL_UART_Receive_DMA(&huart6, USART6_DMA_RX_BUF, BSP_USART6_DMA_RX_BUF_LEN);  //接受数据
-		if(USART6_DMA_RX_BUF[0] == 0xA5)                                              //判断数据包帧头
+		if(USART6_DMA_RX_BUF[0] == FRAME_HEADER_SOF)                                  //判断数据包帧头
 		{
 			Referee_Decode(USART6_DMA_RX_BUF);                                         //进入数据解码函数
 		}
@@ -29,10 +33,65 @@ void Referee_Data_Receive(void)
 
 void Referee_Decode(uint8_t *pData)
 {
-	if (pData == NULL)
+	uint8_t frameLoc = 0;
+	uint8_t *frameHeadLoc;					//暂存当前帧的帧头地址
+	uint16_t dataLength, cmdID;
+	
+	while (frameLoc < BSP_USART6_DMA_RX_BUF_LEN)		//缓存区只能保存128个字节，循环检查是不是有数据包在内
 	{
-		return;
+		/* 当前帧的帧头首地址为pData + frameLoc */
+		if (pData[frameLoc] == FRAME_HEADER_SOF)
+		{
+			if (Verify_CRC8_Check_Sum(pData + frameLoc, FRAME_HEADER_LEN) == 1)		//帧头CRC8校验成功
+			{
+				frameHeadLoc = pData + frameLoc;	//单纯暂存，简化后面的代码
+				memcpy(&dataLength, frameHeadLoc + 1, 2);	//获取数据包长度后校验整包
+				if (Verify_CRC16_Check_Sum(pData + frameLoc, FRAME_HEADER_LEN + CMD_ID_LEN + dataLength + CRC16_LEN) == 1)
+				{
+					memcpy(&cmdID, frameHeadLoc + FRAME_HEADER_LEN, 2);
+					switch (cmdID)
+					{
+						case GAME_ROBOT_STATE_CMD_ID:		//10Hz
+							memcpy(&RefereeData_t.GameRobotState_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, GAME_ROBOT_STATE_LEN);
+							break;
+						case ROBOT_HURT_CMD_ID:				//收到伤害时接收
+							memcpy(&RefereeData_t.RobotHurt_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, ROBOT_HURT_LEN);
+							break;
+						case SHOOT_DATA_CMD_ID:				//发送弹丸时接收
+							memcpy(&RefereeData_t.ShootData_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, SHOOT_DATA_LEN);
+							break;
+						case POWER_HEAT_DATA_CMD_ID:		//50Hz
+							memcpy(&RefereeData_t.PowerHeatData_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, POWER_HEAT_DATA_LEN);
+//							DataScope_Debug(3, RefereeData_t.PowerHeatData_t.chassisPower, RefereeData_t.PowerHeatData_t.chassisVolt, 
+//												RefereeData_t.PowerHeatData_t.chassisCurrent);
+							break;
+						case RFID_DETECT_CMD_ID:
+							memcpy(&RefereeData_t.RfidDetect_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, RFID_DETECT_LEN);
+							break;
+						case GAME_RESULT_CMD_ID:
+							memcpy(&RefereeData_t.GameResult_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, GAME_RESULT_LEN);
+							break;
+						case BUFF_MUSK_CMD_ID:
+							memcpy(&RefereeData_t.BuffMusk_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, BUFF_MUSK_LEN);
+							break;
+						case GAME_ROBOT_POS_CMD_ID:
+							memcpy(&RefereeData_t.GameRobotPos_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, GAME_ROBOT_POS_LEN);
+							break;
+						/*case SHOW_DATA_CMD_ID:
+							memcpy(&RefereeData_t.ShowData_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, GAME_ROBOT_STATE_LEN);
+							break;*/ 			//自定义数据不会由裁判系统发送
+						default:
+							break;
+					}
+					frameLoc += FRAME_HEADER_LEN + CMD_ID_LEN + dataLength + CRC16_LEN;		//整包处理完毕，向后一个整包长度
+				}
+				else
+					frameLoc += FRAME_HEADER_LEN;		//帧头正确且包头校正正确，但是整包出错，向后一个包头长度
+			}
+			else
+				frameLoc++;			//帧头正确，但是包头校验出错，向后一个字节
+		}
+		else
+			frameLoc++;			//未识别帧头，向后一个字节
 	}
-	
-	
 }

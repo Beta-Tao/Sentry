@@ -1,24 +1,15 @@
 #include "Motor_Ctrl.h"
-#include "DataScope_DP.h"
-#include "Remote_Ctrl.h"
-#include "Remote_Decode.h"
-#include "usart.h"
-#include "can.h"
 #include "math.h"
 
-uint8_t g_AimMode;					//瞄准模式，控制云台
-uint8_t g_MoveMode;					//移动模式，控制底盘
-uint8_t g_LoadMode;					//供弹模式，控制拨盘
-uint8_t g_ShootMode;				//发射模式，控制摩擦轮
-
-void Motor_InitFlag(void)
-{
-	g_AimMode = SENTRY_STOP;					//云台静止
-	g_MoveMode = SENTRY_STOP;					//底盘静止
-	g_LoadMode = SENTRY_LOAD_STOP;				//拨盘静止
-	g_ShootMode = SENTRY_CEASE_FIRE;
-}
-
+/**
+  * @brief	电机速度闭环参数初始化
+  * @param	motor:	Motor_t结构体指针
+  * @param	acc:	速度斜坡中的加速加速度
+  * @param	dec:	速度斜坡中的减速加速度
+  * @param	kp, ki, kd:	PID参数
+  * @retval	None
+  * @note	注意同时初始化PID控制器参数以及限幅参数
+  */
 void Motor_VelCtrlInit(Motor_t *motor, 
 					   float acc, float dec, 
 					   float kp, float ki, float kd)
@@ -37,26 +28,39 @@ void Motor_VelCtrlInit(Motor_t *motor,
 
 	motor->velCtrl.output = 0.0f;
 	
-	if (motor->escType == C610)
+	switch (motor->escType)
 	{
-		motor->velCtrl.outputMin = C610_CUR_MIN;
-		motor->velCtrl.outputMax = C610_CUR_MAX;
+		case C610:
+			motor->velCtrl.outputMin = C610_CUR_MIN;
+			motor->velCtrl.outputMax = C610_CUR_MAX;
+			break;
+		case C620:
+			motor->velCtrl.outputMin = C620_CUR_MIN;
+			motor->velCtrl.outputMax = C620_CUR_MAX;
+			break;
+		case GM_6020:
+			motor->velCtrl.outputMin = GM6020_VOL_MIN;
+			motor->velCtrl.outputMax = GM6020_VOL_MAX;
+			break;
+		default:
+			break;
 	}
-	else if (motor->escType == C620)
-	{
-		motor->velCtrl.outputMin = C620_CUR_MIN;
-		motor->velCtrl.outputMax = C620_CUR_MAX;
-	}
-	else
-		return;
 }
 
+/**
+  * @brief	电机位置闭环参数初始化
+  * @param	motor:	Motor_t结构体指针
+  * @param	acc:	速度斜坡中的加速加速度
+  * @param	kp, ki, kd:	PID参数
+  * @param	outputMin, outputMax:	位置闭环的输出范围，对应于速度闭环的输入
+  * @retval	None
+  * @note	注意同时初始化PID控制器参数以及限幅参数
+  */
 void Motor_PosCtrlInit(Motor_t *motor, float acc, 
 					   float kp, float ki, float kd,
-					   float outputMin, float outputMax)
+					   float outputMin, float outputMax, float ratio)
 {
-	motor->posCtrl.refPos = 0;
-	motor->posCtrl.relaPos = 0;
+	motor->posCtrl.refRelaPos = 0;
 	
 	motor->posCtrl.acc = acc;		//位置环加速度和速度环减速加速度一致
 	
@@ -72,6 +76,23 @@ void Motor_PosCtrlInit(Motor_t *motor, float acc,
 	motor->posCtrl.outputMax = outputMax;
 	
 	motor->posCtrl.posReady = POS_CTRL_READY;
+
+	switch (motor->escType)
+	{
+		case C610:
+			motor->posCtrl.posRange = C610_POS_RANGE;
+			break;
+		case C620:
+			motor->posCtrl.posRange = C620_POS_RANGE;
+			break;
+		case GM_6020:
+			motor->posCtrl.posRange = GM6020_POS_RANGE;
+			break;
+		default:
+			break;
+	}
+	
+	motor->posCtrl.posRatio = ratio;
 }
 
 /**
@@ -88,17 +109,23 @@ void Motor_SetVel(VelCtrl_t *vel_t, float vel)
 }
 
 /**
-  * @brief	给电机赋期望位置值
+  * @brief	给电机赋期望绝对位置值
   * @param	motor:	Motor_t结构体的指针
   * @param	pos_t:	预设的位置值
-  * @note	注意电机转子位置范围
+  * @note	注意电机转子位置范围，及位置闭环标志位的复位
   * @retval	None
   */
-void Motor_SetPos(PosCtrl_t *pos_t, float pos)
+void Motor_SetPos(PosCtrl_t *pos_t, float pos, uint8_t type)
 {
-	pos_t->refPos = pos;
-	pos_t->posReady = POS_CTRL_UNREADY;
-	return;
+	switch (type)
+	{
+		case RELA:
+			pos_t->refRelaPos = pos;
+			break;
+		case ABS:
+			pos_t->refRelaPos = pos - pos_t->absPos;
+			break;
+	}
 }
 
 /**
@@ -109,81 +136,55 @@ void Motor_SetPos(PosCtrl_t *pos_t, float pos)
   */
 void Motor_PosCtrl(PosCtrl_t *pos_t)
 {
-	float diff;
-	float refVel;
-	float sign = 1.0f;
-	static uint8_t readyCount = 0;				//设置计数避免误判
+	float diff, detaPos;					//相对位置缓存
 	
-	switch (pos_t->posReady)
-	{
-		case POS_CTRL_READY:					//到达预定位置
-		{
-			/* 重置参数 */
-			pos_t->refPos = 0;
-			pos_t->relaPos = pos_t->refPos;
-			pos_t->err = 0;
-			pos_t->errLast = 0;
-			pos_t->integ = 0;
-			pos_t->output = 0;
-			pos_t->posReady = POS_CTRL_READY;
-			break;
-		}
-		case POS_CTRL_UNREADY:					//没有到达预定位置
-		{
-			/* 计算误差值，err保存当前的误差，errLast保存上一次的误差 */
-			pos_t->errLast = pos_t->err;
-			pos_t->err = pos_t->refPos - pos_t->relaPos;
-		
-			/* 判断是否已经完成位置闭环 */
-			if (pos_t->err > -20 && pos_t->err < 20)		//已经完成
-			{
-				readyCount++;
-				if (readyCount == 10)					//到达预定位置
-				{
-					readyCount = 0;						//重置计数值
-					pos_t->posReady = POS_CTRL_READY;
-					return;
-				}
-			}
-			else										//没有完成，继续位置闭环
-			{
-				readyCount = 0;
-			
-				/* 保证当前的控制极性 */
-				if (pos_t->err < 0.0f)
-					sign = -1.0f;
-				
-				/* 计算积分值，注意末尾积分限幅 */
-				pos_t->integ += pos_t->err;
-				if(pos_t->integ >= 10000)
-					pos_t->integ = 10000;
-				if(pos_t->integ <= -10000)
-					pos_t->integ = -10000;
-				
-				diff = pos_t->err - pos_t->errLast;	//计算误差变化率
-				
-				/* 绝对式方法计算PID输出 */
-				pos_t->output = pos_t->kp * pos_t->err + pos_t->ki * pos_t->integ + pos_t->kd * diff;
-				//PID->output = kp * PID->err[0] + ki * PID->integ + kd * PID->diff;
-				
-				/* 用固定加速度逼近终值， 0.8为积分裕量，用来削减积分值和实际值之间的偏差 */
-				refVel = sign * __sqrtf(2.0f * 0.8f * pos_t->acc * sign * pos_t->err);
-				
-				/* 如果接近终值则切换成PID控制 */
-				if (fabsf(refVel) < fabsf(pos_t->output))
-					pos_t->output = refVel;
-				
-				/* 输出限幅 */
-				if(pos_t->output >= pos_t->outputMax)
-					pos_t->output = pos_t->outputMax;
-				if(pos_t->output <= pos_t->outputMin)
-					pos_t->output = pos_t->outputMin;
-			}
-			break;
-		}
-		default:
-			break;
-	}
+	/* 求出相位转角 */
+	detaPos = pos_t->rawPos - pos_t->rawPosLast;
+	
+	pos_t->rawPosLast = pos_t->rawPos;		//缓存上次数据
+	
+	//存储绝对位置
+	if (detaPos > pos_t->posRange / 2)	//反转过一圈
+		detaPos -= pos_t->posRange;
+	else if (detaPos < -pos_t->posRange / 2)	//正转过一圈
+		detaPos += pos_t->posRange;
+	else
+		detaPos = detaPos;
+	
+	pos_t->refRelaPos -= detaPos / pos_t->posRatio;			//更新相对转角
+	pos_t->absPos += detaPos / pos_t->posRatio;				//更新绝对转角
+	
+	/* 计算误差值，err保存当前的误差，errLast保存上一次的误差 */
+	pos_t->errLast = pos_t->err;
+	
+	pos_t->err = pos_t->refRelaPos * pos_t->posRatio;
+	
+	/* 计算积分值，注意末尾积分限幅 */
+	pos_t->integ += pos_t->err;
+
+	if(pos_t->integ >= 10000)
+		pos_t->integ = 10000;
+	if(pos_t->integ <= -10000)
+		pos_t->integ = -10000;
+	
+	diff = pos_t->err - pos_t->errLast;	//计算误差变化率
+	
+	/* 绝对式方法计算PID输出 */
+	pos_t->output = pos_t->kp * pos_t->err + pos_t->ki * pos_t->integ + pos_t->kd * diff;
+	//PID->output = kp * PID->err[0] + ki * PID->integ + kd * PID->diff;
+	
+	/* 用固定加速度逼近终值， 0.8为积分裕量，用来削减积分值和实际值之间的偏差 */
+	//refVel = sign * __sqrtf(2.0f * 0.8f * pos_t->acc * sign * pos_t->err);
+	
+	/* 如果接近终值则切换成PID控制 */
+	//if (fabsf(refVel) < fabsf(pos_t->output))
+		//pos_t->output = refVel;
+	
+	/* 输出限幅 */
+	if(pos_t->output >= pos_t->outputMax)
+		pos_t->output = pos_t->outputMax;
+	if(pos_t->output <= pos_t->outputMin)
+		pos_t->output = pos_t->outputMin;
 }
 
 /**
@@ -205,6 +206,7 @@ void Motor_VelCtrl(VelCtrl_t *vel_t)
 		vel_t->refVel_Soft = vel_t->refVel;
 	
 	/* 速度PID */
+	vel_t->errLast = vel_t->err;
 	vel_t->err = vel_t->refVel_Soft - vel_t->rawVel;		//使用vel_t->refVel_Soft作为速度期望
 	diff = vel_t->err - vel_t->errLast;
 	vel_t->integ += vel_t->err;
@@ -225,41 +227,27 @@ void Motor_VelCtrl(VelCtrl_t *vel_t)
 }
 
 /**
-  *	@brief	转换发送给Motor的数据格式 
-  *	@param	hcan pointer to a CAN_HandleTypeDef structure that contains
-  *         the configuration information for the specified CAN.
+  *	@brief	转换CAN总线上电机的数据格式 
+  *	@param	hcan:	CAN_HandleTypeDef结构体指针
+  * @param	motor:	Motor_t结构体指针
   *	@retval	None
   */
 void Motor_CanRxMsgConv(CAN_HandleTypeDef *hcan, Motor_t *motor)
 {
-	float detaPos;
-	motor->posCtrl.rawPosLast = motor->posCtrl.rawPos;
 	motor->posCtrl.rawPos = (int16_t)(hcan->pRxMsg->Data[0] << 8 | hcan->pRxMsg->Data[1]);
 	
 	motor->velCtrl.rawVel = (int16_t)(hcan->pRxMsg->Data[2] << 8 | hcan->pRxMsg->Data[3]);
 	
-	detaPos = motor->posCtrl.rawPos - motor->posCtrl.rawPosLast;
-	
-	if (motor->escType == C610)
-	{
-		if (detaPos > ((float)C610_POS_RANGE) / 2)	//反转过一圈
-			motor->posCtrl.relaPos += detaPos - C610_POS_RANGE;
-		else if (detaPos < ((float)-C610_POS_RANGE) / 2)	//正转过一圈
-			motor->posCtrl.relaPos += detaPos + C610_POS_RANGE;
-		else
-			motor->posCtrl.relaPos += detaPos;
-	}
-	if (motor->escType == C620)
-	{
-		if (detaPos > ((float)C620_POS_RANGE) / 2)	//反转过一圈
-			motor->posCtrl.relaPos += detaPos - C620_POS_RANGE;
-		else if (detaPos < ((float)-C620_POS_RANGE) / 2)	//正转过一圈
-			motor->posCtrl.relaPos += detaPos + C620_POS_RANGE;
-		else
-			motor->posCtrl.relaPos += detaPos;
-	}
+	motor->curCtrl.rawCur = (int16_t)(hcan->pRxMsg->Data[4] << 8 | hcan->pRxMsg->Data[5]);
 }
 
+/**
+  *	@brief	通过固定的CAN总线总线上的四个电机发送信息
+  *	@param	hcan	CAN_HandleTypeDef结构体指针
+  *	@param  num		分为FIRST_FOUR_ID以及SECOND_FOUR_ID，用于区分总线上的八个电机
+  * @param  IDxMsg	依次对应于总线上不同ID的电机
+  *	@retval	None
+  */
 void Motor_CANSendMsg(CAN_HandleTypeDef* hcan, uint32_t num, 
 					int16_t ID1Msg, int16_t ID2Msg, int16_t ID3Msg, int16_t ID4Msg)
 {

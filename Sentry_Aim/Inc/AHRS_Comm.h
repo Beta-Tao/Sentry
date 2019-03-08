@@ -1,5 +1,5 @@
-#ifndef _AHRS_GET_DATA_
-#define _AHRS_GET_DATA_
+#ifndef _AHRS_COMM_
+#define _AHRS_COMM_
 /**
   **********************
   * 结构体定义

@@ -1,8 +1,7 @@
 sentry_move\remote_decode.o: ..\Src\Remote_Decode.c
-sentry_move\remote_decode.o: ../Inc/Remote_Decode.h
+sentry_move\remote_decode.o: ..\Inc\Remote_Decode.h
 sentry_move\remote_decode.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h
-sentry_move\remote_decode.o: ../Inc/stm32f4xx_hal_conf.h
-sentry_move\remote_decode.o: ../Inc/main.h
+sentry_move\remote_decode.o: ..\Inc\stm32f4xx_hal_conf.h
 sentry_move\remote_decode.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h
 sentry_move\remote_decode.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h
 sentry_move\remote_decode.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h
@@ -30,4 +29,4 @@ sentry_move\remote_decode.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_f
 sentry_move\remote_decode.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h
 sentry_move\remote_decode.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h
 sentry_move\remote_decode.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
-sentry_move\remote_decode.o: ../Inc/Remote_Ctrl.h
+sentry_move\remote_decode.o: ..\Inc\Remote_Ctrl.h

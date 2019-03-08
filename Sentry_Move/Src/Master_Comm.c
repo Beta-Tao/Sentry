@@ -1,13 +1,14 @@
 #include "Master_Comm.h"
-#include "Remote_Ctrl.h"
-#include "Remote_Decode.h"
+#include "Remote_Comm.h"
 #include "Motor_Ctrl.h"
+#include "Gimbal_Ctrl.h"
 #include "usart.h"
+#include "PC_Comm.h"
 
-unsigned char commOutputBuffer[25];
+unsigned char commOutputBuffer[COMM_FRAME_LEN];
 
-float relaYaw;
-float relaPitch;
+float refRelaYaw;
+float refRelaPitch;
 float refYawVel;
 float refPitchVel;
 
@@ -24,30 +25,32 @@ void Comm_Float2Byte(float *target, unsigned char *buf, uint8_t loc)
 void Comm_GenerateData(void)
 {
 	commOutputBuffer[0] = 0x50;								//帧头
-	Comm_Float2Byte(&relaYaw, commOutputBuffer, 1);			//Yaw轴相对位移
-	Comm_Float2Byte(&relaPitch, commOutputBuffer, 5);		//Pitch轴相对位移
+	Comm_Float2Byte(&refRelaYaw, commOutputBuffer, 1);			//Yaw轴相对位移
+	Comm_Float2Byte(&refRelaPitch, commOutputBuffer, 5);		//Pitch轴相对位移
 	Comm_Float2Byte(&refYawVel, commOutputBuffer, 9);		//Yaw轴运动速度
 	Comm_Float2Byte(&refPitchVel, commOutputBuffer, 13);	//Pitch轴运动速度
-	commOutputBuffer[17] = g_AimMode;						//瞄准标志位
-	commOutputBuffer[18] = g_LoadMode;						//供弹标志位
-	commOutputBuffer[19] = g_ShootMode;						//发射标志位
+	commOutputBuffer[17] = sentryGimbal.mode;						//瞄准标志位
 }
 
 void Comm_GetData(void)
 {
-	switch (g_AimMode)
+	switch (sentryGimbal.mode)
 	{
-		case SENTRY_REMOTE:
+		case GIMBAL_REMOTE:
 			refYawVel = (-(float)((RemoteCtrlData.remote.ch0 - RC_CH_VALUE_OFFSET) / 
-									RC_CH_VALUE_RANGE * GM_YAW_VEL_MAX / 20));		//转速降低二十倍
+									RC_CH_VALUE_RANGE * GM_YAW_VEL_MAX));
 			refPitchVel= ((float)((RemoteCtrlData.remote.ch1 - RC_CH_VALUE_OFFSET) / 
-									RC_CH_VALUE_RANGE * GM_PITCH_VEL_MAX / 20));
+									RC_CH_VALUE_RANGE * GM_PITCH_VEL_MAX));
 			break;
-		case SENTRY_TRACE:
-			relaYaw = 0;			//待定，需要从PC端获取数据
-			relaPitch = 0;
+		case GIMBAL_TRACE:
+			refRelaYaw = -PCAngle_t.relaYaw;			//从PC端获取数据
+			refRelaPitch = -PCAngle_t.relaPitch;
+
+			/* 处理数据完后清零，防止PC端掉线使得云台转动 */
+			PCAngle_t.relaYaw = 0;
+			PCAngle_t.relaPitch = 0;
 			break;
-		case SENTRY_STOP:
+		case  GIMBAL_STOP:
 			refYawVel = 0;
 			refPitchVel = 0;
 			break;
@@ -57,10 +60,13 @@ void Comm_GetData(void)
 }
 
 void Comm_SendData(void)
-{
+{ 
+	uint8_t i;
+	
 	Comm_GetData();
 	
 	Comm_GenerateData();
 	
-	HAL_UART_Transmit(&huart8, commOutputBuffer, COMM_FRAME_LEN, 200);
+	for (i = 0; i < COMM_FRAME_LEN; i++)
+		HAL_UART_Transmit(&huart8, commOutputBuffer + i, 1, 10);
 }

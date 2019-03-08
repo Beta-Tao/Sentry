@@ -337,7 +337,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F427xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc; ../Drivers/STM32F4xx_HAL_Driver/Inc; ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy; ../Drivers/CMSIS/Device/ST/STM32F4xx/Include; ../Drivers/CMSIS/Include</IncludePath>
+              <IncludePath>../Inc;  ../Drivers/STM32F4xx_HAL_Driver/Inc;  ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;  ../Drivers/CMSIS/Device/ST/STM32F4xx/Include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -407,6 +407,11 @@
               <FilePath>../Src/can.c</FilePath>
             </File>
             <File>
+              <FileName>dma.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>../Src/dma.c</FilePath>
+            </File>
+            <File>
               <FileName>usart.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Src/usart.c</FilePath>
@@ -421,25 +426,40 @@
               <FileType>1</FileType>
               <FilePath>../Src/stm32f4xx_hal_msp.c</FilePath>
             </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Drivers/CMSIS</GroupName>
+          <Files>
             <File>
-              <FileName>DataScope_DP.C</FileName>
+              <FileName>system_stm32f4xx.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Src\DataScope_DP.C</FilePath>
+              <FilePath>..//Src/system_stm32f4xx.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Application/Control</GroupName>
+          <Files>
+            <File>
+              <FileName>Motor_Ctrl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\Motor_Ctrl.c</FilePath>
             </File>
             <File>
-              <FileName>dma.c</FileName>
+              <FileName>Gimbal_Ctrl.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Src\dma.c</FilePath>
+              <FilePath>..\Src\Gimbal_Ctrl.c</FilePath>
             </File>
             <File>
-              <FileName>AHRS_Update.c</FileName>
+              <FileName>Shooter_Ctrl.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Src\AHRS_Update.c</FilePath>
+              <FilePath>..\Src\Shooter_Ctrl.c</FilePath>
             </File>
             <File>
-              <FileName>Master_Comm.c</FileName>
+              <FileName>Loader_Ctrl.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Src\Master_Comm.c</FilePath>
+              <FilePath>..\Src\Loader_Ctrl.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -529,27 +549,17 @@
           </Files>
         </Group>
         <Group>
-          <GroupName>Drivers/CMSIS</GroupName>
+          <GroupName>Application/Comm</GroupName>
           <Files>
             <File>
-              <FileName>system_stm32f4xx.c</FileName>
+              <FileName>DataScope_DP.C</FileName>
               <FileType>1</FileType>
-              <FilePath>..//Src/system_stm32f4xx.c</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>Application/Control</GroupName>
-          <Files>
-            <File>
-              <FileName>Motor_Ctrl.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\Motor_Ctrl.c</FilePath>
+              <FilePath>..\Src\DataScope_DP.C</FilePath>
             </File>
             <File>
-              <FileName>Gimbal_Ctrl.c</FileName>
+              <FileName>Master_Comm.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Src\Gimbal_Ctrl.c</FilePath>
+              <FilePath>..\Src\Master_Comm.c</FilePath>
             </File>
           </Files>
         </Group>

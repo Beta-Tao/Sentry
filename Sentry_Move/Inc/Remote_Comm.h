@@ -1,8 +1,8 @@
-#ifndef _REOMTE__DECODE_H_
-#define _REOMTE__DECODE_H_
+#ifndef _REOMTE_COMM_H_
+#define _REOMTE_COMM_H_
 #include "stm32f4xx_hal.h"
 
-/**********************é¥æ§å™¨è¾“å…¥********************/
+/**********************Ò£¿ØÆ÷ÊäÈë********************/
 #define REMOTE_INPUT					1u
 #define KEY_MOUSE_INPUT					3u
 #define REMOTE_CHASIS_SPEED_TO_REF		1.197f          //1219*0.5/660f
@@ -21,36 +21,48 @@
 
 #define RC_FRAME_LENGTH					18u
 
+#define BSP_USART1_DMA_RX_BUF_LEN 20u                            //Ò£¿ØÆ÷Êı¾İ½ÓÊÕDMA´æ´¢³¤¶È
+
 typedef struct
 {
 	struct
 	{
-		uint16_t ch0;//é€šé“0
-		uint16_t ch1;//é€šé“1
-		uint16_t ch2;//é€šé“2
-		uint16_t ch3;//é€šé“3
-		uint8_t  s1;//å¼€å…³1
-		uint8_t  s2;//å¼€å…³2
+		uint16_t ch0;//Í¨µÀ0
+		uint16_t ch1;//Í¨µÀ1
+		uint16_t ch2;//Í¨µÀ2
+		uint16_t ch3;//Í¨µÀ3
+		uint8_t  s1;//¿ª¹Ø1
+		uint8_t  s2;//¿ª¹Ø2
 	} remote;
 	
 	struct
 	{
-		int16_t  x;//é¼ æ ‡x
-		int16_t  y;//é¼ æ ‡y
-		int16_t  z;//é¼ æ ‡z
-		uint8_t  press_l;//é¼ æ ‡å·¦é”®
-		uint8_t  press_r;//é¼ æ ‡å³é”®
+		int16_t  x;//Êó±êx
+		int16_t  y;//Êó±êy
+		int16_t  z;//Êó±êz
+		uint8_t  press_l;//Êó±ê×ó¼ü
+		uint8_t  press_r;//Êó±êÓÒ¼ü
 	} mouse;
 	
 	struct
 	{
-		uint16_t v;//é”®ç›˜
+		uint16_t v;//¼üÅÌ
 	} key;
 	
+	struct
+	{
+		uint16_t ch;	//Í¨µÀ4
+	} clickwheel;
 }RemoteCtrl_t;
 
+extern uint8_t USART1_DMA_RX_BUF[BSP_USART1_DMA_RX_BUF_LEN];		//USART1½ÓÊÕDMA»º´æ
+
 extern RemoteCtrl_t RemoteCtrlData;
-extern int8_t isRevRemoteData;
+extern uint8_t isRevRemoteData;
+
 void RC_DataHandle(uint8_t *pData);
+void RemoteCtl_Data_Receive_Start(void);
+void RemoteCtl_Data_Receive(void);
+void Remote_Process(void);
 
 #endif

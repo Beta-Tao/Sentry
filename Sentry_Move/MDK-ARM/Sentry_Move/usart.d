@@ -1,8 +1,8 @@
 sentry_move\usart.o: ../Src/usart.c
-sentry_move\usart.o: ../Inc/usart.h
+sentry_move\usart.o: ..\Inc\usart.h
+sentry_move\usart.o: ..\Inc\main.h
 sentry_move\usart.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h
-sentry_move\usart.o: ../Inc/stm32f4xx_hal_conf.h
-sentry_move\usart.o: ../Inc/main.h
+sentry_move\usart.o: ..\Inc\stm32f4xx_hal_conf.h
 sentry_move\usart.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h
 sentry_move\usart.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h
 sentry_move\usart.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h
@@ -29,6 +29,6 @@ sentry_move\usart.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ex.
 sentry_move\usart.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_flash_ramfunc.h
 sentry_move\usart.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h
 sentry_move\usart.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h
+sentry_move\usart.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h
+sentry_move\usart.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h
 sentry_move\usart.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
-sentry_move\usart.o: ../Inc/gpio.h
-sentry_move\usart.o: ../Inc/dma.h

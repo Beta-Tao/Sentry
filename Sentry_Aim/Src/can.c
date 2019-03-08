@@ -10,7 +10,7 @@
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
-  * COPYRIGHT(c) 2018 STMicroelectronics
+  * COPYRIGHT(c) 2019 STMicroelectronics
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -39,8 +39,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "can.h"
-
-#include "gpio.h"
 
 /* USER CODE BEGIN 0 */
 
@@ -80,7 +78,7 @@ void MX_CAN1_Init(void)
   hcan1.Init.TXFP = ENABLE;
   if (HAL_CAN_Init(&hcan1) != HAL_OK)
   {
-    _Error_Handler(__FILE__, __LINE__);
+    Error_Handler();
   }
 
 }
@@ -88,7 +86,7 @@ void MX_CAN1_Init(void)
 void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
 {
 
-  GPIO_InitTypeDef GPIO_InitStruct;
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
   if(canHandle->Instance==CAN1)
   {
   /* USER CODE BEGIN CAN1_MspInit 0 */
@@ -97,6 +95,7 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
     /* CAN1 clock enable */
     __HAL_RCC_CAN1_CLK_ENABLE();
   
+    __HAL_RCC_GPIOD_CLK_ENABLE();
     /**CAN1 GPIO Configuration    
     PD0     ------> CAN1_RX
     PD1     ------> CAN1_TX 
@@ -113,7 +112,6 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
     HAL_NVIC_EnableIRQ(CAN1_RX0_IRQn);
   /* USER CODE BEGIN CAN1_MspInit 1 */
 	
-	__HAL_CAN_ENABLE_IT(canHandle, CAN_IT_FMP0);
   /* USER CODE END CAN1_MspInit 1 */
   }
 }
@@ -144,6 +142,12 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
 } 
 
 /* USER CODE BEGIN 1 */
+
+void CAN_CommInit(CAN_HandleTypeDef* canHandle)
+{
+	__HAL_CAN_ENABLE_IT(canHandle, CAN_IT_FMP0);
+	CANFilter_Init(canHandle);
+}
 
 /**
   *	@brief	初始化CAN的过滤器
@@ -222,13 +226,5 @@ void CAN_MotorTxMsgConv(CAN_HandleTypeDef* hcan, int16_t ID1Msg, int16_t ID2Msg,
 }
 
 /* USER CODE END 1 */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

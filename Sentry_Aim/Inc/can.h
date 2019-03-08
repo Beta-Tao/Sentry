@@ -10,7 +10,7 @@
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
-  * COPYRIGHT(c) 2018 STMicroelectronics
+  * COPYRIGHT(c) 2019 STMicroelectronics
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -44,7 +44,6 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx_hal.h"
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
@@ -59,11 +58,11 @@ extern CAN_HandleTypeDef hcan1;
 
 /* USER CODE END Private defines */
 
-extern void _Error_Handler(char *, int);
-
 void MX_CAN1_Init(void);
 
 /* USER CODE BEGIN Prototypes */
+
+void CAN_CommInit(CAN_HandleTypeDef* canHandle);
 
 void CANFilter_Init(CAN_HandleTypeDef* hcan);
 
