@@ -4,10 +4,30 @@
 #include "stm32f4xx_hal.h"
 
 #define MASTER_FRAME_HEAD			0x50
-#define BSP_UART8_DMA_RX_BUF_LEN 	18u		//注意此处只能使用19u，只能用相同的传输缓存大小保证数据帧格式正确
-#define COMM_FRAME_LEN				BSP_UART8_DMA_RX_BUF_LEN	
-//帧头 (float)refRelaYaw (float)refRelaPitch (float)refYawVel (float)refPitchVel
-//(uint8_t)GimbalMode
+#define BSP_UART8_DMA_RX_BUF_LEN 	sizeof(MasterData_t) + 1
+#define COMM_FRAME_LEN				BSP_UART8_DMA_RX_BUF_LEN
+
+typedef struct
+{
+	float yawAngle;
+	
+	float pitchAngle;
+	
+	uint32_t posCtrlType;
+	
+	float loadVel;
+	
+	uint32_t shootVel;
+	
+	uint8_t gimbalMode;
+	
+	uint8_t loaderMode;
+	
+	uint8_t shooterMode;
+	
+}MasterData_t;
+
+extern MasterData_t masterData;
 
 void Master_Data_Receive_Start(void);
 

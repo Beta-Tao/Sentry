@@ -35,37 +35,63 @@ void Chassis_CtrlInit(Chassis_t *chassis)
 	chassis->chassisDir = RIGHT;
 	
 	memset(&(chassis->chassisDis), 0, sizeof(chassis->chassisDis));
-	chassis->chassisDis.revDis = 300;
+	chassis->chassisDis.revDis = 150;
+	
+	TIM5_CaptureInit();
 }
 
 void Chassis_UpdateState(Chassis_t *chassis)
 {
 	static uint8_t count = 0;
 	
-	switch (chassis->chassisDir)
+	/* 根据遥控器数据更新状态 */
+	switch (RemoteCtrlData.remote.s1)
 	{
-		case LEFT:
-			if (chassis->chassisDis.leftDis <= chassis->chassisDis.revDis)
-				count++;
-			else
-				count = 0;
-			
-			if (count >= 10)
-			{
-				count = 0;
-				chassis->chassisDir = RIGHT;
-			}
+		case RC_SW_UP:		//当s1在上时，为巡逻模式
+			sentryChassis.mode = CHASSIS_DETECT;
 			break;
-		case RIGHT:
-			if (chassis->chassisDis.rightDis <= chassis->chassisDis.revDis)
-				count++;
-			else
-				count = 0;
-			
-			if (count >= 5)
+		case RC_SW_MID:		//当s1在中时，为遥控模式
+			sentryChassis.mode = CHASSIS_REMOTE;
+			break;
+		case RC_SW_DOWN:	//当s1在下时，为躲避模式
+			sentryChassis.mode = CHASSIS_DODGE;
+			break;
+		default:
+			break;
+	}
+	
+	/* 如果是巡逻模式则通过测距模块判断边界 */
+	switch (chassis->mode)
+	{
+		case CHASSIS_DETECT:
+			switch (chassis->chassisDir)
 			{
-				count = 0;
-				chassis->chassisDir = LEFT;
+				case LEFT:
+					if (chassis->chassisDis.leftDis <= chassis->chassisDis.revDis)
+						count++;
+					else
+						count = 0;
+					
+					if (count >= 10)
+					{
+						count = 0;
+						chassis->chassisDir = RIGHT;
+					}
+					break;
+				case RIGHT:
+					if (chassis->chassisDis.rightDis <= chassis->chassisDis.revDis)
+						count++;
+					else
+						count = 0;
+					
+					if (count >= 5)
+					{
+						count = 0;
+						chassis->chassisDir = LEFT;
+					}
+					break;
+				default:
+					break;
 			}
 			break;
 		default:
@@ -84,11 +110,6 @@ void Chassis_MotorCtrl(Motor_t *motor)
 {
 	if (motor != &(sentryChassis.CM_Left) && motor != &(sentryChassis.CM_Right))
 		return;
-	
-	if (sentryChassis.mode == CHASSIS_DEBUG_VEL)
-		__HAL_UART_DISABLE_IT(&huart1, UART_IT_IDLE);
-	else
-		__HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
 	
 	switch (sentryChassis.mode)				//根据运动模式改变底盘速度
 	{

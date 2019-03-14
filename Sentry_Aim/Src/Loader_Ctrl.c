@@ -1,6 +1,6 @@
 #include "Loader_Ctrl.h"
-#include "Remote_Comm.h"
 #include "gpio.h"
+#include "Master_Comm.h"
 
 Loader_t sentryLoader;
 
@@ -20,7 +20,7 @@ void Loader_CtrlInit(Loader_t *loader)
 					  6.00000);
 	
 	loader->loadVel = 450;				//负数送弹
-	loader->mode = LOADER_INIT;
+	loader->mode = LOADER_RUN;
 }
 
 /**
@@ -30,6 +30,9 @@ void Loader_CtrlInit(Loader_t *loader)
   */
 void Loader_UpdateState(Loader_t *loader)
 {
+	loader->mode = (loader->mode == LOADER_INIT) ? LOADER_INIT : masterData.loaderMode;
+	loader->loadVel = masterData.loadVel;
+	
 	static uint8_t covCount = 0, trigCount = 0;			//判断是否卡弹的计数位，避免误测以及启动转动时的误判
 	switch(loader->mode)
 	{

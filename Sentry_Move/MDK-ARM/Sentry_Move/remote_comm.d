@@ -33,10 +33,3 @@ sentry_move\remote_comm.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim
 sentry_move\remote_comm.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
 sentry_move\remote_comm.o: ..\Inc\usart.h
 sentry_move\remote_comm.o: ..\Inc\main.h
-sentry_move\remote_comm.o: ..\Inc\Motor_Ctrl.h
-sentry_move\remote_comm.o: ..\Inc\can.h
-sentry_move\remote_comm.o: ..\Inc\Motor_Ctrl.h
-sentry_move\remote_comm.o: ..\Inc\DataScope_DP.h
-sentry_move\remote_comm.o: ..\Inc\Chassis_Ctrl.h
-sentry_move\remote_comm.o: ..\Inc\tim.h
-sentry_move\remote_comm.o: ..\Inc\Gimbal_Ctrl.h

@@ -61,8 +61,9 @@ extern RemoteCtrl_t RemoteCtrlData;
 extern uint8_t isRevRemoteData;
 
 void RC_DataHandle(uint8_t *pData);
+
 void RemoteCtl_Data_Receive_Start(void);
+
 void RemoteCtl_Data_Receive(void);
-void Remote_Process(void);
 
 #endif

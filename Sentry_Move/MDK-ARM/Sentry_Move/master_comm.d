@@ -31,12 +31,15 @@ sentry_move\master_comm.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr
 sentry_move\master_comm.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h
 sentry_move\master_comm.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h
 sentry_move\master_comm.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
-sentry_move\master_comm.o: ..\Inc\Remote_Comm.h
+sentry_move\master_comm.o: ..\Inc\Gimbal_Ctrl.h
 sentry_move\master_comm.o: ..\Inc\Motor_Ctrl.h
 sentry_move\master_comm.o: ..\Inc\main.h
 sentry_move\master_comm.o: ..\Inc\can.h
 sentry_move\master_comm.o: ..\Inc\Motor_Ctrl.h
 sentry_move\master_comm.o: ..\Inc\DataScope_DP.h
-sentry_move\master_comm.o: ..\Inc\Gimbal_Ctrl.h
+sentry_move\master_comm.o: ..\Inc\Loader_Ctrl.h
+sentry_move\master_comm.o: ..\Inc\Shooter_Ctrl.h
 sentry_move\master_comm.o: ..\Inc\usart.h
 sentry_move\master_comm.o: ..\Inc\PC_Comm.h
+sentry_move\master_comm.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+sentry_move\master_comm.o: ..\Inc\Remote_Comm.h

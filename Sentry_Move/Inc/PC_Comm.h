@@ -2,6 +2,7 @@
 #define _PC_COMM_H_
 
 #include "stm32f4xx_hal.h"
+#include "Motor_Ctrl.h"
 
 #define BSP_USART3_DMA_RX_BUF_LEN	12u		//0xA5 0x5A angle1 angle2 0xAA 0xAA
 
@@ -13,9 +14,12 @@
 
 typedef struct
 {
-	float relaYaw;
-	float relaPitch;
-} PCFrame_t;
+	float yawAngle;
+	
+	float pitchAngle;
+	
+	PosCtrlType_e posCtrlType;
+}PCFrame_t;
 
 extern PCFrame_t PCAngle_t;
 

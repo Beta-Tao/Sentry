@@ -77,6 +77,7 @@
 
 /* External variables --------------------------------------------------------*/
 extern CAN_HandleTypeDef hcan1;
+extern TIM_HandleTypeDef htim1;
 extern DMA_HandleTypeDef hdma_uart8_rx;
 extern UART_HandleTypeDef huart8;
 /* USER CODE BEGIN EV */
@@ -245,6 +246,21 @@ void CAN1_RX0_IRQHandler(void)
   /* USER CODE BEGIN CAN1_RX0_IRQn 1 */
 
   /* USER CODE END CAN1_RX0_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM1 capture compare interrupt.
+  */
+void TIM1_CC_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM1_CC_IRQn 0 */
+	Shooter_UpdateState(&sentryShooter);
+	Shooter_MotorCtrl(&sentryShooter);
+  /* USER CODE END TIM1_CC_IRQn 0 */
+  //HAL_TIM_IRQHandler(&htim1);
+  /* USER CODE BEGIN TIM1_CC_IRQn 1 */
+
+  /* USER CODE END TIM1_CC_IRQn 1 */
 }
 
 /**

@@ -34,6 +34,7 @@ void PC_Data_Receive(void)
 
 void PC_Decode(uint8_t *pData)
 {
-	memcpy(&(PCAngle_t.relaYaw), pData + 2, sizeof(float));			//Yaw轴期望角度
-	memcpy(&(PCAngle_t.relaPitch), pData + 6, sizeof(float));		//Pitch轴期望角度
+	memcpy(&(PCAngle_t.yawAngle), pData + 2, sizeof(float));			//Yaw轴期望角度
+	memcpy(&(PCAngle_t.pitchAngle), pData + 6, sizeof(float));		//Pitch轴期望角度
+	memcpy(&(PCAngle_t.posCtrlType), pData + 10, sizeof(PosCtrlType_e));	//位置控制标志位
 }

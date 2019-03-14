@@ -1,4 +1,5 @@
 #include "Gimbal_Ctrl.h"
+#include "Master_Comm.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -41,6 +42,10 @@ void Gimbal_CtrlInit(Gimbal_t *gimbal)
 
 void Gimbal_UpdateState(Gimbal_t *gimbal)
 {
+	/* 更新状态 */
+	gimbal->mode = (gimbal->mode == GIMBAL_YAW_INIT || 
+					gimbal->mode == GIMBAL_PITCH_INIT) ? gimbal->mode : masterData.gimbalMode;
+	
 	static uint8_t trigCount = 0;
 	switch (gimbal->mode)
 	{
@@ -102,7 +107,12 @@ void Gimbal_MotorCtrl(Motor_t *motor)
 			Motor_VelCtrl(&(motor->velCtrl));
 			break;
 		case GIMBAL_TRACE:
-			//位置状态直接在Master_Comm.c中进行更新
+			if (motor == &(sentryGimbal.GM_Yaw))
+				Motor_SetPos(&(motor->posCtrl), masterData.yawAngle, masterData.posCtrlType);
+			else if (motor == &(sentryGimbal.GM_Pitch)) 
+				Motor_SetPos(&(motor->posCtrl), masterData.pitchAngle, masterData.posCtrlType);
+			else
+				break;
 			Motor_PosCtrl(&(motor->posCtrl));
 			Motor_SetVel(&(motor->velCtrl), motor->posCtrl.output);
 			Motor_VelCtrl(&(motor->velCtrl));
@@ -134,8 +144,8 @@ void Gimbal_MotorCtrl(Motor_t *motor)
 			{
 				Motor_SetVel(&(motor->velCtrl), GM_PITCH_INIT_VEL);
 				Motor_VelCtrl(&(motor->velCtrl));
-				break;
 			}
+			break;
 		default:
 			break;
 	}

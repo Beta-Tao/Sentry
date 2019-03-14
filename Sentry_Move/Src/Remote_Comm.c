@@ -1,8 +1,5 @@
 #include "Remote_Comm.h"
 #include "usart.h"
-#include "Motor_Ctrl.h"
-#include "Chassis_Ctrl.h"
-#include "Gimbal_Ctrl.h"
 
 uint8_t USART1_DMA_RX_BUF[BSP_USART1_DMA_RX_BUF_LEN];  //定义一个数组用于存放从DMA接收到的遥控器数据
 
@@ -58,49 +55,6 @@ void RC_DataHandle(uint8_t *pData)
 	
 	/* pData[15], pData[16]为拨轮值 */
 	RemoteCtrlData.clickwheel.ch = (uint16_t)(pData[16] | pData[17] << 8) & 0x07FF;
-	
-	/* 拨动开关进行解码 */
-	Remote_Process();
-}
-
-/**
-  * @brief	对应的遥控器解码函数
-  * @param	None
-  * @retval	None
-  */
-void Remote_Process(void)
-{
-	switch (RemoteCtrlData.remote.s1)
-	{
-		case RC_SW_UP:		//当s1在上时，为巡逻模式
-			sentryChassis.mode = CHASSIS_DETECT;
-			break;
-		case RC_SW_MID:		//当s1在中时，为遥控模式
-			sentryChassis.mode = CHASSIS_REMOTE;
-			break;
-		case RC_SW_DOWN:	//当s1在下时，为躲避模式
-			sentryChassis.mode = CHASSIS_DODGE;
-			break;
-		default:
-			break;
-	}
-	
-	switch (RemoteCtrlData.remote.s2)
-	{
-		case RC_SW_UP:							//当s2在上时，为追踪模式
-			sentryGimbal.mode = GIMBAL_TRACE;
-			break;
-		case RC_SW_MID:							//当s2在中时，为遥控模式
-			sentryGimbal.mode = GIMBAL_REMOTE;
-			//g_LoadMode = (g_LoadMode == SENTRY_LOAD_JAM) ? SENTRY_LOAD_JAM : SENTRY_LOAD_RUN;
-			break;
-		case RC_SW_DOWN:						//当s2在下时，为停止模式
-			sentryGimbal.mode = GIMBAL_STOP;
-			//g_LoadMode = SENTRY_LOAD_STOP;
-			break;
-		default:
-			break;
-	}
 }
 
 /**

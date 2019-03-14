@@ -1,36 +1,41 @@
 #include "Shooter_Ctrl.h"
+#include "Master_Comm.h"
+#include "tim.h"
 
 Shooter_t sentryShooter;
 
-//void Shooter_CtrlInit(Shooter_t *shooter)
-//{
-//	Motor_t *left = &(shooter->FM_Left), *right = &(shooter->FM_Right);
-//	
-//	left->motorType = SNAIL_2305;
-//	left->escType = M_820R;
-//	Motor_VelCtrlInit(left, 
-//					  SHOOTER_ACC, SHOOTER_DEC, 
-//					  0, 0, 0);
-//	
-//	g_ShootMode = SENTRY_CEASE_FIRE;
-//	g_ShootVel = 0;		//需调整
-//}
+void Shooter_CtrlInit(Shooter_t *shooter)
+{
+	/* 初始化TIM1定时器 */
+	TIM1_PWMInit();
+	HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start_IT(&htim1, TIM_CHANNEL_4);
+	
+	sentryShooter.shootVel = FM_STOP;
+	sentryShooter.mode = SHOOTER_CEASE;
+}
 
-//void Shooter_MotorCtrl(Motor_t *motor)
-//{
-//	switch (g_ShootMode)
-//	{
-//		case SENTRY_CEASE_FIRE:
-//			Motor_SetVel(&(motor->velCtrl), 0);
-//			Motor_VelCtrl(&(motor->velCtrl));
-//			Laser_Ctrl(LASER_OFF);
-//			break;
-//		case SENTRY_OPEN_FIRE:
-//			Motor_SetVel(&(motor->velCtrl), g_ShootVel);
-//			Motor_VelCtrl(&(motor->velCtrl));
-//			Laser_Ctrl(LASER_ON);
-//			break;
-//		default:
-//			break;
-//	}
-//}
+void Shooter_MotorCtrl(Shooter_t *shooter)
+{
+	switch (shooter->mode)
+	{
+		case SHOOTER_CEASE:
+			Shooter_SetVel(shooter, FM_STOP);
+			break;
+		default:
+			break;
+	}
+}
+
+void Shooter_UpdateState(Shooter_t *shooter)
+{
+	shooter->mode = masterData.shooterMode;
+	shooter->shootVel = masterData.shootVel;
+}
+
+void Shooter_SetVel(Shooter_t *shooter, uint32_t vel)
+{
+	shooter->shootVel = vel;
+	TIM1->CCR1 = vel;
+	TIM1->CCR4 = vel;
+}

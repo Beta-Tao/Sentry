@@ -42,6 +42,7 @@
 #include "main.h"
 #include "can.h"
 #include "dma.h"
+#include "tim.h"
 #include "usart.h"
 #include "gpio.h"
 
@@ -123,6 +124,7 @@ int main(void)
   MX_CAN1_Init();
   MX_UART7_Init();
   MX_UART8_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   
 	/* 初始化所有通信 */
@@ -131,10 +133,11 @@ int main(void)
 	/* 初始化电机控制参数 */
 	Gimbal_CtrlInit(&sentryGimbal);
 	Loader_CtrlInit(&sentryLoader);
+	Shooter_CtrlInit(&sentryShooter);
 	
-	while (sentryGimbal.mode != GIMBAL_STOP || sentryLoader.mode != LOADER_STOP)
+	//while (sentryGimbal.mode != GIMBAL_STOP || sentryLoader.mode != LOADER_STOP)
 	//Shooter_CtrlInit();
-
+ 
 	Master_Data_Receive_Start();
   /* USER CODE END 2 */
 

@@ -1,11 +1,10 @@
 #include "usart.h"
 #include "string.h"
-#include "Shooter_Ctrl.h"
-#include "Gimbal_Ctrl.h"
 #include "Master_Comm.h"
 
 uint8_t UART8_DMA_RX_BUF[BSP_UART8_DMA_RX_BUF_LEN];
 uint32_t rx_data_len = 0;		//本次接收长度
+MasterData_t masterData;
 
 void Master_Data_Receive_Start(void)
 {
@@ -38,22 +37,5 @@ void Master_Decode(uint8_t *pData)
 		return;
 	}
 	
-	memcpy(&(sentryGimbal.GM_Yaw.posCtrl.refRelaPos), pData + 1, 4);			//注意这里不能使用下面这种方式，会直接进入错误处理函数死循环
-														//猜测是因为这里的强制转换改变了源字符串的属性
-//	
-//	//Gimbal_t.relaYaw = *((float *)(dataBuffer + 1));
-//	
-	memcpy(&(sentryGimbal.GM_Pitch.posCtrl.refRelaPos), pData + 5, 4);
-//	
-//	//Gimbal_t.relaPitch = *((float *)(dataBuffer + 5));
-//	
-	memcpy(&(sentryGimbal.GM_Yaw.velCtrl.refVel), pData + 9, 4);
-//	
-//	//Gimbal_t.refYawVel = *((float *)(dataBuffer + 9));
-//	
-	memcpy(&(sentryGimbal.GM_Pitch.velCtrl.refVel), pData + 13, 4);
-	
-	//Gimbal_t.refPitchVel = *((float *)(dataBuffer + 13));
-	
-	sentryGimbal.mode = pData[17];
+	memcpy(&masterData, pData + 1, sizeof(MasterData_t));		//进行数据复制
 }

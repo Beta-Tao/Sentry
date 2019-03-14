@@ -541,11 +541,6 @@
               <FileType>1</FileType>
               <FilePath>..\Src\Chassis_Ctrl.c</FilePath>
             </File>
-            <File>
-              <FileName>Gimbal_Ctrl.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\Gimbal_Ctrl.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>

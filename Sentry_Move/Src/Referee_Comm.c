@@ -3,7 +3,7 @@
 #include "string.h"
 #include "DataScope_DP.h"
 
-extRefereeData_t RefereeData_t;
+ext_referee_data_t RefereeData_t;
 
 uint8_t USART6_DMA_RX_BUF[BSP_USART6_DMA_RX_BUF_LEN];
 uint8_t USART6_DMA_TX_BUF[BSP_USART6_DMA_TX_BUF_LEN];
@@ -51,35 +51,42 @@ void Referee_Decode(uint8_t *pData)
 					memcpy(&cmdID, frameHeadLoc + FRAME_HEADER_LEN, 2);
 					switch (cmdID)
 					{
-						case GAME_ROBOT_STATE_CMD_ID:		//10Hz
-							memcpy(&RefereeData_t.GameRobotState_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, GAME_ROBOT_STATE_LEN);
+						case GAME_STATE_CMD_ID:		//1Hz
+							memcpy(&RefereeData_t.GameState_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, GAME_STATE_LEN);
 							break;
-						case ROBOT_HURT_CMD_ID:				//收到伤害时接收
-							memcpy(&RefereeData_t.RobotHurt_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, ROBOT_HURT_LEN);
-							break;
-						case SHOOT_DATA_CMD_ID:				//发送弹丸时接收
-							memcpy(&RefereeData_t.ShootData_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, SHOOT_DATA_LEN);
-							break;
-						case POWER_HEAT_DATA_CMD_ID:		//50Hz
-							memcpy(&RefereeData_t.PowerHeatData_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, POWER_HEAT_DATA_LEN);
-//							DataScope_Debug(3, RefereeData_t.PowerHeatData_t.chassisPower, RefereeData_t.PowerHeatData_t.chassisVolt, 
-//												RefereeData_t.PowerHeatData_t.chassisCurrent);
-							break;
-						case RFID_DETECT_CMD_ID:
-							memcpy(&RefereeData_t.RfidDetect_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, RFID_DETECT_LEN);
-							break;
-						case GAME_RESULT_CMD_ID:
+						case GAME_RESULT_CMD_ID:	//比赛结束后发送
 							memcpy(&RefereeData_t.GameResult_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, GAME_RESULT_LEN);
 							break;
-						case BUFF_MUSK_CMD_ID:
-							memcpy(&RefereeData_t.BuffMusk_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, BUFF_MUSK_LEN);
+						case GAME_ROBOTSURVIVORS_CMD_ID:	//1Hz发送
+							memcpy(&RefereeData_t.GameRobotSurvivors_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, GAME_ROBOTSURVIVORS_LEN);
 							break;
-						case GAME_ROBOT_POS_CMD_ID:
+						case EVENT_DATA_CMD_ID:		//事件改变后发送
+							memcpy(&RefereeData_t.EventData_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, EVENT_DATA_LEN);
+							break;
+						case SUPPLY_PROJECTILE_ACTION_CMD_ID:	//动作改变后发送
+							memcpy(&RefereeData_t.SupplyProjectileAction_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, SUPPLY_PROJECTILE_ACTION_LEN);
+							break;
+						case GAME_ROBOT_STATE_CMD_ID:	//10Hz
+							memcpy(&RefereeData_t.GameRobotState_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, GAME_ROBOT_STATE_LEN);
+							break;
+						case POWER_HEAT_DATA_CMD_ID:	//50Hz
+							memcpy(&RefereeData_t.PowerHeatData_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, POWER_HEAT_DATA_LEN);
+							break;
+						case GAME_ROBOT_POS_CMD_ID:		//10Hz
 							memcpy(&RefereeData_t.GameRobotPos_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, GAME_ROBOT_POS_LEN);
 							break;
-						/*case SHOW_DATA_CMD_ID:
-							memcpy(&RefereeData_t.ShowData_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, GAME_ROBOT_STATE_LEN);
-							break;*/ 			//自定义数据不会由裁判系统发送
+						case BUFF_MUSK_CMD_ID:			//增益状态改变后发送
+							memcpy(&RefereeData_t.BuffMusk_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, BUFF_MUSK_LEN);
+							break;
+						case AERIAL_ROBOT_ENERGY_CMD_ID:	//空中机器人能量状态数据，10Hz
+							memcpy(&RefereeData_t.AerialRobotEnergy_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, AERIAL_ROBOT_ENERGY_LEN);
+							break;
+						case ROBOT_HURT_CMD_ID:			//伤害发生后发送
+							memcpy(&RefereeData_t.RobotHurt_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, ROBOT_HURT_LEN);
+							break;
+						case SHOOT_DATA_CMD_ID:			//子弹发射后发送
+							memcpy(&RefereeData_t.ShootData_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, SHOOT_DATA_LEN);
+							break;
 						default:
 							break;
 					}

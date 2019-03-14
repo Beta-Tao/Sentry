@@ -26,10 +26,10 @@ extern Shooter_t sentryShooter;
 
 void Shooter_CtrlInit(Shooter_t *shooter);
 
-void Shooter_UpdateState(Shooter_t *shooter);
+void Shooter_UpdateState(void);
 
 void Shooter_MotorCtrl(Shooter_t *shooter);
 
-void Shooter_SetVel(Shooter_t *shooter, uint32_t vel);
+void Shooter_SetVel(uint32_t vel);
 
 #endif

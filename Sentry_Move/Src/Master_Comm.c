@@ -1,58 +1,60 @@
 #include "Master_Comm.h"
-#include "Remote_Comm.h"
-#include "Motor_Ctrl.h"
-#include "Gimbal_Ctrl.h"
 #include "usart.h"
 #include "PC_Comm.h"
+#include "string.h"
+#include "Remote_Comm.h"
 
 unsigned char commOutputBuffer[COMM_FRAME_LEN];
 
-float refRelaYaw;
-float refRelaPitch;
-float refYawVel;
-float refPitchVel;
-
-void Comm_Float2Byte(float *target, unsigned char *buf, uint8_t loc)
-{
-	unsigned char *point;
-    point = (unsigned char*)target;	  //得到float的地址
-    buf[loc] = point[0];
-    buf[loc + 1] = point[1];
-    buf[loc + 2] = point[2];
-    buf[loc + 3] = point[3];
-}
+MasterData_t masterData;
 
 void Comm_GenerateData(void)
 {
-	commOutputBuffer[0] = 0x50;								//帧头
-	Comm_Float2Byte(&refRelaYaw, commOutputBuffer, 1);			//Yaw轴相对位移
-	Comm_Float2Byte(&refRelaPitch, commOutputBuffer, 5);		//Pitch轴相对位移
-	Comm_Float2Byte(&refYawVel, commOutputBuffer, 9);		//Yaw轴运动速度
-	Comm_Float2Byte(&refPitchVel, commOutputBuffer, 13);	//Pitch轴运动速度
-	commOutputBuffer[17] = sentryGimbal.mode;						//瞄准标志位
+	commOutputBuffer[0] = MASTER_FRAME_HEAD;								//帧头
+	memcpy(commOutputBuffer + 1, &masterData, sizeof(MasterData_t));
 }
 
 void Comm_GetData(void)
 {
-	switch (sentryGimbal.mode)
+	/* 根据遥控器数据更新云台状态 */
+	switch (RemoteCtrlData.remote.s2)
+	{
+		case RC_SW_UP:							//当s2在上时，为追踪模式
+			masterData.gimbalMode = GIMBAL_TRACE;
+			break;
+		case RC_SW_MID:							//当s2在中时，为遥控模式
+			masterData.gimbalMode = GIMBAL_REMOTE;
+			break;
+		case RC_SW_DOWN:						//当s2在下时，为停止模式
+			masterData.gimbalMode = GIMBAL_STOP;
+			break;
+		default:
+			break;
+	}
+	
+	switch (masterData.gimbalMode)
 	{
 		case GIMBAL_REMOTE:
-			refYawVel = (-(float)((RemoteCtrlData.remote.ch0 - RC_CH_VALUE_OFFSET) / 
-									RC_CH_VALUE_RANGE * GM_YAW_VEL_MAX));
-			refPitchVel= ((float)((RemoteCtrlData.remote.ch1 - RC_CH_VALUE_OFFSET) / 
-									RC_CH_VALUE_RANGE * GM_PITCH_VEL_MAX));
+			masterData.yawAngle = 
+					(-(float)((RemoteCtrlData.remote.ch0 - RC_CH_VALUE_OFFSET) / RC_CH_VALUE_RANGE) * 180);
+			masterData.pitchAngle = 
+					((float)((RemoteCtrlData.remote.ch1 - RC_CH_VALUE_OFFSET) / RC_CH_VALUE_RANGE) * 45);
+			masterData.posCtrlType = RELA;
 			break;
 		case GIMBAL_TRACE:
-			refRelaYaw = -PCAngle_t.relaYaw;			//从PC端获取数据
-			refRelaPitch = -PCAngle_t.relaPitch;
+			
+			masterData.yawAngle = -PCAngle_t.yawAngle;			//从PC端获取数据
+			masterData.pitchAngle = -PCAngle_t.pitchAngle;
+			masterData.posCtrlType = PCAngle_t.posCtrlType;
 
 			/* 处理数据完后清零，防止PC端掉线使得云台转动 */
-			PCAngle_t.relaYaw = 0;
-			PCAngle_t.relaPitch = 0;
+			PCAngle_t.yawAngle = 0;
+			PCAngle_t.pitchAngle = 0;
 			break;
 		case  GIMBAL_STOP:
-			refYawVel = 0;
-			refPitchVel = 0;
+			masterData.yawAngle = 0;
+			masterData.pitchAngle = 0;
+			masterData.posCtrlType = RELA;
 			break;
 		default:
 			break;
@@ -60,7 +62,7 @@ void Comm_GetData(void)
 }
 
 void Comm_SendData(void)
-{ 
+{
 	uint8_t i;
 	
 	Comm_GetData();

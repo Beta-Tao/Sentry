@@ -27,7 +27,6 @@
 "sentry_move\system_stm32f4xx.o"
 "sentry_move\motor_ctrl.o"
 "sentry_move\chassis_ctrl.o"
-"sentry_move\gimbal_ctrl.o"
 "sentry_move\master_comm.o"
 "sentry_move\referee_comm.o"
 "sentry_move\crc.o"
