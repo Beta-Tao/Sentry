@@ -34,9 +34,16 @@ sentry_move\chassis_ctrl.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_ti
 sentry_move\chassis_ctrl.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h
 sentry_move\chassis_ctrl.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
 sentry_move\chassis_ctrl.o: ..\Inc\can.h
-sentry_move\chassis_ctrl.o: ..\Inc\Motor_Ctrl.h
 sentry_move\chassis_ctrl.o: ..\Inc\DataScope_DP.h
 sentry_move\chassis_ctrl.o: ..\Inc\tim.h
+sentry_move\chassis_ctrl.o: ..\Inc\Sentry_Strategy.h
+sentry_move\chassis_ctrl.o: ..\Inc\Master_Comm.h
+sentry_move\chassis_ctrl.o: ..\Inc\Gimbal_Ctrl.h
+sentry_move\chassis_ctrl.o: ..\Inc\Loader_Ctrl.h
+sentry_move\chassis_ctrl.o: ..\Inc\Shooter_Ctrl.h
+sentry_move\chassis_ctrl.o: ..\Inc\PC_Comm.h
 sentry_move\chassis_ctrl.o: ..\Inc\Remote_Comm.h
 sentry_move\chassis_ctrl.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 sentry_move\chassis_ctrl.o: ..\Inc\usart.h
+sentry_move\chassis_ctrl.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+sentry_move\chassis_ctrl.o: ..\Inc\gpio.h

@@ -193,10 +193,10 @@ Reset_Handler    PROC
         IMPORT  SystemInit
         IMPORT  __main
 
-                  LDR     R0, =SystemInit
+                 LDR     R0, =SystemInit
                  BLX     R0
                  LDR     R0, =__main
-                 BX      R0 
+                 BX      R0  
                  ENDP
 
 ; Dummy Exception Handlers (infinite loops which can be modified)

@@ -12,6 +12,16 @@ void Master_Data_Receive_Start(void)
 	HAL_UART_Receive_DMA(&huart8, UART8_DMA_RX_BUF, BSP_UART8_DMA_RX_BUF_LEN);
 }
 
+void Master_CommInit(void)
+{
+	masterData.yawAngle = 0;
+	masterData.pitchAngle = 0;
+	masterData.posCtrlType = 1;
+	masterData.gimbalMode = 0;
+	masterData.loaderMode = 1;
+	masterData.shooterMode = 1;
+}
+
 void Master_RevData(void)
 {
 	if((__HAL_UART_GET_FLAG(&huart8,UART_FLAG_IDLE)!=RESET)) 

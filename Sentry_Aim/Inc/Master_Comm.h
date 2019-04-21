@@ -13,14 +13,10 @@ typedef struct
 	
 	float pitchAngle;
 	
-	uint32_t posCtrlType;
-	
-	float loadVel;
-	
-	uint32_t shootVel;
+	uint8_t posCtrlType;
 	
 	uint8_t gimbalMode;
-	
+	 
 	uint8_t loaderMode;
 	
 	uint8_t shooterMode;
@@ -30,6 +26,8 @@ typedef struct
 extern MasterData_t masterData;
 
 void Master_Data_Receive_Start(void);
+
+void Master_CommInit(void);
 
 void Master_RevData(void);
 

@@ -256,6 +256,7 @@ void TIM1_CC_IRQHandler(void)
   /* USER CODE BEGIN TIM1_CC_IRQn 0 */
 	Shooter_UpdateState(&sentryShooter);
 	Shooter_MotorCtrl(&sentryShooter);
+	
   /* USER CODE END TIM1_CC_IRQn 0 */
   //HAL_TIM_IRQHandler(&htim1);
   /* USER CODE BEGIN TIM1_CC_IRQn 1 */
@@ -291,11 +292,13 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 			{
 				case GM_YAW_ID:
 					Motor_CanRxMsgConv(hcan, &(sentryGimbal.GM_Yaw));
+					Motor_UpdatePosCtrl(&(sentryGimbal.GM_Yaw.posCtrl));
 					Gimbal_UpdateState(&sentryGimbal);
 					Gimbal_MotorCtrl(&(sentryGimbal.GM_Yaw));
 					break;
 				case GM_PITCH_ID:
 					Motor_CanRxMsgConv(hcan, &(sentryGimbal.GM_Pitch));
+					Motor_UpdatePosCtrl(&(sentryGimbal.GM_Pitch.posCtrl));
 					Gimbal_UpdateState(&sentryGimbal);
 					Gimbal_MotorCtrl(&(sentryGimbal.GM_Pitch));
 					break;

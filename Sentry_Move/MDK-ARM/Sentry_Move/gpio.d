@@ -36,6 +36,5 @@ sentry_move\gpio.o: ..\Inc\Remote_Comm.h
 sentry_move\gpio.o: ..\Inc\Chassis_Ctrl.h
 sentry_move\gpio.o: ..\Inc\Motor_Ctrl.h
 sentry_move\gpio.o: ..\Inc\can.h
-sentry_move\gpio.o: ..\Inc\Motor_Ctrl.h
 sentry_move\gpio.o: ..\Inc\DataScope_DP.h
 sentry_move\gpio.o: ..\Inc\tim.h

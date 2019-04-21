@@ -1,9 +1,11 @@
 #include "Gimbal_Ctrl.h"
 #include "Master_Comm.h"
+#include "DataScope_DP.h"
 #include "usart.h"
 #include "gpio.h"
 
 Gimbal_t sentryGimbal;
+uint8_t count = 0;
 
 /**
   * @brief	底盘控制初始化
@@ -19,22 +21,22 @@ void Gimbal_CtrlInit(Gimbal_t *gimbal)
 	yawMotor->escType = C620;
 	Motor_PosCtrlInit(yawMotor,
 					  GM_YAW_ACC,
-					  0.01, 0, 0.83,
-					  GM_YAW_VEL_MIN, GM_YAW_VEL_MAX, 1310.77901);	//
+					  0.01, 0, 2.3,
+					  GM_YAW_VEL_MIN, GM_YAW_VEL_MAX, GM_YAW_MAX, GM_YAW_MIN, 1310.77901);	//
 	Motor_VelCtrlInit(yawMotor, 
 					  GM_YAW_ACC, GM_YAW_DEC, 	//acc, dec	控制周期是1ms，所以单位意义是每ms增加的转速
-					  6, 0.15, 0, 								//kp, ki, kd 10 0.5 0
+					  6, 0.01, 0, 								//kp, ki, kd 10 0.5 0
 					  9.60160);
 
 	pitchMotor->motorType = GM6020;
 	pitchMotor->escType = GM_6020;
 	Motor_PosCtrlInit(pitchMotor,
 					  GM_PITCH_ACC,
-					  3, 0, 235,
-					  GM_PITCH_VEL_MIN, GM_PITCH_VEL_MAX, 22.75278);
+					  0.6, 0, 50, 
+					  GM_PITCH_VEL_MIN, GM_PITCH_VEL_MAX, GM_PITCH_MAX, GM_PITCH_MIN, 22.75278);
 	Motor_VelCtrlInit(pitchMotor, 
 					  GM_PITCH_ACC, GM_PITCH_DEC, 			//acc, dec
-					  80, 20, 0,		 									//kp, ki, kd
+					  220, 2, 0,		 									//kp, ki, kd
 					  0.16667);
 
 	gimbal->mode = GIMBAL_YAW_INIT;
@@ -44,7 +46,7 @@ void Gimbal_UpdateState(Gimbal_t *gimbal)
 {
 	/* 更新状态 */
 	gimbal->mode = (gimbal->mode == GIMBAL_YAW_INIT || 
-					gimbal->mode == GIMBAL_PITCH_INIT) ? gimbal->mode : masterData.gimbalMode;
+					gimbal->mode == GIMBAL_PITCH_INIT) ? gimbal->mode : (GimbalMode_e)masterData.gimbalMode;
 	
 	static uint8_t trigCount = 0;
 	switch (gimbal->mode)
@@ -55,7 +57,7 @@ void Gimbal_UpdateState(Gimbal_t *gimbal)
 			else
 				trigCount = 0;
 			
-			if (trigCount == 3)
+			if (trigCount >= 3)
 			{
 				gimbal->mode = GIMBAL_PITCH_INIT;
 				gimbal->GM_Yaw.posCtrl.absPos = 0;
@@ -65,22 +67,24 @@ void Gimbal_UpdateState(Gimbal_t *gimbal)
 			break;
 		case GIMBAL_PITCH_INIT:
 			if (gimbal->GM_Pitch.velCtrl.refVel != 0 && 
-				gimbal->GM_Pitch.velCtrl.rawVel <= 5 && gimbal->GM_Pitch.velCtrl.rawVel >= -5)
+				(float)gimbal->GM_Pitch.velCtrl.rawVel / gimbal->GM_Pitch.velCtrl.velRatio <= 1 && 
+					(float)gimbal->GM_Pitch.velCtrl.rawVel / gimbal->GM_Pitch.velCtrl.velRatio >= -1)
 										//判断为堵转状态
 				trigCount++;
 			else
 				trigCount = 0;
 			
-			if (trigCount == 3)
-			{
+			if (trigCount >= 200)
+			{ 
 				gimbal->mode = GIMBAL_STOP;
 				gimbal->GM_Pitch.posCtrl.absPos = 0;
 				gimbal->GM_Pitch.posCtrl.refRelaPos = 0;
+				Motor_SetPos(&(gimbal->GM_Pitch.posCtrl), GM_PITCH_MAX, ABS);
 				trigCount = 0;
 			}
 			break;
 		default:
-			break;
+			break;  
 	}
 }
 
@@ -92,6 +96,8 @@ void Gimbal_UpdateState(Gimbal_t *gimbal)
   */
 void Gimbal_MotorCtrl(Motor_t *motor)
 {
+	static uint8_t count = 0;
+	
 	if (motor != &(sentryGimbal.GM_Yaw) && motor != &(sentryGimbal.GM_Pitch))
 		return;
 	
@@ -101,16 +107,24 @@ void Gimbal_MotorCtrl(Motor_t *motor)
 			Motor_PosCtrl(&(motor->posCtrl));
 			Motor_SetVel(&(motor->velCtrl), motor->posCtrl.output);
 			Motor_VelCtrl(&(motor->velCtrl));
-			break;
+			break; 
 		case GIMBAL_REMOTE:							//遥控模式则进行速度闭环
-			//期望速度信息直接在Master_Comm.c中进行更新
+			if (motor == &(sentryGimbal.GM_Yaw))
+				Motor_SetPos(&(motor->posCtrl), masterData.yawAngle, RELA);
+			else if (motor == &(sentryGimbal.GM_Pitch))
+				Motor_SetPos(&(motor->posCtrl), masterData.pitchAngle, RELA);
+			else
+				break;
+			
+			Motor_PosCtrl(&(motor->posCtrl));
+			Motor_SetVel(&(motor->velCtrl), motor->posCtrl.output);
 			Motor_VelCtrl(&(motor->velCtrl));
 			break;
 		case GIMBAL_TRACE:
 			if (motor == &(sentryGimbal.GM_Yaw))
-				Motor_SetPos(&(motor->posCtrl), masterData.yawAngle, masterData.posCtrlType);
-			else if (motor == &(sentryGimbal.GM_Pitch)) 
-				Motor_SetPos(&(motor->posCtrl), masterData.pitchAngle, masterData.posCtrlType);
+				Motor_SetPos(&(motor->posCtrl), masterData.yawAngle, (PosCtrlType_e)masterData.posCtrlType);
+			else if (motor == &(sentryGimbal.GM_Pitch))
+				Motor_SetPos(&(motor->posCtrl), masterData.pitchAngle, (PosCtrlType_e)masterData.posCtrlType);
 			else
 				break;
 			Motor_PosCtrl(&(motor->posCtrl));
@@ -120,10 +134,11 @@ void Gimbal_MotorCtrl(Motor_t *motor)
 		case GIMBAL_DEBUG_VEL:
 			Motor_VelCtrl(&(motor->velCtrl));
 			break;
-		case GIMBAL_DEBUG_POS:
+		case GIMBAL_DEBUG_POS: 
 			Motor_PosCtrl(&(motor->posCtrl));
 			Motor_SetVel(&(motor->velCtrl), motor->posCtrl.output);
 			Motor_VelCtrl(&(motor->velCtrl));
+			break;
 		case GIMBAL_YAW_INIT:
 			if (motor != &(sentryGimbal.GM_Yaw))
 				break;
@@ -148,5 +163,12 @@ void Gimbal_MotorCtrl(Motor_t *motor)
 			break;
 		default:
 			break;
+	}
+	
+	count++;
+	if (count >= 30)
+	{
+		DataScope_Debug(2, sentryGimbal.GM_Yaw.posCtrl.refRelaPos, sentryGimbal.GM_Pitch.posCtrl.refRelaPos);
+		count = 0;
 	}
 }

@@ -43,6 +43,12 @@
 #define SHOOT_DATA_CMD_ID					0x0207
 #define INTERACTIVE_DATA_CMD_ID				0x0301
 
+/* 个人数据 */
+#define RED		0
+#define BLUE	1
+		
+#define OUR_SIDE	BLUE
+
 typedef __packed struct
 {
 	uint8_t		sof;			//帧起始字节
@@ -90,6 +96,7 @@ typedef __packed struct
 {
 	uint8_t 	robot_id;
 	uint8_t		robot_level;
+	uint16_t	remain_HP;
 	uint16_t 	max_HP;
 	uint16_t 	shooter_heat0_cooling_rate;
 	uint16_t 	shooter_heat0_cooling_limit;
@@ -187,7 +194,15 @@ typedef __packed struct
 	
 }ext_referee_data_t;
 
+typedef __packed struct
+{
+	uint8_t remain_HP;
+	uint8_t max_HP;
+}ext_our_sentry_state_t;
+
 extern ext_referee_data_t RefereeData_t;
+
+extern ext_our_sentry_state_t sentryState_t;
 
 extern uint8_t USART6_DMA_RX_BUF[BSP_USART6_DMA_RX_BUF_LEN];
 extern uint8_t USART6_DMA_TX_BUF[BSP_USART6_DMA_TX_BUF_LEN];

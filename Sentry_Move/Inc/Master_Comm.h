@@ -16,17 +16,13 @@ typedef struct
 	
 	float pitchAngle;
 	
-	PosCtrlType_e posCtrlType;
+	uint8_t posCtrlType;
 	
-	float loadVel;
+	uint8_t gimbalMode;
 	
-	uint32_t shootVel;
+	uint8_t loaderMode;
 	
-	GimbalMode_e gimbalMode;
-	
-	LoaderMode_e loaderMode;
-	
-	ShooterMode_e shooterMode;
+	uint8_t shooterMode;
 	
 }MasterData_t;
 
@@ -36,10 +32,12 @@ extern unsigned char commOutputBuffer[COMM_FRAME_LEN];
 
 extern MasterData_t masterData;
 
-void Comm_GenerateData(void);
+void Master_CommInit(void);
 
-void Comm_GetData(void);
+void Master_GenerateData(void);
 
-void Comm_SendData(void);
+void Master_GetData(void);
+
+void Master_SendData(void);
 
 #endif

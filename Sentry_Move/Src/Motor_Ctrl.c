@@ -12,7 +12,7 @@
   */
 void Motor_VelCtrlInit(Motor_t *motor, 
 					   float acc, float dec, 
-					   float kp, float ki, float kd)
+					   float kp, float ki, float kd, float ratio)
 {
 	motor->velCtrl.refVel = 0;
 	motor->velCtrl.refVel_Soft = 0;
@@ -27,6 +27,8 @@ void Motor_VelCtrlInit(Motor_t *motor,
 	motor->velCtrl.errLast = 0.0f;
 
 	motor->velCtrl.output = 0.0f;
+	
+	motor->velCtrl.velRatio = ratio;
 	
 	switch (motor->escType)
 	{
@@ -58,9 +60,11 @@ void Motor_VelCtrlInit(Motor_t *motor,
   */
 void Motor_PosCtrlInit(Motor_t *motor, float acc, 
 					   float kp, float ki, float kd,
-					   float outputMin, float outputMax, float ratio)
+					   float outputMin, float outputMax, float posMax, float posMin, float ratio)
 {
+	motor->posCtrl.absPos = 0;
 	motor->posCtrl.refRelaPos = 0;
+	motor->posCtrl.detaPos = 0;
 	
 	motor->posCtrl.acc = acc;		//位置环加速度和速度环减速加速度一致
 	
@@ -75,7 +79,8 @@ void Motor_PosCtrlInit(Motor_t *motor, float acc,
 	motor->posCtrl.outputMin = outputMin;
 	motor->posCtrl.outputMax = outputMax;
 	
-	motor->posCtrl.posReady = POS_CTRL_READY;
+	motor->posCtrl.posMax = posMax;
+	motor->posCtrl.posMin = posMin;
 
 	switch (motor->escType)
 	{
@@ -117,15 +122,36 @@ void Motor_SetVel(VelCtrl_t *vel_t, float vel)
   */
 void Motor_SetPos(PosCtrl_t *pos_t, float pos, uint8_t type)
 {
-	switch (type)
-	{
-		case RELA:
-			pos_t->refRelaPos = pos;
-			break;
-		case ABS:
-			pos_t->refRelaPos = pos - pos_t->absPos;
-			break;
-	}
+	if ((pos_t->posMax) - (pos_t->posMin) <= 0.01f)			//判断float变量很小，这个判断针对于360度旋转的情况
+		switch (type)
+		{
+			case RELA:
+				pos_t->refRelaPos = pos;
+				break;
+			case ABS:
+				pos_t->refRelaPos = pos - pos_t->absPos;
+				break;
+		}
+	else
+		switch (type)
+		{
+			case RELA:
+				if (pos_t->absPos + pos >= pos_t->posMax)
+					pos_t->refRelaPos = pos_t->posMax - pos_t->absPos;
+				else if (pos_t->absPos + pos <= pos_t->posMin)
+					pos_t->refRelaPos = pos_t->posMin - pos_t->absPos;
+				else
+					pos_t->refRelaPos = pos;
+				break;
+			case ABS:
+				if (pos >= pos_t->posMax)
+					pos_t->refRelaPos = pos_t->posMax - pos_t->absPos;
+				else if (pos <= pos_t->posMin)
+					pos_t->refRelaPos = pos_t->posMin - pos_t->absPos;
+				else
+					pos_t->refRelaPos = pos - pos_t->absPos;
+				break;
+		}
 }
 
 /**
@@ -136,23 +162,7 @@ void Motor_SetPos(PosCtrl_t *pos_t, float pos, uint8_t type)
   */
 void Motor_PosCtrl(PosCtrl_t *pos_t)
 {
-	float diff, detaPos;					//相对位置缓存
-	
-	/* 求出相位转角 */
-	detaPos = pos_t->rawPos - pos_t->rawPosLast;
-	
-	pos_t->rawPosLast = pos_t->rawPos;		//缓存上次数据
-	
-	//存储绝对位置
-	if (detaPos > pos_t->posRange / 2)	//反转过一圈
-		detaPos -= pos_t->posRange;
-	else if (detaPos < -pos_t->posRange / 2)	//正转过一圈
-		detaPos += pos_t->posRange;
-	else
-		detaPos = detaPos;
-	
-	pos_t->refRelaPos -= detaPos / pos_t->posRatio;			//更新相对转角
-	pos_t->absPos += detaPos / pos_t->posRatio;				//更新绝对转角
+	float diff = 0;					//相对位置缓存
 	
 	/* 计算误差值，err保存当前的误差，errLast保存上一次的误差 */
 	pos_t->errLast = pos_t->err;
@@ -207,7 +217,7 @@ void Motor_VelCtrl(VelCtrl_t *vel_t)
 	
 	/* 速度PID */
 	vel_t->errLast = vel_t->err;
-	vel_t->err = vel_t->refVel_Soft - vel_t->rawVel;		//使用vel_t->refVel_Soft作为速度期望
+	vel_t->err = vel_t->refVel_Soft * vel_t->velRatio - vel_t->rawVel;		//使用vel_t->refVel_Soft作为速度期望
 	diff = vel_t->err - vel_t->errLast;
 	vel_t->integ += vel_t->err;
 	 
@@ -234,11 +244,28 @@ void Motor_VelCtrl(VelCtrl_t *vel_t)
   */
 void Motor_CanRxMsgConv(CAN_HandleTypeDef *hcan, Motor_t *motor)
 {
+	motor->posCtrl.rawPosLast = motor->posCtrl.rawPos;		//缓存上次数据
+	
 	motor->posCtrl.rawPos = (int16_t)(hcan->pRxMsg->Data[0] << 8 | hcan->pRxMsg->Data[1]);
 	
 	motor->velCtrl.rawVel = (int16_t)(hcan->pRxMsg->Data[2] << 8 | hcan->pRxMsg->Data[3]);
+}
+
+void Motor_UpdatePosCtrl(PosCtrl_t *pos_t)
+{
+	/* 求出相位转角 */
+	pos_t->detaPos = pos_t->rawPos - pos_t->rawPosLast;
 	
-	motor->curCtrl.rawCur = (int16_t)(hcan->pRxMsg->Data[4] << 8 | hcan->pRxMsg->Data[5]);
+	//存储绝对位置
+	if (pos_t->detaPos > pos_t->posRange / 2)	//反转过一圈
+		pos_t->detaPos -= pos_t->posRange;
+	else if (pos_t->detaPos < -pos_t->posRange / 2)	//正转过一圈
+		pos_t->detaPos += pos_t->posRange;
+	else
+		pos_t->detaPos = pos_t->detaPos;
+	
+	pos_t->refRelaPos -= pos_t->detaPos / pos_t->posRatio;			//更新相对转角
+	pos_t->absPos += pos_t->detaPos / pos_t->posRatio;				//更新绝对转角
 }
 
 /**

@@ -111,10 +111,6 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-  
-	//USART6获取AHRS信息 DMA
-	//UART7调试接口
-	//UART8 上板通信
 	
   /* USER CODE END SysInit */
 
@@ -126,18 +122,16 @@ int main(void)
   MX_UART8_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
-  
-	/* 初始化所有通信 */
-	CAN_CommInit(&hcan1);
+	CAN_CommInit(&hcan1);	//初始化CAN通信并开始
 	
 	/* 初始化电机控制参数 */
 	Gimbal_CtrlInit(&sentryGimbal);
 	Loader_CtrlInit(&sentryLoader);
-	Shooter_CtrlInit(&sentryShooter);
 	
-	//while (sentryGimbal.mode != GIMBAL_STOP || sentryLoader.mode != LOADER_STOP)
-	//Shooter_CtrlInit();
- 
+	while ((sentryGimbal.mode != GIMBAL_STOP) || (sentryLoader.mode != LOADER_STOP));
+	
+	Master_CommInit();		//初始化通信包
+	Shooter_CtrlInit(&sentryShooter);
 	Master_Data_Receive_Start();
   /* USER CODE END 2 */
 
@@ -163,11 +157,11 @@ void SystemClock_Config(void)
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-  /**Configure the main internal regulator output voltage 
+  /** Configure the main internal regulator output voltage 
   */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-  /**Initializes the CPU, AHB and APB busses clocks 
+  /** Initializes the CPU, AHB and APB busses clocks 
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
@@ -181,7 +175,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  /**Initializes the CPU, AHB and APB busses clocks 
+  /** Initializes the CPU, AHB and APB busses clocks 
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;

@@ -1,9 +1,13 @@
 #include "Remote_Comm.h"
+#include "string.h"
 #include "usart.h"
 
 uint8_t USART1_DMA_RX_BUF[BSP_USART1_DMA_RX_BUF_LEN];  //定义一个数组用于存放从DMA接收到的遥控器数据
 
-RemoteCtrl_t RemoteCtrlData;       //遥控器输入
+
+static uint32_t remoteTick = 0;
+
+RemoteComm_t RemoteComm;       //遥控器输入
 
 /**
   * @brief	根据遥控器协议对进行接收到的数据进行处理
@@ -18,43 +22,43 @@ void RC_DataHandle(uint8_t *pData)
     }
 	
 	/* pData[0]为ch0的低8位，Data[1]的低3位ch0的高3位 */
-	RemoteCtrlData.remote.ch0 = (uint16_t)(pData[0] | pData[1] << 8) & 0x07FF;
+	RemoteComm.RemoteData.remote.ch0 = (uint16_t)(pData[0] | pData[1] << 8) & 0x07FF;
 	
 	/* pData[1]的高5位为ch1的低5位，pData[2]的低6位为ch1的高6位 */
-	RemoteCtrlData.remote.ch1 = (uint16_t)(pData[1] >> 3 | pData[2] << 5) & 0x07FF;
+	RemoteComm.RemoteData.remote.ch1 = (uint16_t)(pData[1] >> 3 | pData[2] << 5) & 0x07FF;
 	
 	/* pData[2]的高2位为ch2的低2位, pData[3]为ch2的中8位，pData[4]的低1位为ch2的高1位 */
-	RemoteCtrlData.remote.ch2 = (uint16_t)(pData[2] >> 6 | pData[3] << 2 | pData[4] << 10) & 0x07FF;
+	RemoteComm.RemoteData.remote.ch2 = (uint16_t)(pData[2] >> 6 | pData[3] << 2 | pData[4] << 10) & 0x07FF;
 	
 	/* pData[4]的高7位为ch3的低7位，pData[5]的低4位为ch3的高4位 */
-	RemoteCtrlData.remote.ch3 = (uint16_t)(pData[4] >> 1 | pData[5] << 7) & 0x07FF;
+	RemoteComm.RemoteData.remote.ch3 = (uint16_t)(pData[4] >> 1 | pData[5] << 7) & 0x07FF;
 
 	/* pData[5]的高2位为s1 */
-	RemoteCtrlData.remote.s1  = ((pData[5] >> 6) & 0x03);
+	RemoteComm.RemoteData.remote.s1  = ((pData[5] >> 6) & 0x03);
 	
 	/* pData[6]的6，7位为s2 */
-	RemoteCtrlData.remote.s2  = ((pData[5] >> 4) & 0x03);
+	RemoteComm.RemoteData.remote.s2  = ((pData[5] >> 4) & 0x03);
 	
 	/* pData[6],pData[7]为x */
-	RemoteCtrlData.mouse.x    = (int16_t)(pData[6] | pData[7] << 8);
+	RemoteComm.RemoteData.mouse.x    = (int16_t)(pData[6] | pData[7] << 8);
 	
 	/* pData[8],pData[9]为y */
-	RemoteCtrlData.mouse.y    = (int16_t)(pData[8] | pData[9] << 8);
+	RemoteComm.RemoteData.mouse.y    = (int16_t)(pData[8] | pData[9] << 8);
 	
 	/* pData[10],pData[11]为z */
-	RemoteCtrlData.mouse.z    = (int16_t)(pData[10] | pData[11] << 8);
+	RemoteComm.RemoteData.mouse.z    = (int16_t)(pData[10] | pData[11] << 8);
 	
 	/* pData[12]为左键 */
-	RemoteCtrlData.mouse.press_l = pData[12];
+	RemoteComm.RemoteData.mouse.press_l = pData[12];
 	
 	/* pData[13]为右键 */
-	RemoteCtrlData.mouse.press_r = pData[13];
+	RemoteComm.RemoteData.mouse.press_r = pData[13];
 	
 	/* pData[14],pData[15]为键盘值 */
-	RemoteCtrlData.key.v 		 = (int16_t)(pData[14] | pData[15] << 8);
+	RemoteComm.RemoteData.key.v 		 = (int16_t)(pData[14] | pData[15] << 8);
 	
 	/* pData[15], pData[16]为拨轮值 */
-	RemoteCtrlData.clickwheel.ch = (uint16_t)(pData[16] | pData[17] << 8) & 0x07FF;
+	RemoteComm.RemoteData.clickwheel.ch = (uint16_t)(pData[16] | pData[17] << 8) & 0x07FF;
 }
 
 /**
@@ -77,6 +81,8 @@ void RemoteCtl_Data_Receive(void)
 		HAL_UART_Receive_DMA(&huart1, USART1_DMA_RX_BUF, BSP_USART1_DMA_RX_BUF_LEN);  //接受数据
 		if (rx_data_len == RC_FRAME_LENGTH)                                           //判断数据是否为正确的数据长度
 		{
+			RemoteComm.RemoteCommState = REMOTE_COMM_NORMAL;
+			remoteTick = 0;
 			RC_DataHandle(USART1_DMA_RX_BUF);                                        //进入数据解码函数
 		}
 	}
@@ -92,4 +98,18 @@ void RemoteCtl_Data_Receive_Start(void)
 {
 	__HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);                                   //开启不定长中断
 	HAL_UART_Receive_DMA(&huart1, USART1_DMA_RX_BUF, BSP_USART1_DMA_RX_BUF_LEN);
+}
+
+void Remote_IsCommDrop(void)
+{
+	remoteTick++;
+	if (remoteTick > REMOTE_IT_CYCLE + 50)
+	{
+		remoteTick = 0;
+		
+		RemoteComm.RemoteCommState = REMOTE_COMM_DROP;
+		memset((void *)&RemoteComm.RemoteData, 0, sizeof(RemoteCtrl_t));
+		RemoteComm.RemoteData.remote.s1 = RC_SW_DOWN;					//s1对应底盘运动，下位为停止
+		RemoteComm.RemoteData.remote.s2 = RC_SW_DOWN;					//s2对应云台运动，下位为停止
+	}
 }

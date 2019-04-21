@@ -5,53 +5,60 @@
 #include "tim.h"
 
 /* 底盘电机控制常量 */
-#define CM_VEL_MIN				-10000		//即转速
-#define CM_VEL_MAX				10000
+#define CM_VEL_MIN				-900		//即转速
+#define CM_VEL_MAX				900
 
-#define CHASSIS_ACC		500
-#define	CHASSIS_DEC		500
+#define CHASSIS_ACC		5
+#define	CHASSIS_DEC		5
  
 /* 总线ID */
 #define CM_L_ID					0x201
 #define CM_R_ID					0x202
 
-#define CHASSIS_DETECT_VEL		2000
+/* 刚好不超功率的速度为 500.0f */
+#define CHASSIS_DETECT_LOW_VEL			200.0f
+#define CHASSIS_DETECT_NORMAL_VEL		320.0f
+#define CHASSIS_DETECT_FAST_VEL			600.0f
+#define CHASSIS_DODGE_VEL		900.0f
+#define CHASSIS_DODGE_POS		200.0f
 
 typedef enum
 {
-	CHASSIS_REMOTE		= 0,
-	CHASSIS_STOP		= 1,
-	CHASSIS_DETECT		= 2,
-	CHASSIS_DODGE		= 3,
-	CHASSIS_DEBUG_VEL	= 4,
+	CHASSIS_REMOTE			= 0,
+	CHASSIS_STOP			= 1,  
+	CHASSIS_DETECT_FAST		= 2,
+	CHASSIS_DETECT_NORMAL	= 3,
+	CHASSIS_DETECT_LOW		= 4,
+	CHASSIS_DODGE			= 5,
+	CHASSIS_DEBUG_VEL		= 6,
 }ChassisMode_e;
 
 typedef enum
 {
-	LEFT	= -1,
-	RIGHT	= 1,
+	LEFT	= 2,
+	RIGHT	= 0,
 }ChassisDir_e;
 
-typedef struct
-{	
-	float leftDis;
-	
-	float rightDis;
-	
-	float revDis;
-}ChassisDis_t;
+//typedef struct
+//{	
+//	float leftDis;
+//	
+//	float rightDis;
+//	
+//	float revDis;
+//}ChassisDis_t;
 
 typedef struct
 {
-	ChassisMode_e mode;
+	volatile ChassisMode_e mode;
 	
 	Motor_t CM_Left;
 	
 	Motor_t CM_Right;
 	
-	ChassisDir_e chassisDir;
+	volatile ChassisDir_e chassisDir;
 	
-	ChassisDis_t chassisDis;
+	//ChassisDis_t chassisDis;
 }Chassis_t;
 
 extern Chassis_t sentryChassis;
@@ -62,6 +69,8 @@ void Chassis_UpdateState(Chassis_t *chassis);
  
 void Chassis_MotorCtrl(Motor_t *motor);
 
-void Chassis_GetDistance(TIM_HandleTypeDef *htim, Chassis_t *chassis);
+uint8_t Chassis_IsReverse(ChassisDir_e dir);
+
+//void Chassis_GetDistance(TIM_HandleTypeDef *htim, Chassis_t *chassis);
 
 #endif

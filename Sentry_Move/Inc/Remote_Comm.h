@@ -23,6 +23,14 @@
 
 #define BSP_USART1_DMA_RX_BUF_LEN 20u                            //遥控器数据接收DMA存储长度
 
+#define REMOTE_IT_CYCLE		14
+
+typedef enum
+{
+	REMOTE_COMM_DROP = 0,
+	REMOTE_COMM_NORMAL,
+}RemoteCommState_e;
+
 typedef struct
 {
 	struct
@@ -55,9 +63,16 @@ typedef struct
 	} clickwheel;
 }RemoteCtrl_t;
 
+typedef struct
+{
+	volatile RemoteCommState_e RemoteCommState;
+	
+	RemoteCtrl_t RemoteData;
+}RemoteComm_t;
+
 extern uint8_t USART1_DMA_RX_BUF[BSP_USART1_DMA_RX_BUF_LEN];		//USART1接收DMA缓存
 
-extern RemoteCtrl_t RemoteCtrlData;
+extern RemoteComm_t RemoteComm;
 extern uint8_t isRevRemoteData;
 
 void RC_DataHandle(uint8_t *pData);
@@ -65,5 +80,7 @@ void RC_DataHandle(uint8_t *pData);
 void RemoteCtl_Data_Receive_Start(void);
 
 void RemoteCtl_Data_Receive(void);
+
+void Remote_IsCommDrop(void);
 
 #endif

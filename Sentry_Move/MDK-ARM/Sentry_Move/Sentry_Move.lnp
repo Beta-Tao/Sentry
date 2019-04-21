@@ -24,7 +24,7 @@
 "sentry_move\stm32f4xx_hal_pwr_ex.o"
 "sentry_move\stm32f4xx_hal_cortex.o"
 "sentry_move\stm32f4xx_hal.o"
-"sentry_move\system_stm32f4xx.o"
+"sentry_move\system_stm32f4xx_1.o"
 "sentry_move\motor_ctrl.o"
 "sentry_move\chassis_ctrl.o"
 "sentry_move\master_comm.o"
@@ -33,6 +33,7 @@
 "sentry_move\datascope_dp.o"
 "sentry_move\remote_comm.o"
 "sentry_move\pc_comm.o"
+"sentry_move\sentry_strategy.o"
 --library_type=microlib --strict --scatter "Sentry_Move\Sentry_Move.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers

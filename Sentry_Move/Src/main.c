@@ -51,8 +51,10 @@
 
 #include "Remote_Comm.h"
 #include "Referee_Comm.h"
+#include "Master_Comm.h"
 #include "PC_Comm.h"
 #include "Chassis_Ctrl.h"
+#include "Sentry_Strategy.h"
 
 /* USER CODE END Includes */
 
@@ -103,10 +105,10 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+ 
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -125,15 +127,21 @@ int main(void)
   MX_UART8_Init();
   MX_USART6_UART_Init();
   MX_USART3_UART_Init();
-  MX_TIM5_Init();
+  MX_TIM6_Init();
+  MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
 	Chassis_CtrlInit(&sentryChassis);
+	Master_CommInit();
+	PC_CommInit();
+	Sentry_STInit(&sentryST);
 	
  	RemoteCtl_Data_Receive_Start();
 	Referee_Data_Receive_Start();
 	PC_Data_Receive_Start();
 	
-	TIM5_CaptureInit();
+	HAL_TIM_Base_Start_IT(&htim6);
+	HAL_TIM_Base_Start_IT(&htim7);
+ 
 	CAN_CommInit(&hcan1);
   /* USER CODE END 2 */
 
@@ -143,6 +151,8 @@ int main(void)
   { 
  
     /* USER CODE END WHILE */
+	  HAL_Delay(30);
+	  DataScope_Debug(1, RefereeData_t.PowerHeatData_t.chassis_power_buffer);
 
     /* USER CODE BEGIN 3 */
 
@@ -159,11 +169,11 @@ void SystemClock_Config(void)
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
-  /**Configure the main internal regulator output voltage 
+  /** Configure the main internal regulator output voltage 
   */
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-  /**Initializes the CPU, AHB and APB busses clocks 
+  /** Initializes the CPU, AHB and APB busses clocks 
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
@@ -177,7 +187,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  /**Initializes the CPU, AHB and APB busses clocks 
+  /** Initializes the CPU, AHB and APB busses clocks 
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;

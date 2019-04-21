@@ -7,12 +7,12 @@ sentry_aim\master_comm.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.
 sentry_aim\master_comm.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h
 sentry_aim\master_comm.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h
 sentry_aim\master_comm.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f427xx.h
-sentry_aim\master_comm.o: F:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include\core_cm4.h
+sentry_aim\master_comm.o: ../Drivers/CMSIS/Include/core_cm4.h
 sentry_aim\master_comm.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
-sentry_aim\master_comm.o: F:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include\cmsis_version.h
-sentry_aim\master_comm.o: F:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include\cmsis_compiler.h
-sentry_aim\master_comm.o: F:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include\cmsis_armcc.h
-sentry_aim\master_comm.o: F:\Keil_v5\ARM\PACK\ARM\CMSIS\5.3.0\CMSIS\Include\mpu_armv7.h
+sentry_aim\master_comm.o: ../Drivers/CMSIS/Include/core_cmInstr.h
+sentry_aim\master_comm.o: ../Drivers/CMSIS/Include/cmsis_armcc.h
+sentry_aim\master_comm.o: ../Drivers/CMSIS/Include/core_cmFunc.h
+sentry_aim\master_comm.o: ../Drivers/CMSIS/Include/core_cmSimd.h
 sentry_aim\master_comm.o: ../Drivers/CMSIS/Device/ST/STM32F4xx/Include/system_stm32f4xx.h
 sentry_aim\master_comm.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h
 sentry_aim\master_comm.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy/stm32_hal_legacy.h
@@ -33,9 +33,4 @@ sentry_aim\master_comm.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.
 sentry_aim\master_comm.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h
 sentry_aim\master_comm.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
 sentry_aim\master_comm.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
-sentry_aim\master_comm.o: ../Inc/Shooter_Ctrl.h
-sentry_aim\master_comm.o: ../Inc/Motor_Ctrl.h
-sentry_aim\master_comm.o: ../Inc/can.h
-sentry_aim\master_comm.o: ../Inc/DataScope_DP.h
-sentry_aim\master_comm.o: ../Inc/Gimbal_Ctrl.h
 sentry_aim\master_comm.o: ../Inc/Master_Comm.h

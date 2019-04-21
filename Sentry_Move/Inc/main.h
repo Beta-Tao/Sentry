@@ -78,6 +78,10 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define rightEdgeTrig_Pin GPIO_PIN_12
+#define rightEdgeTrig_GPIO_Port GPIOH
+#define leftEdgeTrig_Pin GPIO_PIN_15
+#define leftEdgeTrig_GPIO_Port GPIOD
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

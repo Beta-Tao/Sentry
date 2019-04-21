@@ -4,14 +4,13 @@
 #include "Motor_Ctrl.h"
 
 /* 供弹电机控制常量 */
-#define LM_VEL_MIN				-8000			//即转速
-#define LM_VEL_MAX				8000
+#define LM_VEL_MIN				-1000			//即转速
+#define LM_VEL_MAX				1000 
 
-#define LOADER_ACC				1000
-#define	LOADER_DEC				1000
+#define LOADER_ACC				4
+#define	LOADER_DEC				4
 
-#define LOADER_JAM_VEL			-100
-#define LOADER_INIT_VEL			45
+#define LOADER_PS1				45
 
 /* 总线ID */
 #define LM_ID					0x207
@@ -19,17 +18,22 @@
 typedef enum
 {
 	LOADER_INIT			= 0,
-	LOADER_STOP			= 1,
-	LOADER_RUN			= 2,
-	LOADER_JAM			= 3,
-	LOADER_DEBUG_VEL	= 4,
+	LOADER_STOP,
+	LOADER_JAM,
+	LOADER_RUN_PS3,
+	LOADER_RUN_PS5,
+	LOADER_RUN_PS6,
+	LOADER_RUN_PS8,
+	LOADER_RUN_PS10,
+	LOADER_RUN_PS20,
+	LOADER_DEBUG_VEL,
 }LoaderMode_e;
 
 typedef struct
 {
-	LoaderMode_e mode;
+	volatile LoaderMode_e lastMode;		//上一个状态，用于堵转后恢复之前状态
 	
-	float loadVel;
+	volatile LoaderMode_e mode;
 	
 	Motor_t LM;
 }Loader_t;
@@ -42,6 +46,6 @@ void Loader_UpdateState(Loader_t *loader);
 
 void Loader_MotorCtrl(Motor_t *motor);
 
-LoaderMode_e Loader_JudgeJam(Loader_t *loader);
+uint8_t Loader_IsJammed(Loader_t *loader);
 
 #endif

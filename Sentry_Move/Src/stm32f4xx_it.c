@@ -74,12 +74,14 @@
 #include "PC_Comm.h"
 #include "Chassis_Ctrl.h"
 #include "DataScope_DP.h"
+#include "Sentry_Strategy.h"
 
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
 extern CAN_HandleTypeDef hcan1;
-extern TIM_HandleTypeDef htim5;
+extern TIM_HandleTypeDef htim6;
+extern TIM_HandleTypeDef htim7;
 extern DMA_HandleTypeDef hdma_usart1_rx;
 extern DMA_HandleTypeDef hdma_usart3_rx;
 extern DMA_HandleTypeDef hdma_usart6_rx;
@@ -262,7 +264,7 @@ void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
 	RemoteCtl_Data_Receive();
-	Comm_SendData();
+	Master_SendData();
   /* USER CODE END USART1_IRQn 0 */
   //HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */
@@ -285,18 +287,43 @@ void USART3_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles TIM5 global interrupt.
+  * @brief This function handles TIM6 global interrupt, DAC1 and DAC2 underrun error interrupts.
   */
-void TIM5_IRQHandler(void)
+void TIM6_DAC_IRQHandler(void)
 {
-  /* USER CODE BEGIN TIM5_IRQn 0 */
-	Chassis_GetDistance(&htim5, &sentryChassis);
-	Chassis_UpdateState(&sentryChassis);
-  /* USER CODE END TIM5_IRQn 0 */
-  //HAL_TIM_IRQHandler(&htim5);
-  /* USER CODE BEGIN TIM5_IRQn 1 */
+  /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
+	
+	PC_IsCommDrop();
+	Remote_IsCommDrop();
+	__HAL_TIM_CLEAR_IT(&htim6, TIM_IT_UPDATE);
+	
+  /* USER CODE END TIM6_DAC_IRQn 0 */
+  //HAL_TIM_IRQHandler(&htim6);
+  /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
 
-  /* USER CODE END TIM5_IRQn 1 */
+  /* USER CODE END TIM6_DAC_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM7 global interrupt.
+  */
+void TIM7_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM7_IRQn 0 */
+	
+	Sentry_GetDisGrade(&sentryST);
+	Sentry_UpdateShooterST(&sentryST);
+	Sentry_UpdateLoaderST(&sentryST);
+	Sentry_UpdateGimbalST(&sentryST);
+	Sentry_UpdateChassisST(&sentryST);
+	
+	__HAL_TIM_CLEAR_IT(&htim7, TIM_IT_UPDATE);
+
+  /* USER CODE END TIM7_IRQn 0 */
+  //HAL_TIM_IRQHandler(&htim7);
+  /* USER CODE BEGIN TIM7_IRQn 1 */
+
+  /* USER CODE END TIM7_IRQn 1 */
 }
 
 /**
@@ -376,10 +403,14 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 				/* CAN中提取位置和速度反馈，随后进行控制并发送 */
 				case CM_L_ID:			//底盘左轮电机
 					Motor_CanRxMsgConv(hcan, &(sentryChassis.CM_Left));
+					Chassis_UpdateState(&sentryChassis);
+					Motor_UpdatePosCtrl(&(sentryChassis.CM_Left.posCtrl));
 					Chassis_MotorCtrl(&(sentryChassis.CM_Left));
 					break;
 				case CM_R_ID:			//底盘右轮电机
 					Motor_CanRxMsgConv(hcan, &(sentryChassis.CM_Right));
+					Chassis_UpdateState(&sentryChassis);
+					Motor_UpdatePosCtrl(&(sentryChassis.CM_Right.posCtrl));
 					Chassis_MotorCtrl(&(sentryChassis.CM_Right));
 					break;
 				default:

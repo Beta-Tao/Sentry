@@ -37,7 +37,6 @@ sentry_move\stm32f4xx_it.o: ..\Inc\Master_Comm.h
 sentry_move\stm32f4xx_it.o: ..\Inc\Gimbal_Ctrl.h
 sentry_move\stm32f4xx_it.o: ..\Inc\Motor_Ctrl.h
 sentry_move\stm32f4xx_it.o: ..\Inc\can.h
-sentry_move\stm32f4xx_it.o: ..\Inc\Motor_Ctrl.h
 sentry_move\stm32f4xx_it.o: ..\Inc\DataScope_DP.h
 sentry_move\stm32f4xx_it.o: ..\Inc\Loader_Ctrl.h
 sentry_move\stm32f4xx_it.o: ..\Inc\Shooter_Ctrl.h
@@ -46,3 +45,4 @@ sentry_move\stm32f4xx_it.o: ..\Inc\CRC.h
 sentry_move\stm32f4xx_it.o: ..\Inc\PC_Comm.h
 sentry_move\stm32f4xx_it.o: ..\Inc\Chassis_Ctrl.h
 sentry_move\stm32f4xx_it.o: ..\Inc\tim.h
+sentry_move\stm32f4xx_it.o: ..\Inc\Sentry_Strategy.h

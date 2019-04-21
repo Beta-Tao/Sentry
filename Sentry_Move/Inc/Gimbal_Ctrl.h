@@ -22,10 +22,13 @@
 
 typedef enum
 {
-	GIMBAL_REMOTE 	= 0,
-	GIMBAL_STOP		= 1,
-	GIMBAL_INIT		= 2,
-	GIMBAL_TRACE	= 3,
+	GIMBAL_STOP			= 0,
+	GIMBAL_REMOTE 		= 1,
+	GIMBAL_YAW_INIT		= 2,
+	GIMBAL_PITCH_INIT	= 3,
+	GIMBAL_TRACE		= 4,
+	GIMBAL_DEBUG_VEL	= 5,
+	GIMBAL_DEBUG_POS	= 6,
 }GimbalMode_e;
 
 typedef struct

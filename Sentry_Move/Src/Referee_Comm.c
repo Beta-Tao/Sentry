@@ -4,6 +4,7 @@
 #include "DataScope_DP.h"
 
 ext_referee_data_t RefereeData_t;
+ext_our_sentry_state_t sentryState_t;
 
 uint8_t USART6_DMA_RX_BUF[BSP_USART6_DMA_RX_BUF_LEN];
 uint8_t USART6_DMA_TX_BUF[BSP_USART6_DMA_TX_BUF_LEN];
@@ -63,11 +64,16 @@ void Referee_Decode(uint8_t *pData)
 						case EVENT_DATA_CMD_ID:		//事件改变后发送
 							memcpy(&RefereeData_t.EventData_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, EVENT_DATA_LEN);
 							break;
-						case SUPPLY_PROJECTILE_ACTION_CMD_ID:	//动作改变后发送
-							memcpy(&RefereeData_t.SupplyProjectileAction_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, SUPPLY_PROJECTILE_ACTION_LEN);
-							break;
+//						case SUPPLY_PROJECTILE_ACTION_CMD_ID:	//动作改变后发送
+//							memcpy(&RefereeData_t.SupplyProjectileAction_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, SUPPLY_PROJECTILE_ACTION_LEN);
+//							break;
 						case GAME_ROBOT_STATE_CMD_ID:	//10Hz
 							memcpy(&RefereeData_t.GameRobotState_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, GAME_ROBOT_STATE_LEN);
+							if (RefereeData_t.GameRobotState_t.robot_id == OUR_SIDE * 10 + 7)
+							{
+								sentryState_t.max_HP = RefereeData_t.GameRobotState_t.max_HP;
+								sentryState_t.remain_HP = RefereeData_t.GameRobotState_t.remain_HP;
+							}
 							break;
 						case POWER_HEAT_DATA_CMD_ID:	//50Hz
 							memcpy(&RefereeData_t.PowerHeatData_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, POWER_HEAT_DATA_LEN);
@@ -78,9 +84,9 @@ void Referee_Decode(uint8_t *pData)
 						case BUFF_MUSK_CMD_ID:			//增益状态改变后发送
 							memcpy(&RefereeData_t.BuffMusk_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, BUFF_MUSK_LEN);
 							break;
-						case AERIAL_ROBOT_ENERGY_CMD_ID:	//空中机器人能量状态数据，10Hz
-							memcpy(&RefereeData_t.AerialRobotEnergy_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, AERIAL_ROBOT_ENERGY_LEN);
-							break;
+//						case AERIAL_ROBOT_ENERGY_CMD_ID:	//空中机器人能量状态数据，10Hz
+//							memcpy(&RefereeData_t.AerialRobotEnergy_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, AERIAL_ROBOT_ENERGY_LEN);
+//							break;
 						case ROBOT_HURT_CMD_ID:			//伤害发生后发送
 							memcpy(&RefereeData_t.RobotHurt_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, ROBOT_HURT_LEN);
 							break;

@@ -7,12 +7,12 @@
 #include "DataScope_DP.h"
 
 /* 电调控制参数 */
-#define C620_CUR_MIN			-15000		//实际用不到16384
-#define C620_CUR_MAX			15000
-#define C610_CUR_MIN			-15000
-#define C610_CUR_MAX			15000
-#define GM6020_VOL_MIN			-3000
-#define GM6020_VOL_MAX			3000
+#define C620_CUR_MIN			-11000		//实际用不到16384
+#define C620_CUR_MAX			11000
+#define C610_CUR_MIN			-11000
+#define C610_CUR_MAX			11000
+#define GM6020_VOL_MIN			-20000
+#define GM6020_VOL_MAX			20000
 
 #define C620_POS_MIN			0			//返回的位置
 #define C620_POS_MAX			8191
@@ -24,16 +24,13 @@
 #define GM6020_POS_MAX			8191
 #define GM6020_POS_RANGE		GM6020_POS_MAX - GM6020_POS_MIN
 
-#define POS_CTRL_UNREADY		0u
-#define POS_CTRL_READY			1u
-
 /* 模式常量 */
 #define SENTRY_DETECT_VEL			4000
 
 /* CAN通讯ID */
 #define FIRST_FOUR_ID				0x200
 #define SECOND_FOUR_ID				0x1FF
-
+ 
 /* 电机型号 */
 typedef enum
 {
@@ -74,10 +71,12 @@ typedef struct
 	float kd;
 	float integ;
 	float err, errLast;
-
+	
 	float output;
 	float outputMin;
 	float outputMax;
+	
+	float velRatio;		//位置系数，真实变量转换为控制变量的系数
 }VelCtrl_t;
 
 /* 电机位置控制结构体 */
@@ -86,10 +85,15 @@ typedef struct
 	float absPos;		//当前绝对位置，度
 	
 	float refRelaPos;	//期望相对位置，度
+	float detaPos;		//两次反馈的相对转角
+	
 	float rawPos;		//当前位置，转子读数
 	float rawPosLast;	//上一次的位置，转子读数
 	
-	float posRange;
+	float posRange;		//电调返回的位置范围
+	
+	float posMax;		//实际位置的最大值
+	float posMin;		//实际位置的最小值
 	
 	float acc;			//位置控制只有减速段需要有加速度，和速度控制中dec一致
 	
@@ -104,13 +108,7 @@ typedef struct
 	float outputMax;
 	
 	float posRatio;		//位置系数，真实变量转换为控制变量的系数
-	uint8_t posReady;
 }PosCtrl_t;
-
-typedef struct
-{
-	float rawCur;
-}CurCtrl_t;
 
 /* 电机结构体 */
 typedef struct
@@ -118,8 +116,6 @@ typedef struct
 	MotorType_e motorType;
 	
 	ESCType_e escType;
-	
-	CurCtrl_t curCtrl;
 	
 	VelCtrl_t velCtrl;
 	
@@ -132,17 +128,19 @@ void Motor_SetPos(PosCtrl_t *pos_t, float pos, uint8_t type);
 
 void Motor_VelCtrlInit(Motor_t *motor, 
 					   float acc, float dec, 
-					   float kp, float ki, float kd);
+					   float kp, float ki, float kd, float ratio);
 					   
 void Motor_PosCtrlInit(Motor_t *motor, float acc, 
 					   float kp, float ki, float kd,
-					   float outputMin, float outputMax, float ratio);
+					   float outputMin, float outputMax, float posMax, float posMin, float ratio);
 
 void Motor_PosCtrl(PosCtrl_t *pos_t);
 
 void Motor_VelCtrl(VelCtrl_t *vel_t);
 
 void Motor_CanRxMsgConv(CAN_HandleTypeDef *hcan, Motor_t *motor);
+					   
+void Motor_UpdatePosCtrl(PosCtrl_t *pos_t);
 
 void Motor_CANSendMsg(CAN_HandleTypeDef* hcan, uint32_t num,
 					int16_t ID1Msg, int16_t ID2Msg, int16_t ID3Msg, int16_t ID4Msg);
