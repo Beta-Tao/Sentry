@@ -108,7 +108,7 @@ void Gimbal_MotorCtrl(Motor_t *motor)
 			Motor_PosCtrl(&(motor->posCtrl));
 			Motor_SetVel(&(motor->velCtrl), motor->posCtrl.output);
 			Motor_VelCtrl(&(motor->velCtrl));
-			break; 
+			break;
 		case GIMBAL_REMOTE:							//遥控模式则进行速度闭环
 			if (motor == &(sentryGimbal.GM_Yaw))
 				Motor_SetPos(&(motor->posCtrl), masterData.yawAngle, RELA);
