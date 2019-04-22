@@ -3,7 +3,7 @@
 <title>Static Call Graph - [Sentry_Aim\Sentry_Aim.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image Sentry_Aim\Sentry_Aim.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Mon Apr 22 12:58:05 2019
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Mon Apr 22 13:39:42 2019
 <BR><P>
 <H3>Maximum Stack Usage =        168 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -566,12 +566,12 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[62]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
 </UL>
 
-<P><STRONG><a name="[83]"></a>Gimbal_MotorCtrl</STRONG> (Thumb, 198 bytes, Stack size 32 bytes, gimbal_ctrl.o(i.Gimbal_MotorCtrl))
+<P><STRONG><a name="[83]"></a>Gimbal_MotorCtrl</STRONG> (Thumb, 304 bytes, Stack size 32 bytes, gimbal_ctrl.o(i.Gimbal_MotorCtrl))
 <BR><BR>[Stack]<UL><LI>Max Depth = 120<LI>Call Chain = Gimbal_MotorCtrl &rArr; DataScope_Debug &rArr; HAL_UART_Transmit &rArr; UART_WaitOnFlagUntilTimeout
 </UL>
-<BR>[Calls]<UL><LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Motor_VelCtrl
-<LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Motor_SetVel
-<LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Motor_SetPos
+<BR>[Calls]<UL><LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Motor_VelCtrl
+<LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Motor_SetVel
+<LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Motor_SetPos
 <LI><a href="#[87]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Motor_PosCtrl
 <LI><a href="#[88]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2d
 <LI><a href="#[79]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;DataScope_Debug
@@ -582,7 +582,7 @@ Global Symbols
 <P><STRONG><a name="[89]"></a>Gimbal_UpdateState</STRONG> (Thumb, 176 bytes, Stack size 24 bytes, gimbal_ctrl.o(i.Gimbal_UpdateState))
 <BR><BR>[Stack]<UL><LI>Max Depth = 24<LI>Call Chain = Gimbal_UpdateState
 </UL>
-<BR>[Calls]<UL><LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Motor_SetPos
+<BR>[Calls]<UL><LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Motor_SetPos
 <LI><a href="#[8a]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_GPIO_ReadPin
 </UL>
 <BR>[Called By]<UL><LI><a href="#[73]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_CAN_RxCpltCallback
@@ -956,8 +956,8 @@ Global Symbols
 <P><STRONG><a name="[96]"></a>Loader_MotorCtrl</STRONG> (Thumb, 102 bytes, Stack size 8 bytes, loader_ctrl.o(i.Loader_MotorCtrl))
 <BR><BR>[Stack]<UL><LI>Max Depth = 8<LI>Call Chain = Loader_MotorCtrl
 </UL>
-<BR>[Calls]<UL><LI><a href="#[85]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Motor_VelCtrl
-<LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Motor_SetVel
+<BR>[Calls]<UL><LI><a href="#[86]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Motor_VelCtrl
+<LI><a href="#[84]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Motor_SetVel
 </UL>
 <BR>[Called By]<UL><LI><a href="#[73]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_CAN_RxCpltCallback
 </UL>
@@ -1085,12 +1085,12 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[80]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Gimbal_CtrlInit
 </UL>
 
-<P><STRONG><a name="[84]"></a>Motor_SetPos</STRONG> (Thumb, 188 bytes, Stack size 0 bytes, motor_ctrl.o(i.Motor_SetPos))
+<P><STRONG><a name="[85]"></a>Motor_SetPos</STRONG> (Thumb, 188 bytes, Stack size 0 bytes, motor_ctrl.o(i.Motor_SetPos))
 <BR><BR>[Called By]<UL><LI><a href="#[89]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Gimbal_UpdateState
 <LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Gimbal_MotorCtrl
 </UL>
 
-<P><STRONG><a name="[86]"></a>Motor_SetVel</STRONG> (Thumb, 6 bytes, Stack size 0 bytes, motor_ctrl.o(i.Motor_SetVel))
+<P><STRONG><a name="[84]"></a>Motor_SetVel</STRONG> (Thumb, 6 bytes, Stack size 0 bytes, motor_ctrl.o(i.Motor_SetVel))
 <BR><BR>[Called By]<UL><LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Loader_MotorCtrl
 <LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Gimbal_MotorCtrl
 </UL>
@@ -1099,7 +1099,7 @@ Global Symbols
 <BR><BR>[Called By]<UL><LI><a href="#[73]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;HAL_CAN_RxCpltCallback
 </UL>
 
-<P><STRONG><a name="[85]"></a>Motor_VelCtrl</STRONG> (Thumb, 220 bytes, Stack size 0 bytes, motor_ctrl.o(i.Motor_VelCtrl))
+<P><STRONG><a name="[86]"></a>Motor_VelCtrl</STRONG> (Thumb, 220 bytes, Stack size 0 bytes, motor_ctrl.o(i.Motor_VelCtrl))
 <BR><BR>[Called By]<UL><LI><a href="#[96]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Loader_MotorCtrl
 <LI><a href="#[83]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Gimbal_MotorCtrl
 </UL>

@@ -97,6 +97,7 @@ void Gimbal_UpdateState(Gimbal_t *gimbal)
 void Gimbal_MotorCtrl(Motor_t *motor)
 {
 	static uint8_t count = 0;
+	static float pitchDetectVel = GM_PITCH_DETECT_VEL;
 	
 	if (motor != &(sentryGimbal.GM_Yaw) && motor != &(sentryGimbal.GM_Pitch))
 		return;
@@ -119,6 +120,18 @@ void Gimbal_MotorCtrl(Motor_t *motor)
 			Motor_PosCtrl(&(motor->posCtrl));
 			Motor_SetVel(&(motor->velCtrl), motor->posCtrl.output);
 			Motor_VelCtrl(&(motor->velCtrl));
+			break;
+		case GIMBAL_DETECT:								//云台巡逻模式
+			if (motor == &(sentryGimbal.GM_Yaw))		//Yaw轴持续旋转
+				Motor_SetVel(&(motor->velCtrl), GM_YAW_DETECT_VEL);
+			if (motor == &(sentryGimbal.GM_Pitch))
+			{
+				if ((motor->posCtrl.absPos >= motor->posCtrl.posMax - 5.0f) || 
+					(motor->posCtrl.absPos <= motor->posCtrl.posMin + 15.0f))
+					pitchDetectVel = -pitchDetectVel;
+				
+				Motor_SetVel(&(motor->velCtrl), pitchDetectVel);
+			}
 			break;
 		case GIMBAL_TRACE:
 			if (motor == &(sentryGimbal.GM_Yaw))

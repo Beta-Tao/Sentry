@@ -16,14 +16,18 @@
 #define GM_PITCH_ACC			2
 #define	GM_PITCH_DEC			2
 
-#define GM_YAW_INIT_VEL			100
-#define GM_PITCH_INIT_VEL		60
-
 #define GM_YAW_MAX				0
 #define GM_YAW_MIN				0
 
 #define GM_PITCH_MAX			-3.0
 #define GM_PITCH_MIN			-90.0
+
+/* 云台模式常量 */
+#define GM_YAW_INIT_VEL			100.0f
+#define GM_PITCH_INIT_VEL		60.0f
+
+#define GM_YAW_DETECT_VEL			150.0f
+#define GM_PITCH_DETECT_VEL			30.0f
  
 /* 总线ID */
 #define GM_YAW_ID					0x205
@@ -35,9 +39,10 @@ typedef enum
 	GIMBAL_REMOTE 		= 1,
 	GIMBAL_YAW_INIT		= 2,
 	GIMBAL_PITCH_INIT	= 3,
-	GIMBAL_TRACE		= 4,
-	GIMBAL_DEBUG_VEL	= 5,
-	GIMBAL_DEBUG_POS	= 6,
+	GIMBAL_DETECT		= 4,
+	GIMBAL_TRACE		= 5,
+	GIMBAL_DEBUG_VEL	= 6,
+	GIMBAL_DEBUG_POS	= 7,
 }GimbalMode_e;
 
 typedef struct
