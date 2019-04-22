@@ -47,7 +47,7 @@ I (..\Inc\DataScope_DP.h)(0x5C232903)
 I (..\Inc\Loader_Ctrl.h)(0x5CA364FE)
 I (..\Inc\Shooter_Ctrl.h)(0x5CA1B275)
 I (..\Inc\PC_Comm.h)(0x5CB972C9)
-I (..\Inc\Chassis_Ctrl.h)(0x5CBBE323)
+I (..\Inc\Chassis_Ctrl.h)(0x5CBD47EF)
 I (..\Inc\Sentry_Strategy.h)(0x5CBAC888)
 F (../Src/gpio.c)(0x5CB98BF7)(--c99 -c --cpu Cortex-M4.fp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ..\Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Inc-I.\RTE\_Sentry_Move-IF:\Keil_v5\Arm\Packs\ARM\CMSIS\5.5.1\CMSIS\Core\Include-IF:\Keil_v5\Arm\Packs\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="527" -D_RTE_ -DSTM32F427xx -DUSE_HAL_DRIVER -DSTM32F427xx-o sentry_move\gpio.o --omf_browse sentry_move\gpio.crf --depend sentry_move\gpio.d)
 I (..\Inc\gpio.h)(0x5CB98BF7)
@@ -83,7 +83,7 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h)(0x57714E12)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h)(0x57714E12)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h)(0x57714E12)
 I (..\Inc\Remote_Comm.h)(0x5CA20B05)
-I (..\Inc\Chassis_Ctrl.h)(0x5CBBE323)
+I (..\Inc\Chassis_Ctrl.h)(0x5CBD47EF)
 I (..\Inc\Motor_Ctrl.h)(0x5CAF58AB)
 I (..\Inc\can.h)(0x5CB98BFA)
 I (..\Inc\DataScope_DP.h)(0x5C232903)
@@ -122,7 +122,7 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h)(0x57714E12)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h)(0x57714E12)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h)(0x57714E12)
 I (..\Inc\Remote_Comm.h)(0x5CA20B05)
-I (..\Inc\Chassis_Ctrl.h)(0x5CBBE323)
+I (..\Inc\Chassis_Ctrl.h)(0x5CBD47EF)
 I (..\Inc\Motor_Ctrl.h)(0x5CAF58AB)
 I (..\Inc\DataScope_DP.h)(0x5C232903)
 I (..\Inc\tim.h)(0x5CB98D07)
@@ -269,7 +269,7 @@ I (..\Inc\Shooter_Ctrl.h)(0x5CA1B275)
 I (..\Inc\Referee_Comm.h)(0x5CAF397A)
 I (..\Inc\CRC.h)(0x5C4033E2)
 I (..\Inc\PC_Comm.h)(0x5CB972C9)
-I (..\Inc\Chassis_Ctrl.h)(0x5CBBE323)
+I (..\Inc\Chassis_Ctrl.h)(0x5CBD47EF)
 I (..\Inc\tim.h)(0x5CB98D07)
 I (..\Inc\Sentry_Strategy.h)(0x5CBAC888)
 F (../Src/stm32f4xx_hal_msp.c)(0x5CB98BFC)(--c99 -c --cpu Cortex-M4.fp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ..\Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Inc-I.\RTE\_Sentry_Move-IF:\Keil_v5\Arm\Packs\ARM\CMSIS\5.5.1\CMSIS\Core\Include-IF:\Keil_v5\Arm\Packs\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="527" -D_RTE_ -DSTM32F427xx -DUSE_HAL_DRIVER -DSTM32F427xx-o sentry_move\stm32f4xx_hal_msp.o --omf_browse sentry_move\stm32f4xx_hal_msp.crf --depend sentry_move\stm32f4xx_hal_msp.d)
@@ -867,8 +867,8 @@ I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h)(0x57714E12)
 I (..\Inc\can.h)(0x5CB98BFA)
 I (..\Inc\DataScope_DP.h)(0x5C232903)
 I (F:\Keil_v5\ARM\ARMCC\include\math.h)(0x599ECD2E)
-F (..\Src\Chassis_Ctrl.c)(0x5CBBDBCE)(--c99 -c --cpu Cortex-M4.fp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ..\Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Inc-I.\RTE\_Sentry_Move-IF:\Keil_v5\Arm\Packs\ARM\CMSIS\5.5.1\CMSIS\Core\Include-IF:\Keil_v5\Arm\Packs\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="527" -D_RTE_ -DSTM32F427xx -DUSE_HAL_DRIVER -DSTM32F427xx-o sentry_move\chassis_ctrl.o --omf_browse sentry_move\chassis_ctrl.crf --depend sentry_move\chassis_ctrl.d)
-I (..\Inc\Chassis_Ctrl.h)(0x5CBBE323)
+F (..\Src\Chassis_Ctrl.c)(0x5CBD4A09)(--c99 -c --cpu Cortex-M4.fp -D__MICROLIB -g -O3 --apcs=interwork --split_sections -I ..\Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc -I ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy -I ../Drivers/CMSIS/Device/ST/STM32F4xx/Include -I ../Drivers/CMSIS/Include -I ../Inc-I.\RTE\_Sentry_Move-IF:\Keil_v5\Arm\Packs\ARM\CMSIS\5.5.1\CMSIS\Core\Include-IF:\Keil_v5\Arm\Packs\Keil\STM32F4xx_DFP\2.13.0\Drivers\CMSIS\Device\ST\STM32F4xx\Include-D__UVISION_VERSION="527" -D_RTE_ -DSTM32F427xx -DUSE_HAL_DRIVER -DSTM32F427xx-o sentry_move\chassis_ctrl.o --omf_browse sentry_move\chassis_ctrl.crf --depend sentry_move\chassis_ctrl.d)
+I (..\Inc\Chassis_Ctrl.h)(0x5CBD47EF)
 I (..\Inc\Motor_Ctrl.h)(0x5CAF58AB)
 I (..\Inc\main.h)(0x5CB98BFC)
 I (../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h)(0x57714E12)
@@ -1180,6 +1180,6 @@ I (..\Inc\PC_Comm.h)(0x5CB972C9)
 I (..\Inc\Referee_Comm.h)(0x5CAF397A)
 I (..\Inc\CRC.h)(0x5C4033E2)
 I (..\Inc\Remote_Comm.h)(0x5CA20B05)
-I (..\Inc\Chassis_Ctrl.h)(0x5CBBE323)
+I (..\Inc\Chassis_Ctrl.h)(0x5CBD47EF)
 I (..\Inc\tim.h)(0x5CB98D07)
 I (F:\Keil_v5\ARM\ARMCC\include\string.h)(0x599ECD2C)

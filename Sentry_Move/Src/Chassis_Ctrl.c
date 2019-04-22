@@ -109,8 +109,8 @@ void Chassis_UpdateState(Chassis_t *chassis)
   */
 void Chassis_MotorCtrl(Motor_t *motor)
 {
-	//static float dedogePos = 0.0f;
 	uint8_t num = rand() % 3 + 1;
+	static uint32_t tick = 0, lastTick = 0;
 	
 	if (motor != &(sentryChassis.CM_Left) && motor != &(sentryChassis.CM_Right))
 		return;
@@ -136,14 +136,19 @@ void Chassis_MotorCtrl(Motor_t *motor)
 		case CHASSIS_STOP:
 			Motor_SetVel(&(motor->velCtrl), 0);
 			break;
-		case CHASSIS_DODGE:
-			dedogePos += (double)motor->posCtrl.detaPos / motor->posCtrl.posRatio;
-			if ((dedogePos > num * CHASSIS_DODGE_POS) || 
-				(dedogePos < -(num * CHASSIS_DODGE_POS)))		//超过数量，则开始更换方式
+		case CHASSIS_DODGE:				//闪避模式，向随机方向移动随机时间
+			if (lastTick == 0)
+				lastTick = HAL_GetTick();
+			else
 			{
-				dedogePos = 0.0f;
-				num = rand() % 3 + 1;
-				sentryChassis.chassisDir = (ChassisDir_e)((rand() % 2) * 2);
+				tick = HAL_GetTick();
+				if (tick - lastTick >= num * 1000)
+				{
+					num = rand() % 3 + 1;
+					sentryChassis.chassisDir = (ChassisDir_e)(rand() % 2 * 2);
+					tick = 0;
+					lastTick = 0;
+				}
 			}
 			Motor_SetVel(&(motor->velCtrl), CHASSIS_DODGE_VEL * ((int8_t)sentryChassis.chassisDir - 1)); 
 			break;
