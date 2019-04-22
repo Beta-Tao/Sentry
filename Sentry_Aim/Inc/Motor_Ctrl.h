@@ -11,8 +11,8 @@
 #define C620_CUR_MAX			11000
 #define C610_CUR_MIN			-11000
 #define C610_CUR_MAX			11000
-#define GM6020_VOL_MIN			-25000
-#define GM6020_VOL_MAX			25000
+#define GM6020_VOL_MIN			-20000
+#define GM6020_VOL_MAX			20000
 
 #define C620_POS_MIN			0			//返回的位置
 #define C620_POS_MAX			8191
@@ -85,6 +85,8 @@ typedef struct
 	float absPos;		//当前绝对位置，度
 	
 	float refRelaPos;	//期望相对位置，度
+	float detaPos;		//两次反馈的相对转角
+	
 	float rawPos;		//当前位置，转子读数
 	float rawPosLast;	//上一次的位置，转子读数
 	
