@@ -4,21 +4,34 @@
 #include "Motor_Ctrl.h"
 
 /* 云台电机控制常量 */
-#define GM_YAW_VEL_MIN			-30		//即转速 rpm
-#define GM_YAW_VEL_MAX			30
+#define GM_YAW_VEL_MIN			-2000		//即转速 rpm
+#define GM_YAW_VEL_MAX			2000
 
-#define GM_YAW_ACC				100
-#define	GM_YAW_DEC				100
+#define GM_YAW_ACC				0.8
+#define	GM_YAW_DEC				0.8
 
-#define GM_PITCH_VEL_MIN		-30		//即转速 度/s
-#define GM_PITCH_VEL_MAX		30
+#define GM_PITCH_VEL_MIN		-200		//即转速 rpm
+#define GM_PITCH_VEL_MAX		200
 
-#define GM_PITCH_ACC			100
-#define	GM_PITCH_DEC			100
+#define GM_PITCH_ACC			2
+#define	GM_PITCH_DEC			2
+
+#define GM_YAW_MAX				0
+#define GM_YAW_MIN				0
+
+#define GM_PITCH_MAX			-3.0
+#define GM_PITCH_MIN			-90.0
+
+/* 云台模式常量 */
+#define GM_YAW_INIT_VEL			100.0f
+#define GM_PITCH_INIT_VEL		60.0f
+
+#define GM_YAW_DETECT_VEL			150.0f
+#define GM_PITCH_DETECT_VEL			30.0f
  
 /* 总线ID */
-#define GM_YAW_ID					0x201
-#define GM_PITCH_ID					0x202
+#define GM_YAW_ID					0x205
+#define GM_PITCH_ID					0x206
 
 typedef enum
 {
@@ -26,15 +39,18 @@ typedef enum
 	GIMBAL_REMOTE 		= 1,
 	GIMBAL_YAW_INIT		= 2,
 	GIMBAL_PITCH_INIT	= 3,
-	GIMBAL_TRACE		= 4,
-	GIMBAL_DEBUG_VEL	= 5,
-	GIMBAL_DEBUG_POS	= 6,
+	GIMBAL_DETECT		= 4,
+	GIMBAL_TRACE		= 5,
+	GIMBAL_DEBUG_VEL	= 6,
+	GIMBAL_DEBUG_POS	= 7,
 }GimbalMode_e;
 
 typedef struct
 {
-	GimbalMode_e mode;
+	volatile GimbalMode_e mode;
+	
 	Motor_t GM_Pitch;
+	
 	Motor_t GM_Yaw;
 }Gimbal_t;
 
