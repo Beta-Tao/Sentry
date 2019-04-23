@@ -11,8 +11,8 @@
 #define C620_CUR_MAX			11000
 #define C610_CUR_MIN			-11000
 #define C610_CUR_MAX			11000
-#define GM6020_VOL_MIN			-20000
-#define GM6020_VOL_MAX			20000
+#define GM6020_VOL_MIN			-26000
+#define GM6020_VOL_MAX			26000
 
 #define C620_POS_MIN			0			//·µ»ØµÄÎ»ÖÃ
 #define C620_POS_MAX			8191

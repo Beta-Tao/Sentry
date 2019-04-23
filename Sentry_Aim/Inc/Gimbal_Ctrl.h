@@ -4,8 +4,8 @@
 #include "Motor_Ctrl.h"
 
 /* 云台电机控制常量 */
-#define GM_YAW_VEL_MIN			-2000		//即转速 rpm
-#define GM_YAW_VEL_MAX			2000
+#define GM_YAW_VEL_MIN			-10000		//即转速 rpm
+#define GM_YAW_VEL_MAX			10000
 
 #define GM_YAW_ACC				0.8
 #define	GM_YAW_DEC				0.8
@@ -14,7 +14,7 @@
 #define GM_PITCH_VEL_MAX		200
 
 #define GM_PITCH_ACC			2
-#define	GM_PITCH_DEC			2
+#define	GM_PITCH_DEC			10
 
 #define GM_YAW_MAX				0
 #define GM_YAW_MIN				0
@@ -26,9 +26,9 @@
 #define GM_YAW_INIT_VEL			100.0f
 #define GM_PITCH_INIT_VEL		60.0f
 
-#define GM_YAW_DETECT_VEL			150.0f
-#define GM_PITCH_DETECT_VEL			30.0f
- 
+#define GM_YAW_DETECT_VEL			120.0f
+#define GM_PITCH_DETECT_VEL			200.0f
+
 /* 总线ID */
 #define GM_YAW_ID					0x205
 #define GM_PITCH_ID					0x206

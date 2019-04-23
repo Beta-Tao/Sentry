@@ -5,7 +5,7 @@
 #include "gpio.h"
 
 Gimbal_t sentryGimbal;
-uint8_t count = 0;
+float pitchDetectVel = GM_PITCH_DETECT_VEL;
 
 /**
   * @brief	底盘控制初始化
@@ -21,7 +21,7 @@ void Gimbal_CtrlInit(Gimbal_t *gimbal)
 	yawMotor->escType = C620;
 	Motor_PosCtrlInit(yawMotor,
 					  GM_YAW_ACC,
-					  0.01, 0, 2.3,
+					  0.3, 0, 60,
 					  GM_YAW_VEL_MIN, GM_YAW_VEL_MAX, GM_YAW_MAX, GM_YAW_MIN, 1310.77901);	//
 	Motor_VelCtrlInit(yawMotor, 
 					  GM_YAW_ACC, GM_YAW_DEC, 	//acc, dec	控制周期是1ms，所以单位意义是每ms增加的转速
@@ -96,7 +96,7 @@ void Gimbal_UpdateState(Gimbal_t *gimbal)
   */
 void Gimbal_MotorCtrl(Motor_t *motor)
 {
-	static uint8_t count = 0;
+	static uint8_t overRange = 0;
 	static float pitchDetectVel = GM_PITCH_DETECT_VEL;
 	
 	if (motor != &(sentryGimbal.GM_Yaw) && motor != &(sentryGimbal.GM_Pitch))
@@ -127,11 +127,20 @@ void Gimbal_MotorCtrl(Motor_t *motor)
 			if (motor == &(sentryGimbal.GM_Pitch))
 			{
 				if ((motor->posCtrl.absPos >= motor->posCtrl.posMax - 5.0f) || 
-					(motor->posCtrl.absPos <= motor->posCtrl.posMin + 15.0f))
-					pitchDetectVel = -pitchDetectVel;
+					(motor->posCtrl.absPos <= motor->posCtrl.posMin + 40.0f))
+				{
+					if (overRange == 0)
+					{
+						pitchDetectVel = -pitchDetectVel;
+						overRange = 1;
+					}
+				}
+				else
+					overRange = 0;
 				
 				Motor_SetVel(&(motor->velCtrl), pitchDetectVel);
 			}
+			Motor_VelCtrl(&(motor->velCtrl));
 			break;
 		case GIMBAL_TRACE:
 			if (motor == &(sentryGimbal.GM_Yaw))
@@ -176,12 +185,5 @@ void Gimbal_MotorCtrl(Motor_t *motor)
 			break;
 		default:
 			break;
-	}
-	
-	count++;
-	if (count >= 30)
-	{
-		DataScope_Debug(2, sentryGimbal.GM_Yaw.posCtrl.refRelaPos, sentryGimbal.GM_Pitch.posCtrl.refRelaPos);
-		count = 0;
 	}
 }

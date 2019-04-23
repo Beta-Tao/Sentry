@@ -31,7 +31,8 @@ void Master_GetData(void)
 	switch (RemoteComm.RemoteData.remote.s2)
 	{
 		case RC_SW_UP:							//当s2在上时，为追踪模式
-			masterData.gimbalMode = GIMBAL_TRACE;
+			//masterData.gimbalMode = GIMBAL_TRACE;
+			masterData.gimbalMode =  GIMBAL_DETECT;
 			break;
 		case RC_SW_MID:							//当s2在中时，为遥控模式
 			masterData.gimbalMode = GIMBAL_REMOTE;
@@ -47,7 +48,7 @@ void Master_GetData(void)
 	{
 		case GIMBAL_REMOTE:
 			masterData.yawAngle = 
-					(-(float)((RemoteComm.RemoteData.remote.ch0 - RC_CH_VALUE_OFFSET) / RC_CH_VALUE_RANGE) * 90);
+					(-(float)((RemoteComm.RemoteData.remote.ch0 - RC_CH_VALUE_OFFSET) / RC_CH_VALUE_RANGE) * 30);
 			masterData.pitchAngle = 
 					((float)((RemoteComm.RemoteData.remote.ch1 - RC_CH_VALUE_OFFSET) / RC_CH_VALUE_RANGE) * 25);
 			masterData.posCtrlType = RELA;
