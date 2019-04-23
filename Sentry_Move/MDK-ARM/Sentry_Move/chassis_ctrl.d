@@ -46,4 +46,5 @@ sentry_move\chassis_ctrl.o: ..\Inc\Remote_Comm.h
 sentry_move\chassis_ctrl.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 sentry_move\chassis_ctrl.o: ..\Inc\usart.h
 sentry_move\chassis_ctrl.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+sentry_move\chassis_ctrl.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\time.h
 sentry_move\chassis_ctrl.o: ..\Inc\gpio.h

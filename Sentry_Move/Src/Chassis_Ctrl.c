@@ -4,6 +4,7 @@
 #include "string.h"
 #include "usart.h"
 #include "stdlib.h"
+#include "time.h"
 #include "gpio.h"
 
 double dedogePos = 0.0f;
@@ -24,7 +25,7 @@ void Chassis_CtrlInit(Chassis_t *chassis)
 	left->escType = C620;
 	Motor_VelCtrlInit(left, 
 					  CHASSIS_ACC, CHASSIS_DEC, 	//acc, dec	控制周期是1ms，所以单位意义是每ms增加的转速
-					  10, 0, 0, 									//kp, ki, kd 20 1.0 1.5
+					  20, 0, 0, 									//kp, ki, kd 20 1.0 1.5
 					  5.47394);
 	chassis->CM_Left.posCtrl.posRatio = 38.91459;
 	
@@ -32,7 +33,7 @@ void Chassis_CtrlInit(Chassis_t *chassis)
 	right->escType = C620;
 	Motor_VelCtrlInit(right, 
 					  CHASSIS_ACC, CHASSIS_DEC, 			//acc, dec
-					  10, 0, 0,									//kp, ki, kd 20 1.0 1.5
+					  20, 0, 0,									//kp, ki, kd 20 1.0 1.5
 					  5.47394);
 	chassis->CM_Right.posCtrl.posRatio = 38.91459;
 	
@@ -51,9 +52,10 @@ void Chassis_UpdateState(Chassis_t *chassis)
 	switch (RemoteComm.RemoteData.remote.s1)
 	{
 		case RC_SW_UP:		//当s1在上时，为自动模式
-			sentryChassis.mode = (ChassisMode_e)sentryST.chassisMode;
-			//sentryChassis.mode = CHASSIS_DETECT_NORMAL;
-			break; 
+			//sentryChassis.mode = (ChassisMode_e)sentryST.chassisMode;
+			sentryChassis.mode = CHASSIS_DETECT_NORMAL;
+			//sentryChassis.mode = CHASSIS_DODGE;
+			break;
 		case RC_SW_MID:		//当s1在中时，为遥控模式
 			sentryChassis.mode = CHASSIS_REMOTE;
 			break;
@@ -109,7 +111,7 @@ void Chassis_UpdateState(Chassis_t *chassis)
   */
 void Chassis_MotorCtrl(Motor_t *motor)
 {
-	uint8_t num = rand() % 3 + 1;
+	static uint8_t num = 1;
 	static uint32_t tick = 0, lastTick = 0;
 	
 	if (motor != &(sentryChassis.CM_Left) && motor != &(sentryChassis.CM_Right))
@@ -144,8 +146,10 @@ void Chassis_MotorCtrl(Motor_t *motor)
 				tick = HAL_GetTick();
 				if (tick - lastTick >= num * 1000)
 				{
+					srand(HAL_GetTick());
 					num = rand() % 3 + 1;
-					sentryChassis.chassisDir = (ChassisDir_e)(rand() % 2 * 2);
+					//sentryChassis.chassisDir = (ChassisDir_e)(rand() % 2 * 2);
+					sentryChassis.chassisDir = (ChassisDir_e)(abs(sentryChassis.chassisDir - 2));
 					tick = 0;
 					lastTick = 0;
 				}
