@@ -43,6 +43,8 @@ sentry_move\chassis_ctrl.o: ..\Inc\Loader_Ctrl.h
 sentry_move\chassis_ctrl.o: ..\Inc\Shooter_Ctrl.h
 sentry_move\chassis_ctrl.o: ..\Inc\PC_Comm.h
 sentry_move\chassis_ctrl.o: ..\Inc\Remote_Comm.h
+sentry_move\chassis_ctrl.o: ..\Inc\Referee_Comm.h
+sentry_move\chassis_ctrl.o: ..\Inc\CRC.h
 sentry_move\chassis_ctrl.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 sentry_move\chassis_ctrl.o: ..\Inc\usart.h
 sentry_move\chassis_ctrl.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h

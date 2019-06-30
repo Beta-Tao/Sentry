@@ -56,6 +56,11 @@ typedef enum
 	RELA	= 1,
 }PosCtrlType_e;
 
+typedef struct
+{
+	float rawCur;
+}CurCtrl_t;
+
 /* 电机速度控制结构体 */
 typedef struct
 {
@@ -116,6 +121,8 @@ typedef struct
 	MotorType_e motorType;
 	
 	ESCType_e escType;
+	
+	CurCtrl_t curCtrl;
 	
 	VelCtrl_t velCtrl;
 	

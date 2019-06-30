@@ -9,7 +9,7 @@
 #define FM_15MPS	1150
 #define FM_20MPS	1200
 #define FM_25MPS	1250
-#define FM_30MPS	1300
+#define FM_30MPS	1290
 
 typedef enum
 {

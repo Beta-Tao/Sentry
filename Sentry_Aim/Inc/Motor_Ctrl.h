@@ -122,6 +122,8 @@ typedef struct
 	PosCtrl_t posCtrl;
 }Motor_t;
 
+void Motor_SetPosPIDParam(PosCtrl_t *pos_t, float kp, float ki, float kd);
+
 void Motor_SetVel(VelCtrl_t *vel_t, float vel);
 
 void Motor_SetPos(PosCtrl_t *pos_t, float pos, uint8_t type);

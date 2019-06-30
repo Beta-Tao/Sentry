@@ -38,3 +38,5 @@ sentry_aim\gimbal_ctrl.o: ../Inc/DataScope_DP.h
 sentry_aim\gimbal_ctrl.o: ../Inc/Master_Comm.h
 sentry_aim\gimbal_ctrl.o: ../Inc/usart.h
 sentry_aim\gimbal_ctrl.o: ../Inc/gpio.h
+sentry_aim\gimbal_ctrl.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+sentry_aim\gimbal_ctrl.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h

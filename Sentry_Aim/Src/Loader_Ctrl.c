@@ -19,7 +19,7 @@ void Loader_CtrlInit(Loader_t *loader)
 					  9, 0.4, 0,  						//kp, ki, kd
 					  6.00000);
 	
-	loader->mode = LOADER_STOP;
+	loader->mode = LOADER_INIT;
 }
 
 /**
@@ -30,9 +30,9 @@ void Loader_CtrlInit(Loader_t *loader)
 void Loader_UpdateState(Loader_t *loader)
 {
 	loader->mode = ((loader->mode == LOADER_INIT) || 
-					(loader->mode == LOADER_JAM) ? loader->mode : (LoaderMode_e)masterData.loaderMode);
+					(loader->mode == LOADER_JAM) ? loader->mode : (LoaderMode_e)masterRxData.loaderMode);
 	
-	static uint8_t covCount = 0;			//判断是否卡弹的计数位，避免误测以及启动转动时的误判
+	static uint32_t covCount = 0;			//判断是否卡弹的计数位，避免误测以及启动转动时的误判
 	switch(loader->mode)
 	{
 		case LOADER_RUN_PS3:
@@ -40,6 +40,7 @@ void Loader_UpdateState(Loader_t *loader)
 		case LOADER_RUN_PS6:
 		case LOADER_RUN_PS8:
 		case LOADER_RUN_PS10:
+		case LOADER_RUN_PS15:
 		case LOADER_RUN_PS20:
 			if (Loader_IsJammed(loader) == 1)
 			{
@@ -49,7 +50,7 @@ void Loader_UpdateState(Loader_t *loader)
 			break;
 		case LOADER_JAM:							//卡弹状态
 			covCount++;								//开始反转计数
-			if (covCount >= 200)						//反转达到十个周期，则反转结束
+			if (covCount >= 300)						//反转达到十个周期，则反转结束
 			{
 				loader->mode = loader->lastMode;
 				covCount = 0;
@@ -96,7 +97,7 @@ void Loader_MotorCtrl(Motor_t *motor)
 			Motor_SetVel(&(motor->velCtrl), 0);
 			break;
 		case LOADER_JAM:				//堵转模式，则开始反转
-			Motor_SetVel(&(motor->velCtrl), -2.0f * LOADER_PS1);
+			Motor_SetVel(&(motor->velCtrl), -10.0f * LOADER_PS1);
 			break;
 		case LOADER_RUN_PS3:
 			Motor_SetVel(&(motor->velCtrl), 3.0f * LOADER_PS1);
@@ -113,6 +114,9 @@ void Loader_MotorCtrl(Motor_t *motor)
 		case LOADER_RUN_PS10:
 			Motor_SetVel(&(motor->velCtrl), 10.0f * LOADER_PS1);
 			break;
+		case LOADER_RUN_PS15:
+			Motor_SetVel(&(motor->velCtrl), 15.0f * LOADER_PS1);
+			break;
 		case LOADER_RUN_PS20:
 			Motor_SetVel(&(motor->velCtrl), 20.0f * LOADER_PS1);
 			break;
@@ -124,13 +128,13 @@ void Loader_MotorCtrl(Motor_t *motor)
 
 uint8_t Loader_IsJammed(Loader_t *loader)
 {
-	static uint8_t jamCount;
+	static uint32_t jamCount;
 	if (loader->LM.velCtrl.refVel != 0 && 
-				loader->LM.velCtrl.rawVel <= 5 && loader->LM.velCtrl.rawVel >= -5)
+				loader->LM.velCtrl.rawVel <= 20 && loader->LM.velCtrl.rawVel >= -20)
 										//供弹模式下期望转速不为0但实际转速较小，判断为堵转状态
 	{
 		jamCount++;
-		if (jamCount >= 50)
+		if (jamCount >= 60)
 		{
 			jamCount = 0;
 			return 1;

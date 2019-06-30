@@ -102,10 +102,11 @@ int main(void)
 
   /* USER CODE END 1 */
 
-  /* MCU Configuration--------------------------------------------------------*/
+  /* MCU Configuration-----
+	---------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-   HAL_Init();
+  HAL_Init();
 
   /* USER CODE BEGIN Init */
  
@@ -130,18 +131,21 @@ int main(void)
   MX_TIM6_Init();
   MX_TIM7_Init();
   /* USER CODE BEGIN 2 */
+  
 	Chassis_CtrlInit(&sentryChassis);
 	Master_CommInit();
 	PC_CommInit();
+	Referee_SentryDataInit();
 	Sentry_STInit(&sentryST);
 	
  	RemoteCtl_Data_Receive_Start();
 	Referee_Data_Receive_Start();
 	PC_Data_Receive_Start();
+	Master_Data_Receive_Start();
 	
 	HAL_TIM_Base_Start_IT(&htim6);
 	HAL_TIM_Base_Start_IT(&htim7);
- 
+
 	CAN_CommInit(&hcan1);
   /* USER CODE END 2 */
 
@@ -151,8 +155,6 @@ int main(void)
   { 
  
     /* USER CODE END WHILE */
-	  HAL_Delay(30);
-	  DataScope_Debug(1, RefereeData_t.PowerHeatData_t.chassis_power_buffer);
 
     /* USER CODE BEGIN 3 */
 

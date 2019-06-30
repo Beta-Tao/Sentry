@@ -82,10 +82,12 @@
 extern CAN_HandleTypeDef hcan1;
 extern TIM_HandleTypeDef htim6;
 extern TIM_HandleTypeDef htim7;
+extern DMA_HandleTypeDef hdma_uart8_rx;
 extern DMA_HandleTypeDef hdma_usart1_rx;
 extern DMA_HandleTypeDef hdma_usart3_rx;
 extern DMA_HandleTypeDef hdma_usart6_rx;
 extern DMA_HandleTypeDef hdma_usart6_tx;
+extern UART_HandleTypeDef huart8;
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart3;
 extern UART_HandleTypeDef huart6;
@@ -244,6 +246,20 @@ void DMA1_Stream1_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles DMA1 stream6 global interrupt.
+  */
+void DMA1_Stream6_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Stream6_IRQn 0 */
+
+  /* USER CODE END DMA1_Stream6_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_uart8_rx);
+  /* USER CODE BEGIN DMA1_Stream6_IRQn 1 */
+
+  /* USER CODE END DMA1_Stream6_IRQn 1 */
+}
+
+/**
   * @brief This function handles CAN1 RX0 interrupts.
   */
 void CAN1_RX0_IRQHandler(void)
@@ -265,6 +281,8 @@ void USART1_IRQHandler(void)
   /* USER CODE BEGIN USART1_IRQn 0 */
 	RemoteCtl_Data_Receive();
 	Master_SendData();
+//	__HAL_UART_DISABLE_IT(&huart1, UART_IT_IDLE);
+//	__HAL_UART_ENABLE_IT(&huart8, UART_IT_IDLE);
   /* USER CODE END USART1_IRQn 0 */
   //HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */
@@ -293,6 +311,15 @@ void TIM6_DAC_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
 	
+//	static uint32_t count = 0;
+//	count++;
+//	
+//	if (count >= 100)
+//	{
+//		Referee_SendData();
+//		count = 0;
+//	}
+	
 	PC_IsCommDrop();
 	Remote_IsCommDrop();
 	__HAL_TIM_CLEAR_IT(&htim6, TIM_IT_UPDATE);
@@ -311,7 +338,7 @@ void TIM7_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM7_IRQn 0 */
 	
-	Sentry_GetDisGrade(&sentryST);
+	//Sentry_GetDisGrade(&sentryST);
 	Sentry_UpdateShooterST(&sentryST);
 	Sentry_UpdateLoaderST(&sentryST);
 	Sentry_UpdateGimbalST(&sentryST);
@@ -380,6 +407,23 @@ void USART6_IRQHandler(void)
   /* USER CODE BEGIN USART6_IRQn 1 */
 
   /* USER CODE END USART6_IRQn 1 */
+}
+
+/**
+  * @brief This function handles UART8 global interrupt.
+  */
+void UART8_IRQHandler(void)
+{
+  /* USER CODE BEGIN UART8_IRQn 0 */
+	Master_RevData();
+	PC_SendData();
+//	__HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
+//	__HAL_UART_DISABLE_IT(&huart8, UART_IT_IDLE);
+  /* USER CODE END UART8_IRQn 0 */
+  //HAL_UART_IRQHandler(&huart8);
+  /* USER CODE BEGIN UART8_IRQn 1 */
+
+  /* USER CODE END UART8_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

@@ -271,6 +271,8 @@ void UART8_IRQHandler(void)
 {
   /* USER CODE BEGIN UART8_IRQn 0 */
 	Master_RevData();
+	Gimbal_TraceForecast(&sentryGimbal);
+	Master_SendData();			//向底盘主控发送云台角度信息
   /* USER CODE END UART8_IRQn 0 */
   //HAL_UART_IRQHandler(&huart8);
   /* USER CODE BEGIN UART8_IRQn 1 */
@@ -282,7 +284,6 @@ void UART8_IRQHandler(void)
 
 void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 {
-	static uint8_t revCount = 0;
 	//如果是CAN1
 	if (hcan == &hcan1)
 	{
@@ -293,12 +294,14 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 				case GM_YAW_ID:
 					Motor_CanRxMsgConv(hcan, &(sentryGimbal.GM_Yaw));
 					Motor_UpdatePosCtrl(&(sentryGimbal.GM_Yaw.posCtrl));
+					Gimbal_UpdateMasterTxData(&sentryGimbal);
 					Gimbal_UpdateState(&sentryGimbal);
 					Gimbal_MotorCtrl(&(sentryGimbal.GM_Yaw));
 					break;
 				case GM_PITCH_ID:
 					Motor_CanRxMsgConv(hcan, &(sentryGimbal.GM_Pitch));
 					Motor_UpdatePosCtrl(&(sentryGimbal.GM_Pitch.posCtrl));
+					Gimbal_UpdateMasterTxData(&sentryGimbal);
 					Gimbal_UpdateState(&sentryGimbal);
 					Gimbal_MotorCtrl(&(sentryGimbal.GM_Pitch));
 					break;
@@ -314,15 +317,6 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 									sentryGimbal.GM_Yaw.velCtrl.output, 
 									sentryGimbal.GM_Pitch.velCtrl.output, 
 									sentryLoader.LM.velCtrl.output, 0);
-		}
-		
-		revCount++;
-		if (revCount == 30)
-		{
-//			DataScope_Debug(4, 
-//			GM_Yaw.velCtrl.refVel, GM_Yaw.velCtrl.rawVel, 
-//			GM_Yaw.posCtrl.absPos, GM_Yaw.posCtrl.refAbsPos);
-//			revCount = 0;
 		}
 		
 		__HAL_CAN_ENABLE_IT(hcan, CAN_IT_FMP0);		//重新打开CAN中断

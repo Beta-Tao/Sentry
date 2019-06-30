@@ -249,6 +249,8 @@ void Motor_CanRxMsgConv(CAN_HandleTypeDef *hcan, Motor_t *motor)
 	motor->posCtrl.rawPos = (int16_t)(hcan->pRxMsg->Data[0] << 8 | hcan->pRxMsg->Data[1]);
 	
 	motor->velCtrl.rawVel = (int16_t)(hcan->pRxMsg->Data[2] << 8 | hcan->pRxMsg->Data[3]);
+	
+	motor->curCtrl.rawCur = (int16_t)(hcan->pRxMsg->Data[4] << 8 | hcan->pRxMsg->Data[5]);
 }
 
 void Motor_UpdatePosCtrl(PosCtrl_t *pos_t)

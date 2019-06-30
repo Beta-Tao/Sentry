@@ -88,7 +88,7 @@ void Shooter_MotorCtrl(Shooter_t *shooter)
 
 void Shooter_UpdateState(Shooter_t *shooter)
 {
-	shooter->mode = (ShooterMode_e)masterData.shooterMode;
+	shooter->mode = (ShooterMode_e)masterRxData.shooterMode;
 }
 
 void Shooter_SetVel(Shooter_t *shooter, uint32_t vel)

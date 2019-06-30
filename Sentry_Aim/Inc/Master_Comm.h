@@ -4,8 +4,12 @@
 #include "stm32f4xx_hal.h"
 
 #define MASTER_FRAME_HEAD			0x50
-#define BSP_UART8_DMA_RX_BUF_LEN 	sizeof(MasterData_t) + 1
-#define COMM_FRAME_LEN				BSP_UART8_DMA_RX_BUF_LEN
+
+#define BSP_UART8_DMA_TX_BUF_LEN 	sizeof(MasterTxData_t) + 1
+#define COMM_TX_FRAME_LEN			BSP_UART8_DMA_TX_BUF_LEN
+
+#define BSP_UART8_DMA_RX_BUF_LEN	sizeof(MasterRxData_t) + 1
+#define COMM_RX_FRAME_LEN			BSP_UART8_DMA_RX_BUF_LEN
 
 typedef struct
 {
@@ -13,7 +17,7 @@ typedef struct
 	
 	float pitchAngle;
 	
-	uint8_t posCtrlType;
+	float distance;
 	
 	uint8_t gimbalMode;
 	 
@@ -21,9 +25,22 @@ typedef struct
 	
 	uint8_t shooterMode;
 	
-}MasterData_t;
+	uint8_t isFind;
+}MasterRxData_t;
 
-extern MasterData_t masterData;
+typedef struct
+{
+	float yaw;
+	
+	float pitch;
+	
+	float yawErr;
+	
+	float pitchErr;
+}MasterTxData_t;		//ÔÆÌ¨¾ø¶Ô½Ç¶È
+
+extern MasterRxData_t masterRxData;
+extern MasterTxData_t masterTxData;
 
 void Master_Data_Receive_Start(void);
 
@@ -32,5 +49,9 @@ void Master_CommInit(void);
 void Master_RevData(void);
 
 void Master_Decode(uint8_t *pData);
+
+void Master_GenerateData(void);
+
+void Master_SendData(void);
 
 #endif

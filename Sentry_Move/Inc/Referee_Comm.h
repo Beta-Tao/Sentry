@@ -26,6 +26,8 @@
 #define ROBOT_HURT_LEN					1u
 #define SHOOT_DATA_LEN					6u
 
+#define EXT_STUDENT_INTERACTIVE_HEADER_DATA_LEN		7u
+
 #define FRAME_HEADER_SOF		0xA5
 
 #define GAME_STATE_CMD_ID					0x0001
@@ -41,13 +43,12 @@
 #define AERIAL_ROBOT_ENERGY_CMD_ID			0x0205
 #define ROBOT_HURT_CMD_ID					0x0206
 #define SHOOT_DATA_CMD_ID					0x0207
-#define INTERACTIVE_DATA_CMD_ID				0x0301
+
+#define EXT_STUDENT_INTERACTIVE_HEADER_DATA_CMD_ID		0x0301
 
 /* 个人数据 */
 #define RED		0
 #define BLUE	1
-		
-#define OUR_SIDE	BLUE
 
 typedef __packed struct
 {
@@ -154,6 +155,7 @@ typedef __packed struct
 	uint16_t data_cmd_id;		//数据段内容ID
 	uint16_t send_ID;			//发送者ID
 	uint16_t receiver_ID;		//接收者ID
+	uint8_t  flag;				//哨兵位置标志位
 }ext_student_interactive_header_data_t;		//交互数据段头
 
 typedef __packed struct
@@ -192,25 +194,63 @@ typedef __packed struct
 	
 	ext_shoot_data_t					ShootData_t;
 	
+	ext_student_interactive_header_data_t otherRobotData_t;
 }ext_referee_data_t;
 
 typedef __packed struct
 {
-	uint8_t remain_HP;
-	uint8_t max_HP;
+	uint8_t isAttacked;
+	
+	uint16_t lastRemainHP;
+	
+	uint16_t remain_HP;
+	
+	uint16_t max_HP;
+	
+	uint8_t side;
 }ext_our_sentry_state_t;
+
+//typedef __packed struct
+//{
+//	uint8_t data;
+//}robot_interactive_data_t;
+
+//typedef __packed struct
+//{
+//	uint16_t data_cmd_id;
+//	uint16_t send_ID;
+//	uint16_t receiver_ID;
+//}ext_student_interactive_header_data_t;
+
+//typedef __packed struct
+//{
+//	uint8_t		SOF;
+//	uint16_t	deta_length;
+//	uint8_t 	seq;
+//	uint8_t 	CRC8;
+//	uint16_t 	cmd_id;
+//	ext_student_interactive_header_data_t interactiveheaderData;
+//	robot_interactive_data_t interactiveData;
+//	uint16_t 	frame_tail;
+//}RobotComm_t;
 
 extern ext_referee_data_t RefereeData_t;
 
 extern ext_our_sentry_state_t sentryState_t;
+
+//extern RobotComm_t robotComm;
 
 extern uint8_t USART6_DMA_RX_BUF[BSP_USART6_DMA_RX_BUF_LEN];
 extern uint8_t USART6_DMA_TX_BUF[BSP_USART6_DMA_TX_BUF_LEN];
 
 void Referee_Data_Receive_Start(void);
 
+void Referee_SentryDataInit(void);
+
 void Referee_Data_Receive(void);
 
 void Referee_Decode(uint8_t *pData);
+
+void Referee_SendData(void);
 
 #endif

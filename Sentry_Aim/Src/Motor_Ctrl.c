@@ -99,6 +99,13 @@ void Motor_PosCtrlInit(Motor_t *motor, float acc,
 	motor->posCtrl.posRatio = ratio;
 }
 
+void Motor_SetPosPIDParam(PosCtrl_t *pos_t, float kp, float ki, float kd)
+{
+	pos_t->kp = kp;
+	pos_t->ki = ki;
+	pos_t->kd = kd;
+}
+
 /**
   * @brief	给电机赋期望速度值
   * @param	motor:	Motor_t结构体的指针
@@ -121,8 +128,6 @@ void Motor_SetVel(VelCtrl_t *vel_t, float vel)
   */
 void Motor_SetPos(PosCtrl_t *pos_t, float pos, uint8_t type)
 {
-	int8_t rotateCount = 0;
-	
 	if ((pos_t->posMax) - (pos_t->posMin) < 0.01f)			//判断float变量很小，这个判断针对于360度旋转的情况
 		switch (type)
 		{
@@ -130,13 +135,7 @@ void Motor_SetPos(PosCtrl_t *pos_t, float pos, uint8_t type)
 				pos_t->refRelaPos = pos;
 				break;
 			case ABS:
-				if ((pos_t->absPos > 360.0f) || (pos_t->absPos < -360.0f))
-				{
-					rotateCount = (int8_t)(pos_t->absPos / 360.0f);
-					pos_t->refRelaPos = rotateCount * 360.0f + pos;
-				}
-				else
-					pos_t->refRelaPos = pos - pos_t->absPos;
+				pos_t->refRelaPos = pos - pos_t->absPos;
 				break;
 		}
 	else

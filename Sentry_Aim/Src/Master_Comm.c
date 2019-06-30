@@ -2,9 +2,12 @@
 #include "string.h"
 #include "Master_Comm.h"
 
+uint8_t UART8_DMA_TX_BUF[BSP_UART8_DMA_TX_BUF_LEN];
 uint8_t UART8_DMA_RX_BUF[BSP_UART8_DMA_RX_BUF_LEN];
 uint32_t rx_data_len = 0;		//本次接收长度
-MasterData_t masterData;
+MasterRxData_t masterRxData;
+MasterTxData_t masterTxData;
+unsigned char commOutputBuffer[COMM_TX_FRAME_LEN];
 
 void Master_Data_Receive_Start(void)
 {
@@ -14,12 +17,17 @@ void Master_Data_Receive_Start(void)
 
 void Master_CommInit(void)
 {
-	masterData.yawAngle = 0;
-	masterData.pitchAngle = 0;
-	masterData.posCtrlType = 1;
-	masterData.gimbalMode = 0;
-	masterData.loaderMode = 1;
-	masterData.shooterMode = 1;
+	masterRxData.yawAngle = 0;
+	masterRxData.pitchAngle = 0;
+	masterRxData.distance = 0;
+	masterRxData.gimbalMode = 0;
+	masterRxData.loaderMode = 1;
+	masterRxData.shooterMode = 1;
+	
+	masterTxData.pitch = 0;
+	masterTxData.yaw = 0;
+	masterTxData.pitchErr = 0;
+	masterTxData.yawErr = 0;
 }
 
 void Master_RevData(void)
@@ -33,7 +41,7 @@ void Master_RevData(void)
 		HAL_UART_DMAStop(&huart8);                                                    //传输完成以后关闭串口DMA
 		rx_data_len = BSP_UART8_DMA_RX_BUF_LEN - __HAL_DMA_GET_COUNTER(&hdma_uart8_rx); //获取这一次数据量大小（总长度-保留的长度）
 		HAL_UART_Receive_DMA(&huart8, UART8_DMA_RX_BUF, BSP_UART8_DMA_RX_BUF_LEN);  //接受数据
-		if (rx_data_len == COMM_FRAME_LEN && UART8_DMA_RX_BUF[0] == MASTER_FRAME_HEAD)                                           //判断数据是否为正确的数据长度
+		if (rx_data_len == COMM_RX_FRAME_LEN && UART8_DMA_RX_BUF[0] == MASTER_FRAME_HEAD)                                           //判断数据是否为正确的数据长度
 		{
 			Master_Decode(UART8_DMA_RX_BUF);                                        //进入数据解码函数
 		}
@@ -47,5 +55,21 @@ void Master_Decode(uint8_t *pData)
 		return;
 	}
 	
-	memcpy(&masterData, pData + 1, sizeof(MasterData_t));		//进行数据复制
+	memcpy(&masterRxData, pData + 1, sizeof(MasterRxData_t));		//进行数据复制
+}
+
+void Master_GenerateData(void)
+{
+	commOutputBuffer[0] = MASTER_FRAME_HEAD;								//帧头
+	memcpy(commOutputBuffer + 1, &masterTxData, sizeof(MasterTxData_t));
+}
+
+void Master_SendData(void)
+{
+	uint8_t i;
+	
+	Master_GenerateData();
+	
+	for (i = 0; i < COMM_TX_FRAME_LEN; i++)
+		HAL_UART_Transmit(&huart8, commOutputBuffer + i, 1, 10);
 }

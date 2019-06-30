@@ -5,6 +5,7 @@
 
 ext_referee_data_t RefereeData_t;
 ext_our_sentry_state_t sentryState_t;
+//RobotComm_t robotComm;
 
 uint8_t USART6_DMA_RX_BUF[BSP_USART6_DMA_RX_BUF_LEN];
 uint8_t USART6_DMA_TX_BUF[BSP_USART6_DMA_TX_BUF_LEN];
@@ -32,11 +33,21 @@ void Referee_Data_Receive(void)
 	}
 }
 
+void Referee_SentryDataInit(void)
+{
+	sentryState_t.isAttacked = 0;
+	sentryState_t.lastRemainHP = 600;
+	sentryState_t.remain_HP = 600;
+	sentryState_t.max_HP = 600;
+}
+
 void Referee_Decode(uint8_t *pData)
 {
 	uint8_t frameLoc = 0;
 	uint8_t *frameHeadLoc;					//暂存当前帧的帧头地址
 	uint16_t dataLength, cmdID;
+	
+	static uint32_t tick = 0, lastTick = 0;
 	
 	while (frameLoc < BSP_USART6_DMA_RX_BUF_LEN)		//缓存区只能保存128个字节，循环检查是不是有数据包在内
 	{
@@ -69,10 +80,44 @@ void Referee_Decode(uint8_t *pData)
 //							break;
 						case GAME_ROBOT_STATE_CMD_ID:	//10Hz
 							memcpy(&RefereeData_t.GameRobotState_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, GAME_ROBOT_STATE_LEN);
-							if (RefereeData_t.GameRobotState_t.robot_id == OUR_SIDE * 10 + 7)
+							
+							if (RefereeData_t.GameRobotState_t.robot_id > 10)
+								sentryState_t.side = BLUE;
+							else
+								sentryState_t.side = RED;
+							
+							if (RefereeData_t.GameRobotState_t.robot_id ==  sentryState_t.side * 10 + 7)
 							{
 								sentryState_t.max_HP = RefereeData_t.GameRobotState_t.max_HP;
+								sentryState_t.lastRemainHP = sentryState_t.remain_HP;
 								sentryState_t.remain_HP = RefereeData_t.GameRobotState_t.remain_HP;
+								
+								if (sentryState_t.lastRemainHP != sentryState_t.remain_HP)	//出现伤害
+								{
+									if (RefereeData_t.RobotHurt_t.hurt_type == 0x0)
+										sentryState_t.isAttacked = 1;
+								}
+								
+								if (sentryState_t.isAttacked == 1)
+								{
+									if (lastTick == 0)
+										lastTick = HAL_GetTick();
+									else
+									{
+										tick = HAL_GetTick();
+										if (tick - lastTick >= 2000)
+										{
+											sentryState_t.isAttacked = 0;
+											tick = 0;
+											lastTick = 0;
+										}
+									}
+								}
+								else
+								{
+									tick = 0;
+									lastTick = 0;
+								}
 							}
 							break;
 						case POWER_HEAT_DATA_CMD_ID:	//50Hz
@@ -93,6 +138,9 @@ void Referee_Decode(uint8_t *pData)
 						case SHOOT_DATA_CMD_ID:			//子弹发射后发送
 							memcpy(&RefereeData_t.ShootData_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, SHOOT_DATA_LEN);
 							break;
+						case EXT_STUDENT_INTERACTIVE_HEADER_DATA_CMD_ID:
+							memcpy(&RefereeData_t.otherRobotData_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, EXT_STUDENT_INTERACTIVE_HEADER_DATA_LEN);
+							break;
 						default:
 							break;
 					}
@@ -108,3 +156,24 @@ void Referee_Decode(uint8_t *pData)
 			frameLoc++;			//未识别帧头，向后一个字节
 	}
 }
+
+//void Referee_SendData(void)
+//{
+//	uint32_t i = 0;
+//	robotComm.SOF = FRAME_HEADER_SOF;
+//	robotComm.deta_length = 7u;
+//	robotComm.seq = 0;
+//	Append_CRC8_Check_Sum((unsigned char *)&robotComm, FRAME_HEADER_LEN);
+//	robotComm.cmd_id = EXT_STUDENT_INTERACTIVE_HEADER_DATA_CMD_ID;
+//	robotComm.interactiveheaderData.data_cmd_id = 0x0201;
+//	robotComm.interactiveheaderData.receiver_ID = sentryState_t.side * 10 + 6;
+//	robotComm.interactiveheaderData.send_ID = sentryState_t.side * 10 + 1;
+//	robotComm.interactiveData.data = 8u;
+//	Append_CRC8_Check_Sum((unsigned char *)&robotComm, 
+//				FRAME_HEADER_LEN + CMD_ID_LEN + robotComm.deta_length + CRC16_LEN);
+//	
+//	for(i = 0 ; i < FRAME_HEADER_LEN + CMD_ID_LEN + robotComm.deta_length + CRC16_LEN; i++)  //循环发送,直到发送完毕  
+//	{
+//		HAL_UART_Transmit(&huart7, ((uint8_t *)&robotComm) + i, 1, 50);
+//	}
+//}

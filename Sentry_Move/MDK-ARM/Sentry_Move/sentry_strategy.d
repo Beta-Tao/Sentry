@@ -46,3 +46,4 @@ sentry_move\sentry_strategy.o: ..\Inc\Remote_Comm.h
 sentry_move\sentry_strategy.o: ..\Inc\Chassis_Ctrl.h
 sentry_move\sentry_strategy.o: ..\Inc\tim.h
 sentry_move\sentry_strategy.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+sentry_move\sentry_strategy.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h

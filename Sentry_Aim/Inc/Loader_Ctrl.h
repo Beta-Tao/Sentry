@@ -25,8 +25,9 @@ typedef enum
 	LOADER_RUN_PS6		 = 5,
 	LOADER_RUN_PS8		 = 6,
 	LOADER_RUN_PS10		 = 7,
-	LOADER_RUN_PS20		 = 8,
-	LOADER_DEBUG_VEL	 = 9,
+	LOADER_RUN_PS15		 = 8,
+	LOADER_RUN_PS20		 = 9,
+	LOADER_DEBUG_VEL	 = 10,
 }LoaderMode_e;
 
 typedef struct
