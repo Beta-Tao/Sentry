@@ -17,17 +17,12 @@ void Master_Data_Receive_Start(void)
 
 void Master_CommInit(void)
 {
-	masterRxData.yawAngle = 0;
-	masterRxData.pitchAngle = 0;
-	masterRxData.distance = 0;
+	masterRxData.remoteYawAngle = 0;
+	masterRxData.remotePitchAngle = 0;
 	masterRxData.gimbalMode = 0;
-	masterRxData.loaderMode = 1;
-	masterRxData.shooterMode = 1;
+	masterRxData.shooterMode = 0;
 	
-	masterTxData.pitch = 0;
-	masterTxData.yaw = 0;
-	masterTxData.pitchErr = 0;
-	masterTxData.yawErr = 0;
+	masterTxData.loaderMode = 0;
 }
 
 void Master_RevData(void)

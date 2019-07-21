@@ -73,13 +73,19 @@
 #include "Loader_Ctrl.h"
 #include "DataScope_DP.h"
 #include "Master_Comm.h"
+#include "PC_Comm.h"
+#include "IMU_Comm.h"
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
 extern CAN_HandleTypeDef hcan1;
-extern TIM_HandleTypeDef htim1;
+extern TIM_HandleTypeDef htim6;
 extern DMA_HandleTypeDef hdma_uart8_rx;
+extern DMA_HandleTypeDef hdma_usart3_rx;
+extern DMA_HandleTypeDef hdma_usart6_rx;
 extern UART_HandleTypeDef huart8;
+extern UART_HandleTypeDef huart3;
+extern UART_HandleTypeDef huart6;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -221,6 +227,20 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
+  * @brief This function handles DMA1 stream1 global interrupt.
+  */
+void DMA1_Stream1_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Stream1_IRQn 0 */
+
+  /* USER CODE END DMA1_Stream1_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart3_rx);
+  /* USER CODE BEGIN DMA1_Stream1_IRQn 1 */
+
+  /* USER CODE END DMA1_Stream1_IRQn 1 */
+}
+
+/**
   * @brief This function handles DMA1 stream6 global interrupt.
   */
 void DMA1_Stream6_IRQHandler(void)
@@ -249,19 +269,71 @@ void CAN1_RX0_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles TIM1 capture compare interrupt.
+  * @brief This function handles USART3 global interrupt.
   */
-void TIM1_CC_IRQHandler(void)
+void USART3_IRQHandler(void)
 {
-  /* USER CODE BEGIN TIM1_CC_IRQn 0 */
-	Shooter_UpdateState(&sentryShooter);
-	Shooter_MotorCtrl(&sentryShooter);
-	
-  /* USER CODE END TIM1_CC_IRQn 0 */
-  //HAL_TIM_IRQHandler(&htim1);
-  /* USER CODE BEGIN TIM1_CC_IRQn 1 */
+  /* USER CODE BEGIN USART3_IRQn 0 */
+	PC_Data_Receive();
+	Gimbal_TraceForecast(&sentryGimbal);
+  /* USER CODE END USART3_IRQn 0 */
+  //HAL_UART_IRQHandler(&huart3);
+  /* USER CODE BEGIN USART3_IRQn 1 */
 
-  /* USER CODE END TIM1_CC_IRQn 1 */
+  /* USER CODE END USART3_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM6 global interrupt, DAC1 and DAC2 underrun error interrupts.
+  */
+void TIM6_DAC_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
+	
+	PC_IsCommDrop();
+	__HAL_TIM_CLEAR_IT(&htim6, TIM_IT_UPDATE);
+	
+  /* USER CODE END TIM6_DAC_IRQn 0 */
+  //HAL_TIM_IRQHandler(&htim6);
+  /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
+
+  /* USER CODE END TIM6_DAC_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA2 stream1 global interrupt.
+  */
+void DMA2_Stream1_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Stream1_IRQn 0 */
+
+  /* USER CODE END DMA2_Stream1_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart6_rx);
+  /* USER CODE BEGIN DMA2_Stream1_IRQn 1 */
+
+  /* USER CODE END DMA2_Stream1_IRQn 1 */
+}
+
+/**
+  * @brief This function handles USART6 global interrupt.
+  */
+void USART6_IRQHandler(void)
+{
+  /* USER CODE BEGIN USART6_IRQn 0 */
+	IMU_Data_Receive();
+	if (sentryGimbal.yawCtrlType == IMU)
+	{
+		sentryGimbal.GM_Yaw.posCtrl.absPos = HIData.yaw;
+		sentryGimbal.GM_Yaw.velCtrl.rawVel = HIData.yawVel;
+		
+		Gimbal_UpdateState(&sentryGimbal);
+		Gimbal_MotorCtrl(&(sentryGimbal.GM_Yaw));
+	}
+  /* USER CODE END USART6_IRQn 0 */
+  //HAL_UART_IRQHandler(&huart6);
+  /* USER CODE BEGIN USART6_IRQn 1 */
+
+  /* USER CODE END USART6_IRQn 1 */
 }
 
 /**
@@ -271,8 +343,9 @@ void UART8_IRQHandler(void)
 {
   /* USER CODE BEGIN UART8_IRQn 0 */
 	Master_RevData();
-	Gimbal_TraceForecast(&sentryGimbal);
-	Master_SendData();			//向底盘主控发送云台角度信息
+	Gimbal_UpdateLoadMode();
+	masterTxData.isInsight = PCRxComm.PCData.isInSight;
+	Master_SendData();
   /* USER CODE END UART8_IRQn 0 */
   //HAL_UART_IRQHandler(&huart8);
   /* USER CODE BEGIN UART8_IRQn 1 */
@@ -292,31 +365,42 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 			switch (hcan->pRxMsg->StdId)
 			{
 				case GM_YAW_ID:
-					Motor_CanRxMsgConv(hcan, &(sentryGimbal.GM_Yaw));
-					Motor_UpdatePosCtrl(&(sentryGimbal.GM_Yaw.posCtrl));
-					Gimbal_UpdateMasterTxData(&sentryGimbal);
-					Gimbal_UpdateState(&sentryGimbal);
-					Gimbal_MotorCtrl(&(sentryGimbal.GM_Yaw));
+					//Motor_CanRxMsgConv(hcan, &(sentryGimbal.GM_Yaw));
+					sentryGimbal.GM_Yaw.posCtrl.rawPos = (int16_t)(hcan->pRxMsg->Data[0] << 8 | hcan->pRxMsg->Data[1]);
 					break;
 				case GM_PITCH_ID:
 					Motor_CanRxMsgConv(hcan, &(sentryGimbal.GM_Pitch));
 					Motor_UpdatePosCtrl(&(sentryGimbal.GM_Pitch.posCtrl));
-					Gimbal_UpdateMasterTxData(&sentryGimbal);
-					Gimbal_UpdateState(&sentryGimbal);
-					Gimbal_MotorCtrl(&(sentryGimbal.GM_Pitch));
+					if (sentryGimbal.mode != GIMBAL_YAW_INIT)
+					{
+						Gimbal_UpdateState(&sentryGimbal);
+						Gimbal_MotorCtrl(&(sentryGimbal.GM_Pitch));
+					}
 					break;
-				case LM_ID:
-					Motor_CanRxMsgConv(hcan, &(sentryLoader.LM));
-					Loader_UpdateState(&sentryLoader);
-					Loader_MotorCtrl(&(sentryLoader.LM));
+				case FM_LEFT_ID:
+					Motor_CanRxMsgConv(hcan, &(sentryShooter.FM_LEFT));
+					Shooter_UpdateState(&sentryShooter);
+					Shooter_MotorCtrl(&(sentryShooter.FM_LEFT));
+					break;
+				case FM_RIGHT_ID:
+					Motor_CanRxMsgConv(hcan, &(sentryShooter.FM_RIGHT));
+					Shooter_UpdateState(&sentryShooter);
+					Shooter_MotorCtrl(&(sentryShooter.FM_RIGHT));
 					break;
 				default:
 					break;
 			}
+			
+//			Motor_CANSendMsg(hcan, FIRST_FOUR_ID, 
+//									sentryShooter.FM_LEFT.velCtrl.output, 
+//									sentryShooter.FM_RIGHT.velCtrl.output, 
+//									0, 0);
+			
 			Motor_CANSendMsg(hcan, SECOND_FOUR_ID, 
 									sentryGimbal.GM_Yaw.velCtrl.output, 
 									sentryGimbal.GM_Pitch.velCtrl.output, 
-									sentryLoader.LM.velCtrl.output, 0);
+									sentryShooter.FM_LEFT.velCtrl.output,
+									sentryShooter.FM_RIGHT.velCtrl.output);
 		}
 		
 		__HAL_CAN_ENABLE_IT(hcan, CAN_IT_FMP0);		//重新打开CAN中断

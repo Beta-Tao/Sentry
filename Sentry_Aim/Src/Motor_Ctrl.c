@@ -11,17 +11,14 @@
   * @note	注意同时初始化PID控制器参数以及限幅参数
   */
 void Motor_VelCtrlInit(Motor_t *motor, 
-					   float acc, float dec, 
-					   float kp, float ki, float kd, float ratio)
+					   float acc, float dec, PIDParam_t *pid, float ratio)
 {
 	motor->velCtrl.refVel = 0;
 	motor->velCtrl.refVel_Soft = 0;
 	motor->velCtrl.acc = acc;
 	motor->velCtrl.dec = dec;
 	
-	motor->velCtrl.kp = kp;
-	motor->velCtrl.ki = ki;
-	motor->velCtrl.kd = kd;
+	Motor_SetVelCtrlParam(&(motor->velCtrl), pid);
 	motor->velCtrl.integ = 0.0f;
 	motor->velCtrl.err = 0.0f;
 	motor->velCtrl.errLast = 0.0f;
@@ -58,8 +55,7 @@ void Motor_VelCtrlInit(Motor_t *motor,
   * @retval	None
   * @note	注意同时初始化PID控制器参数以及限幅参数
   */
-void Motor_PosCtrlInit(Motor_t *motor, float acc, 
-					   float kp, float ki, float kd,
+void Motor_PosCtrlInit(Motor_t *motor, float acc, PIDParam_t *pid,
 					   float outputMin, float outputMax, float posMax, float posMin, float ratio)
 {
 	motor->posCtrl.absPos = 0;
@@ -67,9 +63,7 @@ void Motor_PosCtrlInit(Motor_t *motor, float acc,
 	
 	motor->posCtrl.acc = acc;		//位置环加速度和速度环减速加速度一致
 	
-	motor->posCtrl.kp = kp;
-	motor->posCtrl.ki = ki;
-	motor->posCtrl.kd = kd;
+	Motor_SetPosCtrlParam(&(motor->posCtrl), pid);
 	motor->posCtrl.integ = 0.0f;
 	motor->posCtrl.err = 0.0f;
 	motor->posCtrl.errLast = 0.0f;
@@ -99,13 +93,6 @@ void Motor_PosCtrlInit(Motor_t *motor, float acc,
 	motor->posCtrl.posRatio = ratio;
 }
 
-void Motor_SetPosPIDParam(PosCtrl_t *pos_t, float kp, float ki, float kd)
-{
-	pos_t->kp = kp;
-	pos_t->ki = ki;
-	pos_t->kd = kd;
-}
-
 /**
   * @brief	给电机赋期望速度值
   * @param	motor:	Motor_t结构体的指针
@@ -132,32 +119,55 @@ void Motor_SetPos(PosCtrl_t *pos_t, float pos, uint8_t type)
 		switch (type)
 		{
 			case RELA:
-				pos_t->refRelaPos = pos;
+				pos_t->refAbsPos = pos_t->absPos + pos;
 				break;
 			case ABS:
-				pos_t->refRelaPos = pos - pos_t->absPos;
+				pos_t->refAbsPos = pos;
 				break;
 		}
 	else
 		switch (type)
 		{
 			case RELA:
-				if (pos_t->absPos + pos >= pos_t->posMax)
-					pos_t->refRelaPos = pos_t->posMax - pos_t->absPos;
-				else if (pos_t->absPos + pos <= pos_t->posMin)
-					pos_t->refRelaPos = pos_t->posMin - pos_t->absPos;
+				if ((pos_t->refAbsPos + pos > pos_t->posMax) || (pos_t->absPos > pos_t->posMax))
+					pos_t->refAbsPos = pos_t->posMax;
+				else if ((pos_t->refAbsPos + pos < pos_t->posMin) || (pos_t->absPos < pos_t->posMin))
+					pos_t->refAbsPos = pos_t->posMin;
 				else
-					pos_t->refRelaPos = pos;
+					pos_t->refAbsPos = pos_t->absPos + pos;
 				break;
 			case ABS:
-				if (pos >= pos_t->posMax)
-					pos_t->refRelaPos = pos_t->posMax - pos_t->absPos;
-				else if (pos <= pos_t->posMin)
-					pos_t->refRelaPos = pos_t->posMin - pos_t->absPos;
+				if (pos > pos_t->posMax)
+					pos_t->refAbsPos = pos_t->posMax;
+				else if (pos < pos_t->posMin)
+					pos_t->refAbsPos = pos_t->posMin;
 				else
-					pos_t->refRelaPos = pos - pos_t->absPos;
+					pos_t->refAbsPos = pos;
 				break;
 		}
+}
+
+void Motor_SetVelCtrlParam(VelCtrl_t *vel_t, PIDParam_t *pid)
+{
+	vel_t->kp = pid->kp;
+	vel_t->ki = pid->ki;
+	vel_t->kd = pid->kd;
+}
+
+void Motor_SetPosCtrlParam(PosCtrl_t *pos_t, PIDParam_t *pid)
+{
+	static PIDParam_t *lastPid;
+	
+	if (lastPid != pid)
+	{
+		pos_t->integ = 0;
+	}
+	
+	pos_t->kp = pid->kp;
+	pos_t->ki = pid->ki;
+	pos_t->kd = pid->kd;
+	
+	lastPid = pid;
 }
 
 /**
@@ -166,22 +176,30 @@ void Motor_SetPos(PosCtrl_t *pos_t, float pos, uint8_t type)
   *	@param	pos:	PosCtrl_t结构体的指针，电机位置控制结构体的指针
   *	@retval	None
   */
-void Motor_PosCtrl(PosCtrl_t *pos_t)
+void Motor_RunPosPID(PosCtrl_t *pos_t)
 {
+	static float lastKi = 0.0f;
+	
 	float diff = 0;					//相对位置缓存
 	
 	/* 计算误差值，err保存当前的误差，errLast保存上一次的误差 */
 	pos_t->errLast = pos_t->err;
 	
-	pos_t->err = pos_t->refRelaPos * pos_t->posRatio;
+	pos_t->err = (pos_t->refAbsPos - pos_t->absPos) * pos_t->posRatio;
 	
 	/* 计算积分值，注意末尾积分限幅 */
-	pos_t->integ += pos_t->err;
+//	if (lastKi != pos_t->ki)		//积分参数变化时
+//		pos_t->integ = 0;
+//	else
+//	{
+		pos_t->integ += pos_t->err;
 
-	if(pos_t->integ >= 10000)
-		pos_t->integ = 10000;
-	if(pos_t->integ <= -10000)
-		pos_t->integ = -10000;
+		if(pos_t->integ >= 10000)
+			pos_t->integ = 10000;
+		if(pos_t->integ <= -10000)
+			pos_t->integ = -10000;
+//	}
+//	lastKi = pos_t->ki;
 	
 	diff = pos_t->err - pos_t->errLast;	//计算误差变化率
 	
@@ -209,24 +227,43 @@ void Motor_PosCtrl(PosCtrl_t *pos_t)
   *	@param	pos_t:	PosCtrl_t结构体的指针，电机位置控制结构体的指针
   *	@retval	None
   */
-void Motor_VelCtrl(VelCtrl_t *vel_t)
+void Motor_RunVelPID(VelCtrl_t *vel_t)
 {
 	float diff;
 	
+//	if (fabs(vel_t->refVel_Soft) < (fabs(vel_t->refVel) - vel_t->acc))		//需要加速，使用加速加速度
+//		vel_t->refVel_Soft += (vel_t->refVel / fabs(vel_t->refVel)) * vel_t->acc;
+//	else if (fabs(vel_t->refVel_Soft) > (fabs(vel_t->refVel) + vel_t->dec))	//需要减速，使用减速加速度
+//		vel_t->refVel_Soft -= (vel_t->refVel / fabs(vel_t->refVel)) * vel_t->dec;
+//	else													//在线性加速度范围内使用PID调节
+//		vel_t->refVel_Soft = vel_t->refVel;
+	
 	/* 加减速斜坡 */
-	if (vel_t->refVel_Soft < (vel_t->refVel - vel_t->acc))		//需要加速，使用加速加速度
-		vel_t->refVel_Soft += vel_t->acc;
-	else if (vel_t->refVel_Soft > (vel_t->refVel + vel_t->dec))	//需要减速，使用减速加速度
-		vel_t->refVel_Soft -= vel_t->dec;
-	else													//在线性加速度范围内使用PID调节
-		vel_t->refVel_Soft = vel_t->refVel;
+	if (vel_t->refVel > 0.0f)
+	{
+		if (vel_t->refVel_Soft < (vel_t->refVel - vel_t->acc))		//需要加速，使用加速加速度
+			vel_t->refVel_Soft += vel_t->acc;
+		else if (vel_t->refVel_Soft > (vel_t->refVel + vel_t->dec))	//需要减速，使用减速加速度
+			vel_t->refVel_Soft -= vel_t->dec;
+		else													//在线性加速度范围内使用PID调节
+			vel_t->refVel_Soft = vel_t->refVel;
+	}
+	else
+	{
+		if (vel_t->refVel_Soft > (vel_t->refVel + vel_t->acc))		//需要加速，使用加速加速度
+			vel_t->refVel_Soft -= vel_t->acc;
+		else if (vel_t->refVel_Soft < (vel_t->refVel - vel_t->dec))	//需要减速，使用减速加速度
+			vel_t->refVel_Soft += vel_t->dec;
+		else													//在线性加速度范围内使用PID调节
+			vel_t->refVel_Soft = vel_t->refVel;
+	}
 	
 	/* 速度PID */
 	vel_t->errLast = vel_t->err;
 	vel_t->err = vel_t->refVel_Soft * vel_t->velRatio - vel_t->rawVel;		//使用vel_t->refVel_Soft作为速度期望
 	diff = vel_t->err - vel_t->errLast;
 	vel_t->integ += vel_t->err;
-	 
+	
 	/* 积分限幅 */
 	if (vel_t->integ >= 10000)
 		vel_t->integ = 10000;
@@ -240,6 +277,20 @@ void Motor_VelCtrl(VelCtrl_t *vel_t)
 		vel_t->output = vel_t->outputMax;
 	if(vel_t->output <= vel_t->outputMin)
 		vel_t->output = vel_t->outputMin;
+}
+
+void Motor_PosCtrl(Motor_t *motor, float pos, uint8_t type)
+{
+	Motor_SetPos(&(motor->posCtrl), pos, type);
+	Motor_RunPosPID(&(motor->posCtrl));
+	Motor_SetVel(&(motor->velCtrl), motor->posCtrl.output);
+	Motor_RunVelPID(&(motor->velCtrl));
+}
+
+void Motor_VelCtrl(Motor_t *motor, float vel)
+{
+	Motor_SetVel(&(motor->velCtrl), vel);
+	Motor_RunVelPID(&(motor->velCtrl));
 }
 
 /**
@@ -274,7 +325,7 @@ void Motor_UpdatePosCtrl(PosCtrl_t *pos_t)
 	else
 		detaPos = detaPos;
 	
-	pos_t->refRelaPos -= detaPos / pos_t->posRatio;			//更新相对转角
+//	pos_t->refRelaPos -= detaPos / pos_t->posRatio;			//更新相对转角
 	pos_t->absPos += detaPos / pos_t->posRatio;				//更新绝对转角
 }
 

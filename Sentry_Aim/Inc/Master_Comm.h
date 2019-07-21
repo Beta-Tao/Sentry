@@ -5,39 +5,29 @@
 
 #define MASTER_FRAME_HEAD			0x50
 
-#define BSP_UART8_DMA_TX_BUF_LEN 	sizeof(MasterTxData_t) + 1
+#define BSP_UART8_DMA_TX_BUF_LEN 	3
 #define COMM_TX_FRAME_LEN			BSP_UART8_DMA_TX_BUF_LEN
 
-#define BSP_UART8_DMA_RX_BUF_LEN	sizeof(MasterRxData_t) + 1
+#define BSP_UART8_DMA_RX_BUF_LEN	11
 #define COMM_RX_FRAME_LEN			BSP_UART8_DMA_RX_BUF_LEN
 
 typedef struct
 {
-	float yawAngle;
+	float remoteYawAngle;
 	
-	float pitchAngle;
-	
-	float distance;
+	float remotePitchAngle;
 	
 	uint8_t gimbalMode;
-	 
-	uint8_t loaderMode;
 	
 	uint8_t shooterMode;
-	
-	uint8_t isFind;
 }MasterRxData_t;
 
 typedef struct
 {
-	float yaw;
+	uint8_t loaderMode;
 	
-	float pitch;
-	
-	float yawErr;
-	
-	float pitchErr;
-}MasterTxData_t;		//ÔÆÌ¨¾ø¶Ô½Ç¶È
+	uint8_t isInsight;
+}MasterTxData_t;
 
 extern MasterRxData_t masterRxData;
 extern MasterTxData_t masterTxData;

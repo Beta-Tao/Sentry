@@ -71,7 +71,6 @@
 #include "Remote_Comm.h"
 #include "Master_Comm.h"
 #include "Referee_Comm.h"
-#include "PC_Comm.h"
 #include "Chassis_Ctrl.h"
 #include "DataScope_DP.h"
 #include "Sentry_Strategy.h"
@@ -80,16 +79,15 @@
 
 /* External variables --------------------------------------------------------*/
 extern CAN_HandleTypeDef hcan1;
+extern TIM_HandleTypeDef htim5;
 extern TIM_HandleTypeDef htim6;
 extern TIM_HandleTypeDef htim7;
 extern DMA_HandleTypeDef hdma_uart8_rx;
 extern DMA_HandleTypeDef hdma_usart1_rx;
-extern DMA_HandleTypeDef hdma_usart3_rx;
 extern DMA_HandleTypeDef hdma_usart6_rx;
 extern DMA_HandleTypeDef hdma_usart6_tx;
 extern UART_HandleTypeDef huart8;
 extern UART_HandleTypeDef huart1;
-extern UART_HandleTypeDef huart3;
 extern UART_HandleTypeDef huart6;
 /* USER CODE BEGIN EV */
 
@@ -232,20 +230,6 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles DMA1 stream1 global interrupt.
-  */
-void DMA1_Stream1_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA1_Stream1_IRQn 0 */
-
-  /* USER CODE END DMA1_Stream1_IRQn 0 */
-  HAL_DMA_IRQHandler(&hdma_usart3_rx);
-  /* USER CODE BEGIN DMA1_Stream1_IRQn 1 */
-
-  /* USER CODE END DMA1_Stream1_IRQn 1 */
-}
-
-/**
   * @brief This function handles DMA1 stream6 global interrupt.
   */
 void DMA1_Stream6_IRQHandler(void)
@@ -291,17 +275,17 @@ void USART1_IRQHandler(void)
 }
 
 /**
-  * @brief This function handles USART3 global interrupt.
+  * @brief This function handles TIM5 global interrupt.
   */
-void USART3_IRQHandler(void)
+void TIM5_IRQHandler(void)
 {
-  /* USER CODE BEGIN USART3_IRQn 0 */
-	PC_Data_Receive();
-  /* USER CODE END USART3_IRQn 0 */
-  //HAL_UART_IRQHandler(&huart3);
-  /* USER CODE BEGIN USART3_IRQn 1 */
+  /* USER CODE BEGIN TIM5_IRQn 0 */
+	Chassis_GetDistance(&htim5, &sentryChassis);
+  /* USER CODE END TIM5_IRQn 0 */
+  //HAL_TIM_IRQHandler(&htim5);
+  /* USER CODE BEGIN TIM5_IRQn 1 */
 
-  /* USER CODE END USART3_IRQn 1 */
+  /* USER CODE END TIM5_IRQn 1 */
 }
 
 /**
@@ -311,16 +295,6 @@ void TIM6_DAC_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
 	
-//	static uint32_t count = 0;
-//	count++;
-//	
-//	if (count >= 100)
-//	{
-//		Referee_SendData();
-//		count = 0;
-//	}
-	
-	PC_IsCommDrop();
 	Remote_IsCommDrop();
 	__HAL_TIM_CLEAR_IT(&htim6, TIM_IT_UPDATE);
 	
@@ -415,10 +389,9 @@ void USART6_IRQHandler(void)
 void UART8_IRQHandler(void)
 {
   /* USER CODE BEGIN UART8_IRQn 0 */
+	
 	Master_RevData();
-	PC_SendData();
-//	__HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE);
-//	__HAL_UART_DISABLE_IT(&huart8, UART_IT_IDLE);
+	
   /* USER CODE END UART8_IRQn 0 */
   //HAL_UART_IRQHandler(&huart8);
   /* USER CODE BEGIN UART8_IRQn 1 */
@@ -457,20 +430,18 @@ void HAL_CAN_RxCpltCallback(CAN_HandleTypeDef* hcan)
 					Motor_UpdatePosCtrl(&(sentryChassis.CM_Right.posCtrl));
 					Chassis_MotorCtrl(&(sentryChassis.CM_Right));
 					break;
+				case LM_ID:
+					Motor_CanRxMsgConv(hcan, &(sentryLoader.LM));
+					Loader_UpdateState(&sentryLoader);
+					Loader_MotorCtrl(&(sentryLoader.LM));
+					break;
 				default:
 					break;
 			}
 			Motor_CANSendMsg(hcan, FIRST_FOUR_ID, 
-								sentryChassis.CM_Left.velCtrl.output, sentryChassis.CM_Right.velCtrl.output, 0, 0);
+								sentryChassis.CM_Left.velCtrl.output, sentryChassis.CM_Right.velCtrl.output, 
+								sentryLoader.LM.velCtrl.output, 0);
 		}
-		
-//		count++;
-//		if (count >= 30)
-//		{
-//			DataScope_Debug(3, sentryChassis.CM_Right.velCtrl.rawVel, sentryChassis.CM_Right.curCtrl.rawCur, 
-//								RefereeData_t.PowerHeatData_t.chassisPower);
-//			count = 0;
-//		}
 		
 		__HAL_CAN_ENABLE_IT(hcan, CAN_IT_FMP0);		//重新打开CAN中断
 	}

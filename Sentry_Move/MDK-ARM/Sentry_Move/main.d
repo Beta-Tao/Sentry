@@ -45,6 +45,5 @@ sentry_move\main.o: ..\Inc\Motor_Ctrl.h
 sentry_move\main.o: ..\Inc\DataScope_DP.h
 sentry_move\main.o: ..\Inc\Loader_Ctrl.h
 sentry_move\main.o: ..\Inc\Shooter_Ctrl.h
-sentry_move\main.o: ..\Inc\PC_Comm.h
 sentry_move\main.o: ..\Inc\Chassis_Ctrl.h
 sentry_move\main.o: ..\Inc\Sentry_Strategy.h

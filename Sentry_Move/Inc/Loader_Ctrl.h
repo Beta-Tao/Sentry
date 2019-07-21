@@ -7,18 +7,17 @@
 #define LM_VEL_MIN				-1000			//即转速
 #define LM_VEL_MAX				1000 
 
-#define LOADER_ACC				4
-#define	LOADER_DEC				4
+#define LOADER_ACC				10
+#define	LOADER_DEC				10
 
 #define LOADER_PS1				45
 
 /* 总线ID */
-#define LM_ID					0x207
+#define LM_ID					0x203
 
 typedef enum
 {
-	LOADER_INIT			= 0,
-	LOADER_STOP,
+	LOADER_STOP			= 0,
 	LOADER_JAM,
 	LOADER_RUN_PS3,
 	LOADER_RUN_PS5,

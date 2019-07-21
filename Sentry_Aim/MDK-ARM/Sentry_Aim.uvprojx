@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F427xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Inc;   ../Drivers/STM32F4xx_HAL_Driver/Inc;   ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;   ../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include</IncludePath>
+              <IncludePath>../Inc;        ../Drivers/STM32F4xx_HAL_Driver/Inc;        ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;        ../Drivers/CMSIS/Device/ST/STM32F4xx/Include;     ../Drivers/CMSIS/Include</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -415,7 +415,7 @@
             <File>
               <FileName>tim.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Src\tim.c</FilePath>
+              <FilePath>../Src/tim.c</FilePath>
             </File>
             <File>
               <FileName>usart.c</FileName>
@@ -427,16 +427,16 @@
               <FileType>1</FileType>
               <FilePath>../Src/stm32f4xx_it.c</FilePath>
             </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>Drivers/CMSIS</GroupName>
-          <Files>
             <File>
               <FileName>stm32f4xx_hal_msp.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Src/stm32f4xx_hal_msp.c</FilePath>
             </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Drivers/CMSIS</GroupName>
+          <Files>
             <File>
               <FileName>system_stm32f4xx.c</FileName>
               <FileType>1</FileType>
@@ -462,25 +462,30 @@
               <FileType>1</FileType>
               <FilePath>..\Src\Shooter_Ctrl.c</FilePath>
             </File>
-            <File>
-              <FileName>Loader_Ctrl.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\Loader_Ctrl.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
           <GroupName>Application/Comm</GroupName>
           <Files>
             <File>
-              <FileName>DataScope_DP.C</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\DataScope_DP.C</FilePath>
-            </File>
-            <File>
               <FileName>Master_Comm.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\Master_Comm.c</FilePath>
+            </File>
+            <File>
+              <FileName>PC_Comm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\PC_Comm.c</FilePath>
+            </File>
+            <File>
+              <FileName>IMU_Comm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\IMU_Comm.c</FilePath>
+            </File>
+            <File>
+              <FileName>CRC.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\CRC.c</FilePath>
             </File>
           </Files>
         </Group>

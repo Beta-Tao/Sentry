@@ -15,7 +15,8 @@ ChassisDir_e lastDir = LEFT;
 GPIO_PinState lastLeftAbovePinState = GPIO_PIN_SET, leftAbovePinState = GPIO_PIN_SET;
 GPIO_PinState lastRightAbovePinState = GPIO_PIN_SET, rightAbovePinState = GPIO_PIN_SET;
 
-float debugVel = 1150.0f;
+//float debugVel = 1150.0f;
+float debugVel = 1200.0f;
 
 /**
   * @brief	底盘控制初始化
@@ -41,19 +42,34 @@ void Chassis_CtrlInit(Chassis_t *chassis)
 					  CHASSIS_ACC, CHASSIS_DEC, 			//acc, dec
 					  20, 0, 0,									//kp, ki, kd 20 1.0 1.5
 					  5.47394);
-	chassis->CM_Right.posCtrl.posRatio = 38.91459;
+	//chassis->CM_Right.posCtrl.posRatio = 38.91459;
+	chassis->CM_Right.posCtrl.posRatio = 1.0f;
+	chassis->CM_Right.posCtrl.posRange = C620_POS_RANGE;
 	
 	chassis->mode = CHASSIS_STOP;
+	
 	chassis->chassisDir = LEFT;
 	
 	chassis->chassisPos = MID;
 	
-	memset((void *)(&chassis->chassisTrig), 0, 2 * sizeof(uint8_t));
+	chassis->chassisTrig.trigLeftEdge = 0;
+	chassis->chassisTrig.trigRightEdge = 0;
+	chassis->chassisTrig.leftDis = 0.0f;
+	chassis->chassisTrig.rightDis = 0.0f;
+	chassis->chassisTrig.trigDis = 700.0f;
+	
+	TIM5_CaptureInit();
 }
 
 void Chassis_UpdateState(Chassis_t *chassis)
 {
+	static uint8_t lastS = RC_SW_MID;
+	
 	/* 根据遥控器数据更新状态 */
+	
+	if ((lastS != RC_SW_UP) && (RemoteComm.RemoteData.remote.s1 == RC_SW_UP))
+		chassis->CM_Right.posCtrl.absPos = 0.0f;
+	
 	switch (RemoteComm.RemoteData.remote.s1)
 	{
 		case RC_SW_UP:		//当s1在上时，为自动模式
@@ -65,11 +81,13 @@ void Chassis_UpdateState(Chassis_t *chassis)
 			sentryChassis.mode = CHASSIS_REMOTE;
 			break;
 		case RC_SW_DOWN:	//当s1在下时，为停止模式
-			sentryChassis.mode = CHASSIS_STOP;
+			sentryChassis.mode = CHASSIS_DODGE;
 			break;
 		default:
 			break;
 	}
+	
+	lastS = RemoteComm.RemoteData.remote.s1;
 	
 	Chassis_IsTrig(chassis);
 }
@@ -103,11 +121,11 @@ void Chassis_MotorCtrl(Motor_t *motor)
 			Motor_SetVel(&(motor->velCtrl), 
 						CHASSIS_DETECT_FAST_VEL * ((int8_t)sentryChassis.chassisDir - 1));	//巡逻速度
 			break;
-		case CHASSIS_DETECT_NORMAL:		//高速巡逻，超功率
+		case CHASSIS_DETECT_NORMAL:		//普通巡逻
 			Motor_SetVel(&(motor->velCtrl), 
-						/*CHASSIS_DETECT_NORMAL_VEL*/debugVel * ((int8_t)sentryChassis.chassisDir - 1));	//巡逻速度
+					/*CHASSIS_DETECT_NORMAL_VEL*/debugVel * ((int8_t)sentryChassis.chassisDir - 1));	//巡逻速度
 			break;
-		case CHASSIS_DETECT_LOW:		//高速巡逻，超功率
+		case CHASSIS_DETECT_LOW:		//低速巡逻
 			Motor_SetVel(&(motor->velCtrl), 
 						CHASSIS_DETECT_LOW_VEL * ((int8_t)sentryChassis.chassisDir - 1));	//巡逻速度
 			break;
@@ -122,7 +140,7 @@ void Chassis_MotorCtrl(Motor_t *motor)
 				tick = HAL_GetTick();
 				if (tick - lastTick >= num * 400)
 				{
-					if (RefereeData_t.PowerHeatData_t.chassis_power_buffer != 200)		//等待能量缓冲恢复
+					if (RefereeData_t.PowerHeatData_t.chassis_power_buffer < 100)		//等待能量缓冲恢复
 					{
 						Motor_SetVel(&(motor->velCtrl), 0);
 						break;
@@ -138,7 +156,7 @@ void Chassis_MotorCtrl(Motor_t *motor)
 					}
 				}
 			}
-			Motor_SetVel(&(motor->velCtrl), CHASSIS_DODGE_VEL * ((int8_t)sentryChassis.chassisDir - 1)); 
+			Motor_SetVel(&(motor->velCtrl), debugVel * ((int8_t)sentryChassis.chassisDir - 1)); 
 			break;
 		case CHASSIS_DEBUG_VEL:
 			break;
@@ -146,6 +164,66 @@ void Chassis_MotorCtrl(Motor_t *motor)
 			break;
 	}
 	Motor_VelCtrl(&(motor->velCtrl));
+}
+
+void Chassis_GetDistance(TIM_HandleTypeDef *htim, Chassis_t *chassis)
+{
+	static uint32_t leftCapValStart = 0, leftCapValEnd = 0, 
+					rightCapValStart = 0, rightCapValEnd = 0;
+	static uint8_t isLeftCapHigh = 0, isRightCapHigh = 0;
+	
+	if (htim->Instance->SR & 0x04)
+	{
+		if (isRightCapHigh == 1)
+		{
+			rightCapValEnd = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2);
+			TIM_RESET_CAPTUREPOLARITY(htim, TIM_CHANNEL_2);
+			TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_2, TIM_ICPOLARITY_RISING);
+			
+			if (rightCapValEnd < rightCapValStart)
+				chassis->chassisTrig.rightDis = 
+						(float)(rightCapValEnd + htim->Init.Period - rightCapValStart) / 10;
+			else
+				chassis->chassisTrig.rightDis = 
+						(float)(rightCapValEnd - rightCapValStart) / 10;
+			
+			isRightCapHigh = 0;
+		}
+		else
+		{
+			rightCapValStart = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2);
+			isRightCapHigh = 1;
+			
+			TIM_RESET_CAPTUREPOLARITY(htim, TIM_CHANNEL_2);
+			TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_2, TIM_ICPOLARITY_FALLING);
+		}
+	}
+	if (htim->Instance->SR & 0x02)
+	{
+		if (isLeftCapHigh == 1)
+		{
+			leftCapValEnd = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+			TIM_RESET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1);
+			TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_ICPOLARITY_RISING);
+			
+			if (leftCapValEnd < leftCapValStart)
+				chassis->chassisTrig.leftDis = 
+						(float)(leftCapValEnd + htim->Init.Period - leftCapValStart) / 10;
+			else
+				chassis->chassisTrig.leftDis = 
+						(float)(leftCapValEnd - leftCapValStart) / 10;
+			
+			isLeftCapHigh = 0;
+		}
+		else
+		{
+			leftCapValStart = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+			isLeftCapHigh = 1;
+			
+			TIM_RESET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1);
+			TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_ICPOLARITY_FALLING);
+		}
+	}
 }
 
 void Chassis_IsTrig(Chassis_t *chassis)
@@ -157,14 +235,17 @@ void Chassis_IsTrig(Chassis_t *chassis)
 //	static GPIO_PinState lastRightAbovePinState = GPIO_PIN_SET, rightAbovePinState = GPIO_PIN_SET;
 	
 	/* 发现左边缘 */
-	if (HAL_GPIO_ReadPin(leftEdgeTrig_GPIO_Port, leftEdgeTrig_Pin) == GPIO_PIN_RESET)
+//	if ((HAL_GPIO_ReadPin(leftEdgeTrig_GPIO_Port, leftEdgeTrig_Pin) == GPIO_PIN_RESET) && 
+//		(chassis->chassisDir == LEFT))
+	if ((chassis->chassisTrig.leftDis < chassis->chassisTrig.trigDis) &&  
+		(chassis->chassisDir == LEFT))
 	{
 		if (lastTrigTick[0] == 0)						//第一次被触发
 			lastTrigTick[0] = HAL_GetTick();			//记录第一次被触发的时间
 		else										//已经触发过一次
 		{
 			trigTick[0] = HAL_GetTick();				//记录当前时间
-			if ((trigTick[0] - lastTrigTick[0]) >= 5)		//被触发超过5ms
+			if ((trigTick[0] - lastTrigTick[0]) >= 100)		//被触发超过5ms
 			{
 				trigTick[0] = 0;
 				lastTrigTick[0] = 0;
@@ -182,18 +263,20 @@ void Chassis_IsTrig(Chassis_t *chassis)
 	{
 		lastTrigTick[0] = 0;		//未被触发时清零
 		trigTick[0] = 0;
-		chassis->chassisTrig.trigLeftEdge = 0;
 	}
 	
 	/* 发现右边缘 */
-	if (HAL_GPIO_ReadPin(rightEdgeTrig_GPIO_Port, rightEdgeTrig_Pin) == GPIO_PIN_RESET)
+//	if ((HAL_GPIO_ReadPin(rightEdgeTrig_GPIO_Port, rightEdgeTrig_Pin) == GPIO_PIN_RESET) &&
+//		(chassis->chassisDir == RIGHT))
+	if ((chassis->chassisTrig.rightDis < chassis->chassisTrig.trigDis) &&
+		(chassis->chassisDir == RIGHT))
 	{
 		if (lastTrigTick[1] == 0)						//第一次被触发
 			lastTrigTick[1] = HAL_GetTick();			//记录第一次被触发的时间
 		else										//已经触发过一次
 		{
 			trigTick[1] = HAL_GetTick();				//记录当前时间
-			if ((trigTick[1] - lastTrigTick[1]) >= 5)		//被触发超过5ms
+			if ((trigTick[1] - lastTrigTick[1]) >= 100)		//被触发超过5ms
 			{
 				trigTick[1] = 0;
 				lastTrigTick[1] = 0;
@@ -211,151 +294,150 @@ void Chassis_IsTrig(Chassis_t *chassis)
 	{
 		lastTrigTick[1] = 0;		//未被触发时清零
 		trigTick[1] = 0;
-		chassis->chassisTrig.trigRightEdge = 0;
 	}
 	
-	/* 螺母判断 */
-	
-	leftAbovePinState = HAL_GPIO_ReadPin(leftAbove_GPIO_Port, leftAbove_Pin);
-	rightAbovePinState = HAL_GPIO_ReadPin(rightAbove_GPIO_Port, rightAbove_Pin);
-	
-	/* 发现左螺母 */
-	if (leftAbovePinState != lastLeftAbovePinState)
-	{
-		if (lastTrigTick[2] == 0)						//第一次被触发
-			lastTrigTick[2] = HAL_GetTick();			//记录第一次被触发的时间
-		else										//已经触发过一次
-		{
-			trigTick[2] = HAL_GetTick();				//记录当前时间
-			if ((trigTick[2] - lastTrigTick[2]) >= 5)		//被触发超过5ms
-			{
-				trigTick[2] = 0;
-				lastTrigTick[2] = 0;
-				
-				lastLeftAbovePinState = leftAbovePinState;
-				
-				if (leftAboveTrig == 0)					//首次计数
-				{
-					leftAboveTrig++;
-					
-					if (rightAboveTrig == 0)
-						lastDir = chassis->chassisDir;				//记录方向
-					else
-					{
-						if (lastDir != chassis->chassisDir)
-							rightAboveTrig = 0;
-					}
-				}
-				else
-				{
-					if (lastDir == chassis->chassisDir)
-						leftAboveTrig++;					//方向相同则增加记录一次
-					else
-						leftAboveTrig--;					//方向不同则消去记录一次
-				}
-			}
-		}
-	}
-	else
-	{
-		lastTrigTick[2] = 0;		//未被触发时清零
-		trigTick[2] = 0;
-	}
-	
-	/* 发现右螺母 */
-	if (rightAbovePinState != lastRightAbovePinState)
-	{
-		if (lastTrigTick[3] == 0)						//第一次被触发
-			lastTrigTick[3] = HAL_GetTick();			//记录第一次被触发的时间
-		else										//已经触发过一次
-		{
-			trigTick[3] = HAL_GetTick();				//记录当前时间
-			if ((trigTick[3] - lastTrigTick[3]) >= 5)		//被触发超过5ms
-			{
-				trigTick[3] = 0;
-				lastTrigTick[3] = 0;
-				
-				lastRightAbovePinState = rightAbovePinState;
-				
-				if (rightAboveTrig == 0)					//首次计数
-				{
-					rightAboveTrig++;
-					
-					if (leftAboveTrig == 0)
-						lastDir = chassis->chassisDir;				//记录方向
-					else
-					{
-						if (lastDir != chassis->chassisDir)
-							leftAboveTrig = 0;
-					}
-				}
-				else
-				{
-					if (lastDir == chassis->chassisDir)
-						rightAboveTrig++;					//方向相同则增加记录一次
-					else
-						rightAboveTrig--;					//方向不同则消去记录一次
-				}
-			}
-		}
-	}
-	else
-	{
-		lastTrigTick[3] = 0;		//未被触发时清零
-		trigTick[3] = 0;
-	}
-	
-	/* 错误触发 */
-	if ((rightAboveTrig == 1) && (leftAboveTrig > 0) && (leftAboveTrig < 4))
-		leftAboveTrig = 0;
-	
-	if ((leftAboveTrig == 1) && (rightAboveTrig > 0) && (rightAboveTrig < 4))
-		rightAboveTrig = 0;
-	
-	/* 整车都经过螺母 */
-	if ((rightAboveTrig >= 4) && (leftAboveTrig >= 4))
-	{
-		rightAboveTrig = 0;
-		leftAboveTrig = 0;
-		
-		switch (chassis->chassisDir)
-		{
-			case RIGHT:
-				switch (chassis->chassisPos)
-				{
-					case RIGHT_STRAIGHT:
-						chassis->chassisPos = RIGHT_STRAIGHT;
-						break;
-					case RIGHT_CURVE:
-					case MID:
-					case LEFT_CURVE:
-					case LEFT_STRAIGHT:
-						chassis->chassisPos++;
-						break;
-					default:
-						break;
-				}
-				break;
-			case LEFT:
-				switch (chassis->chassisPos)
-				{
-					case RIGHT_STRAIGHT:
-					case RIGHT_CURVE:
-					case MID:
-					case LEFT_CURVE:
-						chassis->chassisPos--;
-						break;
-					case LEFT_STRAIGHT:
-						chassis->chassisPos = LEFT_STRAIGHT;
-						break;
-					default:
-						break;
-				}
-				break;
-			default:
-				break;
-		}
-		
-		memset((void *)(&chassis->chassisTrig), 0, 2 * sizeof(uint8_t));
-	}
+//	/* 螺母判断 */
+//	
+//	leftAbovePinState = HAL_GPIO_ReadPin(leftAbove_GPIO_Port, leftAbove_Pin);
+//	rightAbovePinState = HAL_GPIO_ReadPin(rightAbove_GPIO_Port, rightAbove_Pin);
+//	
+//	/* 发现左螺母 */
+//	if (leftAbovePinState != lastLeftAbovePinState)
+//	{
+//		if (lastTrigTick[2] == 0)						//第一次被触发
+//			lastTrigTick[2] = HAL_GetTick();			//记录第一次被触发的时间
+//		else										//已经触发过一次
+//		{
+//			trigTick[2] = HAL_GetTick();				//记录当前时间
+//			if ((trigTick[2] - lastTrigTick[2]) >= 5)		//被触发超过5ms
+//			{
+//				trigTick[2] = 0;
+//				lastTrigTick[2] = 0;
+//				
+//				lastLeftAbovePinState = leftAbovePinState;
+//				
+//				if (leftAboveTrig == 0)					//首次计数
+//				{
+//					leftAboveTrig++;
+//					
+//					if (rightAboveTrig == 0)
+//						lastDir = chassis->chassisDir;				//记录方向
+//					else
+//					{
+//						if (lastDir != chassis->chassisDir)
+//							rightAboveTrig = 0;
+//					}
+//				}
+//				else
+//				{
+//					if (lastDir == chassis->chassisDir)
+//						leftAboveTrig++;					//方向相同则增加记录一次
+//					else
+//						leftAboveTrig--;					//方向不同则消去记录一次
+//				}
+//			}
+//		}
+//	}
+//	else
+//	{
+//		lastTrigTick[2] = 0;		//未被触发时清零
+//		trigTick[2] = 0;
+//	}
+//	
+//	/* 发现右螺母 */
+//	if (rightAbovePinState != lastRightAbovePinState)
+//	{
+//		if (lastTrigTick[3] == 0)						//第一次被触发
+//			lastTrigTick[3] = HAL_GetTick();			//记录第一次被触发的时间
+//		else										//已经触发过一次
+//		{
+//			trigTick[3] = HAL_GetTick();				//记录当前时间
+//			if ((trigTick[3] - lastTrigTick[3]) >= 5)		//被触发超过5ms
+//			{
+//				trigTick[3] = 0;
+//				lastTrigTick[3] = 0;
+//				
+//				lastRightAbovePinState = rightAbovePinState;
+//				
+//				if (rightAboveTrig == 0)					//首次计数
+//				{
+//					rightAboveTrig++;
+//					
+//					if (leftAboveTrig == 0)
+//						lastDir = chassis->chassisDir;				//记录方向
+//					else
+//					{
+//						if (lastDir != chassis->chassisDir)
+//							leftAboveTrig = 0;
+//					}
+//				}
+//				else
+//				{
+//					if (lastDir == chassis->chassisDir)
+//						rightAboveTrig++;					//方向相同则增加记录一次
+//					else
+//						rightAboveTrig--;					//方向不同则消去记录一次
+//				}
+//			}
+//		}
+//	}
+//	else
+//	{
+//		lastTrigTick[3] = 0;		//未被触发时清零
+//		trigTick[3] = 0;
+//	}
+//	
+//	/* 错误触发 */
+//	if ((rightAboveTrig == 1) && (leftAboveTrig > 0) && (leftAboveTrig < 4))
+//		leftAboveTrig = 0;
+//	
+//	if ((leftAboveTrig == 1) && (rightAboveTrig > 0) && (rightAboveTrig < 4))
+//		rightAboveTrig = 0;
+//	
+//	/* 整车都经过螺母 */
+//	if ((rightAboveTrig >= 4) && (leftAboveTrig >= 4))
+//	{
+//		rightAboveTrig = 0;
+//		leftAboveTrig = 0;
+//		
+//		switch (chassis->chassisDir)
+//		{
+//			case RIGHT:
+//				switch (chassis->chassisPos)
+//				{
+//					case RIGHT_STRAIGHT:
+//						chassis->chassisPos = RIGHT_STRAIGHT;
+//						break;
+//					case RIGHT_CURVE:
+//					case MID:
+//					case LEFT_CURVE:
+//					case LEFT_STRAIGHT:
+//						chassis->chassisPos++;
+//						break;
+//					default:
+//						break;
+//				}
+//				break;
+//			case LEFT:
+//				switch (chassis->chassisPos)
+//				{
+//					case RIGHT_STRAIGHT:
+//					case RIGHT_CURVE:
+//					case MID:
+//					case LEFT_CURVE:
+//						chassis->chassisPos--;
+//						break;
+//					case LEFT_STRAIGHT:
+//						chassis->chassisPos = LEFT_STRAIGHT;
+//						break;
+//					default:
+//						break;
+//				}
+//				break;
+//			default:
+//				break;
+//		}
+//		
+//		memset((void *)(&chassis->chassisTrig), 0, 2 * sizeof(uint8_t));
+//	}
 }

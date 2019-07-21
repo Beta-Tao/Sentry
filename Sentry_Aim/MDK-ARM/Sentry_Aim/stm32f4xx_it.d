@@ -39,3 +39,5 @@ sentry_aim\stm32f4xx_it.o: ../Inc/DataScope_DP.h
 sentry_aim\stm32f4xx_it.o: ../Inc/Shooter_Ctrl.h
 sentry_aim\stm32f4xx_it.o: ../Inc/Loader_Ctrl.h
 sentry_aim\stm32f4xx_it.o: ../Inc/Master_Comm.h
+sentry_aim\stm32f4xx_it.o: ../Inc/PC_Comm.h
+sentry_aim\stm32f4xx_it.o: ../Inc/IMU_Comm.h

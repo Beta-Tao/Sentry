@@ -52,11 +52,11 @@ void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
 
-  /*Configure GPIO pins : PHPin PHPin PHPin */
-  GPIO_InitStruct.Pin = rightEdgeTrig_Pin|rightAbove_Pin|leftAbove_Pin;
+  /*Configure GPIO pin : PtPin */
+  GPIO_InitStruct.Pin = rightEdgeTrig_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(GPIOH, &GPIO_InitStruct);
+  HAL_GPIO_Init(rightEdgeTrig_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PtPin */
   GPIO_InitStruct.Pin = leftEdgeTrig_Pin;

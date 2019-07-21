@@ -1,6 +1,5 @@
 #include "Master_Comm.h"
 #include "usart.h"
-#include "PC_Comm.h"
 #include "string.h"
 #include "Remote_Comm.h"
 #include "Sentry_Strategy.h"
@@ -22,17 +21,12 @@ void Master_Data_Receive_Start(void)
 
 void Master_CommInit(void)
 {
-	masterTxData.yawAngle = 0;
-	masterTxData.pitchAngle = 0;
-	masterTxData.distance = 0;
+	masterTxData.remoteYawAngle = 0;
+	masterTxData.remotePitchAngle = 0;
 	masterTxData.gimbalMode = GIMBAL_STOP;
-	masterTxData.loaderMode = LOADER_STOP;
 	masterTxData.shooterMode = SHOOTER_CEASE;
 	
-	masterRxData.pitch = 0;
-	masterRxData.yaw = 0;
-	masterRxData.yawErr = 0;
-	masterRxData.pitchErr = 0;
+	masterRxData.loaderMode = 0;
 }
 
 void Master_GenerateData(void)
@@ -47,34 +41,22 @@ void Master_GetData(void)
 	switch (RemoteComm.RemoteData.remote.s2)
 	{
 		case RC_SW_UP:							//当s2在上时，为追踪模式
-			masterTxData.gimbalMode =  (GimbalMode_e)sentryST.gimbalMode;
-			masterTxData.loaderMode = sentryST.loaderMode;
-			masterTxData.shooterMode = sentryST.shooterMode;
+			masterTxData.gimbalMode = (GimbalMode_e)sentryST.gimbalMode;
+			masterTxData.shooterMode = (ShooterMode_e)sentryST.shooterMode;
 			break;
 		case RC_SW_MID:							//当s2在中时，为遥控模式
 			masterTxData.gimbalMode = GIMBAL_REMOTE;
-			
-			if (RemoteComm.RemoteData.remote.ch3 == RC_CH_VALUE_MAX)
-				masterTxData.loaderMode = LOADER_RUN_PS20;
-			else
-				masterTxData.loaderMode = LOADER_STOP;
 		
 			if (RemoteComm.RemoteData.remote.ch3 >= RC_CH_VALUE_OFFSET + 10)
-				masterTxData.shooterMode = SHOOTER_OPEN_20MPS;
+				masterTxData.shooterMode = SHOOTER_OPEN_30MPS;
 			else
 				masterTxData.shooterMode = SHOOTER_CEASE;
-			
 			break;
 		case RC_SW_DOWN:						//当s2在下时，为Debug模式
 			masterTxData.gimbalMode =  (GimbalMode_e)sentryST.gimbalMode;
 			
-			if (RemoteComm.RemoteData.remote.ch3 == RC_CH_VALUE_MAX)
-				masterTxData.loaderMode = LOADER_RUN_PS20;
-			else
-				masterTxData.loaderMode = LOADER_STOP;
-			
 			if (RemoteComm.RemoteData.remote.ch3 >= RC_CH_VALUE_OFFSET + 10)
-				masterTxData.shooterMode = SHOOTER_OPEN_20MPS;
+				masterTxData.shooterMode = SHOOTER_OPEN_30MPS;
 			else
 				masterTxData.shooterMode = SHOOTER_CEASE;
 			break;
@@ -82,21 +64,18 @@ void Master_GetData(void)
 			break;
 	}
 	
-	masterTxData.distance = PCRxComm.PCData.distance;
-	masterTxData.isFind = PCRxComm.PCData.isFind;
-	
 	/* 更新数据 */
 	switch (masterTxData.gimbalMode)
 	{
 		case GIMBAL_REMOTE:
-			masterTxData.yawAngle = 
-					(-(float)((RemoteComm.RemoteData.remote.ch0 - RC_CH_VALUE_OFFSET) / RC_CH_VALUE_RANGE) * 8);
-			masterTxData.pitchAngle = 
-					((float)((RemoteComm.RemoteData.remote.ch1 - RC_CH_VALUE_OFFSET) / RC_CH_VALUE_RANGE) * 30);
+			masterTxData.remoteYawAngle = 
+					((float)(-(RemoteComm.RemoteData.remote.ch0 - RC_CH_VALUE_OFFSET) / RC_CH_VALUE_RANGE) * 2);
+			masterTxData.remotePitchAngle = 
+					((float)((RemoteComm.RemoteData.remote.ch1 - RC_CH_VALUE_OFFSET) / RC_CH_VALUE_RANGE) * 2);
 			break;
 		case GIMBAL_TRACE:
-			masterTxData.yawAngle = -PCRxComm.PCData.yawAngle;			//从PC端获取数据
-			masterTxData.pitchAngle = -PCRxComm.PCData.pitchAngle;
+			masterTxData.remoteYawAngle = 0.0f;
+			masterTxData.remotePitchAngle = 0.0f;
 			break;
 		default:
 			break;
@@ -141,7 +120,4 @@ void Master_Decode(uint8_t *pData)
 	}
 	
 	memcpy(&masterRxData, pData + 1, sizeof(MasterRxData_t));		//进行数据复制
-	
-	PCTxComm.yaw = masterRxData.yaw;
-	PCTxComm.pitch = masterRxData.pitch;
 }

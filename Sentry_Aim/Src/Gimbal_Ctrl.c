@@ -1,21 +1,59 @@
 #include "Gimbal_Ctrl.h"
+#include "Loader_Ctrl.h"
 #include "Master_Comm.h"
 #include "DataScope_DP.h"
+#include "PC_Comm.h"
 #include "usart.h"
 #include "gpio.h"
 #include "stdlib.h"
 #include "string.h"
+#include "math.h"
+#include "IMU_Comm.h"
 
-//float p1 = 0.22, i1 = 0, d1 = 1000;		//pitchPos
-float p1 = 0.0048, i1 = 0.0000705, d1 = 5000;
-float p2 = 0.006, i2 = 0.0000705, d2 = 5000;
-float p3 = 0.3, i3 = 0, d3 = 0;
-float p4 = 0.4, i4 = 0, d4 = 20;
-//float p1 = 0.0282, i1 = 0.0000705, d1 = 6.9;
-//float p2 = 0.468, i2 = 0, d2 = 5;
+//PIDParam_t yawVelPid = 					{300.0f, 20.0f, 100.0f};
+//PIDParam_t pitchVelPid = 				{180.0f, 3.0f, 0.0f};
+
+//PIDParam_t remoteYawPosPid = 			{0.6f, 0.0f, 0.5f};
+//PIDParam_t detectYawPosPid = 			{0.0f, 0.0f, 0.0f};
+////PIDParam_t traceStepYawPosPid = 		{0.85f, 0.05f, 9.0f};	//60000.0f
+////PIDParam_t traceFollowYawPosPid = 		{2.3f, 0.04f, 7.0f};		//24000.0f
+
+////10ms
+//PIDParam_t traceStepYawPosPid = 		{0.85f, 0.05f, 9.0f};	//60000.0f
+//PIDParam_t traceFollowYawPosPid = 		{2.3f, 0.04f, 7.0f};		//24000.0f
+
+//PIDParam_t remotePitchPosPid = 			{-0.5f, 0.0f, 0.0f};
+//PIDParam_t detectPitchPosPid = 			{0.0f, 0.0f, 0.0f};
+//PIDParam_t traceStepPitchPosPid = 		{-1.0f, 0.0f, 0.0f};
+//PIDParam_t traceFollowPitchPosPid = 	{-1.0f, 0.0f, 0.0f};
+
+float debugYaw = 0.0f;
+float detaYaw = 0.0f;
+
+/* IMU控制 */
+PIDParam_t yawVelPid = 					{-240.0f, -10.0f, 0.0f};
+PIDParam_t yawTraceVelPid = 			{-60.0f, -0.4f, 0.0f};
+
+PIDParam_t pitchVelPid = 				{180.0f, 3.0f, 0.0f};
+
+PIDParam_t remoteYawPosPid = 			{11.0f, 0.0f, 0.0f};
+PIDParam_t detectYawPosPid = 			{0.0f, 0.0f, 0.0f};
+
+PIDParam_t traceStepYawPosPid = 		{18.0f, 0.0f, 600.0f};
+PIDParam_t traceFollowYawPosPid = 		{32.0f, 20.0f, 300.0f};
+
+PIDParam_t remotePitchPosPid = 			{-0.5f, 0.0f, 0.0f};
+PIDParam_t detectPitchPosPid = 			{0.0f, 0.0f, 0.0f};
+
+PIDParam_t traceStepPitchPosPid = 		{-1.0f, 0.0f, 0.0f};
+PIDParam_t traceFollowPitchPosPid = 	{-1.0f, 0.0f, 0.0f};
+
 Gimbal_t sentryGimbal;
-//float pitchDetectVel = 10.0f;
-//float yawDetectVel = 0;
+
+float zone = 2.0f;
+
+float yawErr = 0.0f;
+float pitchErr = 0.0f;
 
 /**
   * @brief	底盘控制初始化
@@ -27,29 +65,33 @@ void Gimbal_CtrlInit(Gimbal_t *gimbal)
 	Motor_t *yawMotor  = &(gimbal->GM_Yaw), 
 			*pitchMotor = &(gimbal->GM_Pitch);
 	//底盘电机及电调类型初始化，底盘电机只需要速度闭环
-	yawMotor->motorType = M_3508;
-	yawMotor->escType = C620;
+	yawMotor->motorType = GM6020;
+	yawMotor->escType = GM_6020;
+//	Motor_PosCtrlInit(yawMotor,
+//					  GM_YAW_ACC, &remoteYawPosPid,
+//					  GM_YAW_VEL_MIN, GM_YAW_VEL_MAX, GM_YAW_MAX, GM_YAW_MIN, -22.75278);	//
+//	Motor_VelCtrlInit(yawMotor, 
+//					  GM_YAW_ACC, GM_YAW_DEC, &yawVelPid, 	//acc, dec	控制周期是1ms，所以单位意义是每ms增加的转速
+//					  -0.16667);
 	Motor_PosCtrlInit(yawMotor,
-					  GM_YAW_ACC,
-					  0.008, 0, 0,
-					  GM_YAW_VEL_MIN, GM_YAW_VEL_MAX, GM_YAW_MAX, GM_YAW_MIN, 1310.77901);	//
+					  GM_YAW_ACC, &remoteYawPosPid,
+					  GM_YAW_VEL_MIN, GM_YAW_VEL_MAX, GM_YAW_MAX, GM_YAW_MIN, 1.0f);	//
 	Motor_VelCtrlInit(yawMotor, 
-					  GM_YAW_ACC, GM_YAW_DEC, 	//acc, dec	控制周期是1ms，所以单位意义是每ms增加的转速
-					  6, 0.03, 0, 								//kp, ki, kd 10 0.5 0
-					  9.60160);
-
+					  GM_YAW_ACC, GM_YAW_DEC, &yawVelPid, 	//acc, dec	控制周期是1ms，所以单位意义是每ms增加的转速
+					  1.0f);
+	
 	pitchMotor->motorType = GM6020;
 	pitchMotor->escType = GM_6020;
 	Motor_PosCtrlInit(pitchMotor,
-					  GM_PITCH_ACC,
-					  0.6, 0, 15, 
-					  GM_PITCH_VEL_MIN, GM_PITCH_VEL_MAX, GM_PITCH_MAX, GM_PITCH_MIN, 22.75278);
+					  GM_PITCH_ACC, &remotePitchPosPid,
+					  GM_PITCH_VEL_MIN, GM_PITCH_VEL_MAX, GM_PITCH_MAX, GM_PITCH_MIN, -22.75278);
 	Motor_VelCtrlInit(pitchMotor, 
-					  GM_PITCH_ACC, GM_PITCH_DEC, 			//acc, dec
-					  220, 8, 0,		 									//kp, ki, kd
-					  0.16667);
+					  GM_PITCH_ACC, GM_PITCH_DEC, &pitchVelPid,		//acc, dec
+					  -0.16667);
 
 	gimbal->mode = GIMBAL_YAW_INIT;
+	gimbal->yawCtrlType = IMU;
+	gimbal->pitchCtrlType = MOTOR;
 	
 	Gimbal_InitDetect(gimbal);
 	Gimbal_FilterInit(gimbal);
@@ -67,90 +109,95 @@ void Gimbal_FilterInit(Gimbal_t *gimbal)
 {
 	gimbal->gimbalFilter.lastTick = HAL_GetTick();
 	gimbal->gimbalFilter.tick = gimbal->gimbalFilter.lastTick;
-	memset((void *)gimbal->gimbalFilter.wYaw, 0, sizeof(float) * 20);
-	memset((void *)gimbal->gimbalFilter.wPitch, 0, sizeof(float) * 20);
+	gimbal->gimbalFilter.isFirst = 0;
+	gimbal->gimbalFilter.isStart = 0;
+	memset((void *)gimbal->gimbalFilter.wYaw, 0, sizeof(float) * 60);
+	memset((void *)gimbal->gimbalFilter.wPitch, 0, sizeof(float) * 60);
+	memset((void *)gimbal->gimbalFilter.distance, 0, sizeof(float) * 60);
 	gimbal->gimbalFilter.lastAbsYaw = 0.0f;
 	gimbal->gimbalFilter.lastAbsPitch = 0.0f;
 	gimbal->gimbalFilter.yawFore = 0.0f;
 	gimbal->gimbalFilter.pitchFore = 0.0f;
 }
 
-void Gimbal_UpdateMasterTxData(Gimbal_t *gimbal)
-{
-	masterTxData.yaw = gimbal->GM_Yaw.posCtrl.absPos;
-	masterTxData.pitch = gimbal->GM_Pitch.posCtrl.absPos;
-	masterTxData.yawErr = gimbal->GM_Yaw.posCtrl.refRelaPos;
-	masterTxData.pitchErr = gimbal->GM_Pitch.posCtrl.refRelaPos;
-}
-
 void Gimbal_UpdateState(Gimbal_t *gimbal)
 {
-	static uint8_t trigCount = 0;
+	static GimbalMode_e lastMode;
+	
+	switch (gimbal->mode)
+	{
+		case GIMBAL_DETECT_WHOLE:
+		case GIMBAL_DETECT_AHEAD:
+		case GIMBAL_DETECT_BACK:
+			
+		default:
+			break;
+	}
+	
 	switch (gimbal->mode)
 	{
 		case GIMBAL_DETECT_AHEAD:
-			if (masterRxData.gimbalMode == GIMBAL_TRACE ||
-				masterRxData.gimbalMode == GIMBAL_REMOTE //||
-				/*masterRxData.gimbalMode == GIMBAL_DETECT_BACK*/)
-			{
-				Gimbal_InitDetect(gimbal);
-				gimbal->mode = (GimbalMode_e)masterRxData.gimbalMode;
-				break;
-			}
-
-			if (gimbal->gimbalDetect.yawDetectEdgeCnt > 3)
-				gimbal->mode = (GimbalMode_e)masterRxData.gimbalMode;
-			break;
 		case GIMBAL_DETECT_BACK:
-			if (masterRxData.gimbalMode == GIMBAL_TRACE ||
-				masterRxData.gimbalMode == GIMBAL_REMOTE //||
-				/*masterRxData.gimbalMode == GIMBAL_DETECT_AHEAD*/)
+		case GIMBAL_DETECT_WHOLE:
+		case GIMBAL_TRACE:
+			if (masterRxData.gimbalMode == GIMBAL_REMOTE)
 			{
 				Gimbal_InitDetect(gimbal);
 				gimbal->mode = (GimbalMode_e)masterRxData.gimbalMode;
 				break;
 			}
-			
-			if (gimbal->gimbalDetect.yawDetectEdgeCnt > 3)
+			else if (PCRxComm.PCData.isInSight == 1)		//非遥控模式则为自动模式
+			{
+				Gimbal_InitDetect(gimbal);
+				gimbal->mode = GIMBAL_TRACE;
+//				if ((lastMode != GIMBAL_TRACE) && (gimbal->mode == GIMBAL_TRACE))
+//				{
+//					lastAbsPos = gimbal->GM_Yaw.posCtrl.absPos;
+//				}
+//				else
+//				{
+//					PCRxComm.PCData.yawAngle -= gimbal->GM_Yaw.posCtrl.absPos - lastAbsPos;
+//					lastAbsPos = gimbal->GM_Yaw.posCtrl.absPos;
+//				}
+				break;
+			}
+			else
+			{
 				gimbal->mode = (GimbalMode_e)masterRxData.gimbalMode;
+
+				if (gimbal->gimbalDetect.yawDetectEdgeCnt > 3)
+					gimbal->mode = (GimbalMode_e)masterRxData.gimbalMode;
+			}
 			break;
 		case GIMBAL_YAW_INIT:
-			if (HAL_GPIO_ReadPin(YawInit_GPIO_Port, YawInit_Pin) == GPIO_PIN_RESET)
-				trigCount++;
-			else
-				trigCount = 0;
-			
-			if (trigCount >= 3)
-			{
-				gimbal->mode = GIMBAL_PITCH_INIT;
-				gimbal->GM_Yaw.posCtrl.absPos = 0;
-				gimbal->GM_Yaw.posCtrl.refRelaPos = 0;
-				trigCount = 0;
-			}
+			gimbal->GM_Yaw.posCtrl.absPos = HIData.rawYaw;
+			gimbal->GM_Yaw.posCtrl.refAbsPos = gimbal->GM_Yaw.posCtrl.absPos;
+			gimbal->mode = GIMBAL_PITCH_INIT;
 			break;
 		case GIMBAL_PITCH_INIT:
-			if (gimbal->GM_Pitch.velCtrl.refVel != 0 && 
-				(float)gimbal->GM_Pitch.velCtrl.rawVel / gimbal->GM_Pitch.velCtrl.velRatio <= 1 && 
-					(float)gimbal->GM_Pitch.velCtrl.rawVel / gimbal->GM_Pitch.velCtrl.velRatio >= -1)
-										//判断为堵转状态
-				trigCount++;
-			else
-				trigCount = 0;
-			
-			if (trigCount >= 200)
-			{ 
-				gimbal->mode = (GimbalMode_e)masterRxData.gimbalMode;
-				gimbal->GM_Pitch.posCtrl.absPos = 0;
-				gimbal->GM_Pitch.posCtrl.refRelaPos = 0;
-				Motor_SetPos(&(gimbal->GM_Pitch.posCtrl), GM_PITCH_MAX, ABS);
-				trigCount = 0;
-			}
+			gimbal->GM_Pitch.posCtrl.absPos = (float)(gimbal->GM_Pitch.posCtrl.rawPos - GM_PITCH_OFFSET) / 
+														gimbal->GM_Pitch.posCtrl.posRatio;
+			gimbal->GM_Pitch.posCtrl.refAbsPos = gimbal->GM_Pitch.posCtrl.absPos;
+			gimbal->mode = GIMBAL_STOP;
+			break;
+		case GIMBAL_DEBUG_VEL:
+			Gimbal_InitDetect(gimbal);
+			break;
+		case GIMBAL_DEBUG_POS:
+			Gimbal_InitDetect(gimbal);
 			break;
 		default:
 			Gimbal_InitDetect(gimbal);
 			gimbal->mode = (GimbalMode_e)masterRxData.gimbalMode;
 			break;
 	}
+	
+	if ((lastMode != GIMBAL_REMOTE) && (gimbal->mode == GIMBAL_REMOTE))		//切换回遥控模式,直接赋值
+	{
+		gimbal->GM_Yaw.posCtrl.refAbsPos = gimbal->GM_Yaw.posCtrl.absPos;
+		gimbal->GM_Pitch.posCtrl.refAbsPos = gimbal->GM_Pitch.posCtrl.absPos;
+	}
+	lastMode = gimbal->mode;
 }
 
 /**
@@ -164,122 +211,78 @@ void Gimbal_MotorCtrl(Motor_t *motor)
 	if (motor != &(sentryGimbal.GM_Yaw) && motor != &(sentryGimbal.GM_Pitch))
 		return;
 	
-	/* 更改PID参数 */
-	switch (sentryGimbal.mode)
-	{
-		case GIMBAL_TRACE:
-			if (motor == &(sentryGimbal.GM_Yaw))
-			{
-				if ((masterRxData.yawAngle > 2.0f) || (masterRxData.yawAngle < -2.0f))
-					//Motor_SetPosPIDParam(&(motor->posCtrl), 0.007, 0.0000705, 8);
-					Motor_SetPosPIDParam(&(motor->posCtrl), p1, i1, d1);
-				else
-					//Motor_SetPosPIDParam(&(motor->posCtrl), 0.0072, 0.0000705, 10);
-					Motor_SetPosPIDParam(&(motor->posCtrl), p2, i2, d2);
-			}
-			else if (motor == &(sentryGimbal.GM_Pitch))
-			{
-				if ((masterRxData.pitchAngle > 2.0f) || (masterRxData.pitchAngle < -2.0f))
-					Motor_SetPosPIDParam(&(motor->posCtrl), p3, i3, d3);
-				else
-					Motor_SetPosPIDParam(&(motor->posCtrl), p4, i4, d4);
-			}
-			else
-				break;
-			break;
-		default:
-			if (motor == &(sentryGimbal.GM_Yaw))
-				Motor_SetPosPIDParam(&(motor->posCtrl), 0.0282, 0.0000705, 6.9);
-				//Motor_SetPosPIDParam(&(motor->posCtrl), p3, i3, d3);
-			else if (motor == &(sentryGimbal.GM_Pitch))
-				Motor_SetPosPIDParam(&(motor->posCtrl), 0.468, 0, 5);
-				//Motor_SetPosPIDParam(&(motor->posCtrl), p2, i2, d2);
-			else
-				break;
-			break;
-	}
-	
 	/* 根据模式更改控制方式 */
 	switch (sentryGimbal.mode)
 	{
 		case GIMBAL_STOP:							//停止状态则保持静止，位置闭环
-			Motor_PosCtrl(&(motor->posCtrl));
-			Motor_SetVel(&(motor->velCtrl), motor->posCtrl.output);
-			Motor_VelCtrl(&(motor->velCtrl));
-			break;
-		case GIMBAL_REMOTE:							//遥控模式则进行速度闭环
 			if (motor == &(sentryGimbal.GM_Yaw))
-				Motor_SetPos(&(motor->posCtrl), masterRxData.yawAngle, RELA);
+				Motor_SetVelCtrlParam(&(motor->velCtrl), &(yawVelPid));
 			else if (motor == &(sentryGimbal.GM_Pitch))
-				Motor_SetPos(&(motor->posCtrl), masterRxData.pitchAngle, RELA);
+				Motor_SetVelCtrlParam(&(motor->velCtrl), &(pitchVelPid));
 			else
 				break;
-			
-			Motor_PosCtrl(&(motor->posCtrl));
-			Motor_SetVel(&(motor->velCtrl), motor->posCtrl.output);
-			Motor_VelCtrl(&(motor->velCtrl));
+			Motor_VelCtrl(motor, 0);
+			break;
+		case GIMBAL_REMOTE:
+			if (motor == &(sentryGimbal.GM_Yaw))
+			{
+				Motor_SetPosCtrlParam(&(motor->posCtrl), &(remoteYawPosPid));
+				Motor_SetVelCtrlParam(&(motor->velCtrl), &(yawVelPid));
+				
+				Motor_PosCtrl(motor, 
+						sentryGimbal.GM_Yaw.posCtrl.refAbsPos + masterRxData.remoteYawAngle, ABS);
+			}
+			else if (motor == &(sentryGimbal.GM_Pitch))
+			{
+				Motor_SetPosCtrlParam(&(motor->posCtrl), &(remotePitchPosPid));
+				Motor_SetVelCtrlParam(&(motor->velCtrl), &(pitchVelPid));
+				
+				Motor_PosCtrl(motor, 
+						sentryGimbal.GM_Pitch.posCtrl.refAbsPos + masterRxData.remotePitchAngle, ABS);
+			}
+			else
+				break;
 			break;
 		case GIMBAL_DETECT_WHOLE:							//云台巡逻模式
 			if (motor == &(sentryGimbal.GM_Yaw))		//Yaw轴持续旋转
 			{
-				Motor_SetVel(&(motor->velCtrl), GM_YAW_DETECT_VEL);
-				Motor_VelCtrl(&(motor->velCtrl));
+				Motor_SetVelCtrlParam(&(motor->velCtrl), &(yawVelPid));
+				Motor_VelCtrl(motor, GM_YAW_DETECT_VEL);
 			}
-			if (motor == &(sentryGimbal.GM_Pitch))
+			else if (motor == &(sentryGimbal.GM_Pitch))
 			{
+				Motor_SetVelCtrlParam(&(motor->velCtrl), &(pitchVelPid));
+				
 				if (motor->posCtrl.absPos >= -10.0f)
 					sentryGimbal.gimbalDetect.pitchDetectDir = DOWN;
 				if (motor->posCtrl.absPos <= -30.0f)
 					sentryGimbal.gimbalDetect.pitchDetectDir = UP;
 				
-				Motor_SetVel(&(motor->velCtrl), 
-						((int8_t)sentryGimbal.gimbalDetect.pitchDetectDir - 1) * GM_PITCH_DETECT_VEL);
-				Motor_VelCtrl(&(motor->velCtrl));
-				
-//				if (sentryGimbal.GM_Yaw.posCtrl.absPos > 0.0f)
-//				{
-//					if (sentryGimbal.GM_Yaw.posCtrl.absPos >= (Yaw_GetCount * 360.0f + 90.0f) && 
-//						sentryGimbal.GM_Yaw.posCtrl.absPos <= (Yaw_GetCount * 360.0f + 270.0f))		//后方
-//						Motor_SetPos(&(motor->posCtrl), -13.0f, ABS);
-//					else
-//						Motor_SetPos(&(motor->posCtrl), -17.5f, ABS);			//前方
-//				}
-//				else
-//				{
-//					if (sentryGimbal.GM_Yaw.posCtrl.absPos <= (Yaw_GetCount * 360.0f - 90.0f) && 
-//						sentryGimbal.GM_Yaw.posCtrl.absPos >= (Yaw_GetCount * 360.0f - 270.0f))		//后方
-//						Motor_SetPos(&(motor->posCtrl), -13.0f, ABS);
-//					else
-//						Motor_SetPos(&(motor->posCtrl), -17.5f, ABS);			//前方 
-//				}
-//				
-//				Motor_PosCtrl(&(motor->posCtrl));
-//				Motor_SetVel(&(motor->velCtrl), motor->posCtrl.output);
-//				Motor_VelCtrl(&(motor->velCtrl));
+				Motor_VelCtrl(motor, 
+					((int8_t)sentryGimbal.gimbalDetect.pitchDetectDir - 1) * GM_PITCH_DETECT_VEL);
 			}
+			else
+				break;
 			break;
 		case GIMBAL_DETECT_AHEAD:					//看前方
 			if (motor == &(sentryGimbal.GM_Yaw))
 			{
-				if ((motor->posCtrl.absPos > Yaw_GetCount * 360.0f + 30.0f) && 
-					(motor->posCtrl.absPos < Yaw_GetCount * 360.0f + 180.0f) && 
+				Motor_SetPosCtrlParam(&(motor->posCtrl), &(detectYawPosPid));
+				Motor_SetVelCtrlParam(&(motor->velCtrl), &(yawVelPid));
+				
+				if ((motor->posCtrl.rawPos < 3896.0f) && 
+					(motor->posCtrl.rawPos > 483.0f) && 
 					(sentryGimbal.gimbalDetect.posReady == 0))			//右转
 				{
 					sentryGimbal.gimbalDetect.yawDetectDir = RIGHT;
-					Motor_SetPos(&(motor->posCtrl), Yaw_GetCount * 360.0f, ABS);
-					Motor_PosCtrl(&(motor->posCtrl));
-					Motor_SetVel(&(motor->velCtrl), motor->posCtrl.output);
-					Motor_VelCtrl(&(motor->velCtrl));
+					Motor_PosCtrl(motor, Yaw_GetCount * 360.0f, ABS);
 				}
-				else if((motor->posCtrl.absPos > Yaw_GetCount * 360.0f + 180.0f) && 
-						(motor->posCtrl.absPos < Yaw_GetCount * 360.0f + 330.0f) &&
+				else if((motor->posCtrl.rawPos > 5260.0f) && 
+						(motor->posCtrl.rawPos < 483.0f) &&
 						(sentryGimbal.gimbalDetect.posReady == 0))		//左转
 				{
 					sentryGimbal.gimbalDetect.yawDetectDir = LEFT;
-					Motor_SetPos(&(motor->posCtrl), (Yaw_GetCount + 1) * 360.0f, ABS);
-					Motor_PosCtrl(&(motor->posCtrl));
-					Motor_SetVel(&(motor->velCtrl), motor->posCtrl.output);
-					Motor_VelCtrl(&(motor->velCtrl));
+					Motor_PosCtrl(motor, (Yaw_GetCount + 1) * 360.0f, ABS);
 				}
 				else
 					sentryGimbal.gimbalDetect.posReady = 1;
@@ -309,41 +312,38 @@ void Gimbal_MotorCtrl(Motor_t *motor)
 							}
 						}
 					}
-					Motor_SetVel(&(motor->velCtrl), 
+					Motor_VelCtrl(motor, 
 						((int8_t)sentryGimbal.gimbalDetect.yawDetectDir - 1) * GM_YAW_DETECT_VEL);
-					Motor_VelCtrl(&(motor->velCtrl));
 				}
 			}
-			if (motor == &(sentryGimbal.GM_Pitch))
+			else if (motor == &(sentryGimbal.GM_Pitch))
 			{
-				Motor_SetPos(&(motor->posCtrl), -17.5f, ABS);
-				Motor_PosCtrl(&(motor->posCtrl));
-				Motor_SetVel(&(motor->velCtrl), motor->posCtrl.output);
-				Motor_VelCtrl(&(motor->velCtrl));
+				Motor_SetPosCtrlParam(&(motor->posCtrl), &(detectPitchPosPid));
+				Motor_SetVelCtrlParam(&(motor->velCtrl), &(pitchVelPid));
+				Motor_PosCtrl(motor, -17.5f, ABS);
 			}
+			else
+				break;
 			break;
 		case GIMBAL_DETECT_BACK:
 			if (motor == &(sentryGimbal.GM_Yaw))
 			{
-				if ((motor->posCtrl.absPos > Yaw_GetCount * 360.0f + 210.0f) && 
+				Motor_SetPosCtrlParam(&(motor->posCtrl), &(detectYawPosPid));
+				Motor_SetVelCtrlParam(&(motor->velCtrl), &(yawVelPid));
+				
+				if ((motor->posCtrl.rawPos > Yaw_GetCount * 360.0f + 210.0f) && 
 					(motor->posCtrl.absPos < (Yaw_GetCount + 1) * 360.0f) && 
 					(sentryGimbal.gimbalDetect.posReady == 0))			//右转
 				{
 					sentryGimbal.gimbalDetect.yawDetectDir = RIGHT;
-					Motor_SetPos(&(motor->posCtrl), Yaw_GetCount * 360.0f + 180.0f, ABS);
-					Motor_PosCtrl(&(motor->posCtrl));
-					Motor_SetVel(&(motor->velCtrl), motor->posCtrl.output);
-					Motor_VelCtrl(&(motor->velCtrl));
+					Motor_PosCtrl(motor, Yaw_GetCount * 360.0f + 180.0f, ABS);
 				}
 				else if((motor->posCtrl.absPos > Yaw_GetCount * 360.0f) && 
 						(motor->posCtrl.absPos < Yaw_GetCount * 360.0f + 150.0f) &&
 						(sentryGimbal.gimbalDetect.posReady == 0))		//左转
 				{
 					sentryGimbal.gimbalDetect.yawDetectDir = LEFT;
-					Motor_SetPos(&(motor->posCtrl), Yaw_GetCount * 360.0f + 180.0f, ABS);
-					Motor_PosCtrl(&(motor->posCtrl));
-					Motor_SetVel(&(motor->velCtrl), motor->posCtrl.output);
-					Motor_VelCtrl(&(motor->velCtrl));
+					Motor_PosCtrl(motor, Yaw_GetCount * 360.0f + 180.0f, ABS);
 				}
 				else
 					sentryGimbal.gimbalDetect.posReady = 1;
@@ -371,121 +371,237 @@ void Gimbal_MotorCtrl(Motor_t *motor)
 							}
 						}
 					}
-					Motor_SetVel(&(motor->velCtrl), 
-						((int8_t)sentryGimbal.gimbalDetect.yawDetectDir - 1) * GM_YAW_DETECT_VEL);
-					Motor_VelCtrl(&(motor->velCtrl));
+					Motor_VelCtrl(motor, ((int8_t)sentryGimbal.gimbalDetect.yawDetectDir - 1) * GM_YAW_DETECT_VEL);
 				}
 			}
 			if (motor == &(sentryGimbal.GM_Pitch))
 			{
-				Motor_SetPos(&(motor->posCtrl), -13.0f, ABS);
-				Motor_PosCtrl(&(motor->posCtrl));
-				Motor_SetVel(&(motor->velCtrl), motor->posCtrl.output);
-				Motor_VelCtrl(&(motor->velCtrl));
+				Motor_SetPosCtrlParam(&(motor->posCtrl), &(detectPitchPosPid));
+				Motor_SetVelCtrlParam(&(motor->velCtrl), &(pitchVelPid));
+				
+				Motor_PosCtrl(motor, -13.0f, ABS);
 			}
 			break;
 		case GIMBAL_TRACE:
 			if (motor == &(sentryGimbal.GM_Yaw))
-				Motor_SetPos(&(motor->posCtrl), masterRxData.yawAngle + sentryGimbal.gimbalFilter.yawFore, RELA);
+			{
+				debugYaw = sentryGimbal.GM_Yaw.posCtrl.refAbsPos - sentryGimbal.GM_Yaw.posCtrl.absPos;
+				
+				if (((sentryGimbal.GM_Yaw.posCtrl.refAbsPos - sentryGimbal.GM_Yaw.posCtrl.absPos) > zone) || 
+					((sentryGimbal.GM_Yaw.posCtrl.refAbsPos - sentryGimbal.GM_Yaw.posCtrl.absPos) < -zone))
+				{
+					Motor_SetPosCtrlParam(&(motor->posCtrl), &(traceStepYawPosPid));
+					Motor_SetVelCtrlParam(&(motor->velCtrl), &(yawTraceVelPid));
+				}
+				else
+				{
+					Motor_SetPosCtrlParam(&(motor->posCtrl), &(traceFollowYawPosPid));
+					Motor_SetVelCtrlParam(&(motor->velCtrl), &(yawTraceVelPid));
+				}
+				Motor_PosCtrl(motor, PCRxComm.PCData.yawAngle + sentryGimbal.gimbalFilter.yawFore, RELA);
+			}
 			else if (motor == &(sentryGimbal.GM_Pitch))
-				Motor_SetPos(&(motor->posCtrl), masterRxData.pitchAngle + sentryGimbal.gimbalFilter.pitchFore, RELA);
+			{
+				if (((sentryGimbal.GM_Pitch.posCtrl.refAbsPos - sentryGimbal.GM_Pitch.posCtrl.absPos) > 1.0f) || 
+					((sentryGimbal.GM_Pitch.posCtrl.refAbsPos - sentryGimbal.GM_Pitch.posCtrl.absPos) < -1.0f))
+				{
+					Motor_SetPosCtrlParam(&(motor->posCtrl), &(traceStepPitchPosPid));
+					Motor_SetVelCtrlParam(&(motor->velCtrl), &(pitchVelPid));
+				}
+				else
+				{
+					Motor_SetPosCtrlParam(&(motor->posCtrl), &(traceFollowPitchPosPid));
+					Motor_SetVelCtrlParam(&(motor->velCtrl), &(pitchVelPid));
+				}
+				
+				Motor_PosCtrl(motor, PCRxComm.PCData.pitchAngle + sentryGimbal.gimbalFilter.pitchFore, RELA);
+			}
 			else
 				break;
-			Motor_PosCtrl(&(motor->posCtrl));
-			Motor_SetVel(&(motor->velCtrl), motor->posCtrl.output);
-			Motor_VelCtrl(&(motor->velCtrl));
 			break;
 		case GIMBAL_DEBUG_VEL:
-			Motor_VelCtrl(&(motor->velCtrl));
+			if (motor == &(sentryGimbal.GM_Yaw))
+				Motor_SetVelCtrlParam(&(motor->velCtrl), &(yawVelPid));
+			else if (motor == &(sentryGimbal.GM_Pitch))
+				Motor_SetVelCtrlParam(&(motor->velCtrl), &(pitchVelPid));
+			else
+				break;
+			Motor_RunVelPID(&(motor->velCtrl));
 			break;
-		case GIMBAL_DEBUG_POS: 
-			Motor_PosCtrl(&(motor->posCtrl));
+		case GIMBAL_DEBUG_POS:
+			if (motor == &(sentryGimbal.GM_Yaw))
+			{
+				Motor_SetPosCtrlParam(&(motor->posCtrl), &(remoteYawPosPid));
+				Motor_SetVelCtrlParam(&(motor->velCtrl), &(yawVelPid));
+			}
+			else if (motor == &(sentryGimbal.GM_Pitch))
+			{
+				Motor_SetPosCtrlParam(&(motor->posCtrl), &(remotePitchPosPid));
+				Motor_SetVelCtrlParam(&(motor->velCtrl), &(pitchVelPid));
+			}
+			else
+				break;
+			
+			Motor_RunPosPID(&(motor->posCtrl));
 			Motor_SetVel(&(motor->velCtrl), motor->posCtrl.output);
-			Motor_VelCtrl(&(motor->velCtrl));
-			break;
-		case GIMBAL_YAW_INIT:
-			if (motor != &(sentryGimbal.GM_Yaw))
-				break;
-			else
-			{
-				Motor_SetVel(&(motor->velCtrl), GM_YAW_INIT_VEL);
-				Motor_VelCtrl(&(motor->velCtrl));
-				break;
-			}
-		case GIMBAL_PITCH_INIT:
-			if (motor == &(sentryGimbal.GM_Yaw))		//Yaw轴已经初始化完成，进行位置闭环。
-			{
-				Motor_PosCtrl(&(motor->posCtrl));
-				Motor_SetVel(&(motor->velCtrl), motor->posCtrl.output);
-				Motor_VelCtrl(&(motor->velCtrl));
-			}
-			else
-			{
-				Motor_SetVel(&(motor->velCtrl), GM_PITCH_INIT_VEL);
-				Motor_VelCtrl(&(motor->velCtrl));
-			}
+			Motor_RunVelPID(&(motor->velCtrl));
 			break;
 		default:
 			break;
 	}
 }
 
+void Gimbal_UpdateLoadMode(void)
+{
+	yawErr = sentryGimbal.GM_Yaw.posCtrl.refAbsPos - sentryGimbal.GM_Yaw.posCtrl.absPos;
+	pitchErr = sentryGimbal.GM_Pitch.posCtrl.refAbsPos - sentryGimbal.GM_Pitch.posCtrl.absPos;
+	
+	//TODO: 更新供弹状态
+	if (sentryGimbal.mode == GIMBAL_TRACE)
+	{
+		if (PCRxComm.PCData.isBig == 0)				//小装甲板
+		{
+			if (PCRxComm.PCData.distance > 6.0f)
+			{
+				if ((fabs(sentryGimbal.GM_Yaw.posCtrl.refAbsPos - sentryGimbal.GM_Yaw.posCtrl.absPos) < 0.8f) &&
+					(fabs(sentryGimbal.GM_Pitch.posCtrl.refAbsPos - sentryGimbal.GM_Pitch.posCtrl.absPos) < 0.6f))
+					masterTxData.loaderMode = LOADER_RUN_PS5;
+				else
+					masterTxData.loaderMode = LOADER_STOP;
+			}
+			else
+			{
+				if ((fabs(sentryGimbal.GM_Yaw.posCtrl.refAbsPos - sentryGimbal.GM_Yaw.posCtrl.absPos) < 1.0f) &&
+					(fabs(sentryGimbal.GM_Pitch.posCtrl.refAbsPos - sentryGimbal.GM_Pitch.posCtrl.absPos) < 0.6f))
+					masterTxData.loaderMode = LOADER_RUN_PS10;
+				else
+					masterTxData.loaderMode = LOADER_STOP;
+			}
+		}
+		else							//大装甲板
+		{
+			if (PCRxComm.PCData.distance > 6.0f)
+			{
+				if ((fabs(sentryGimbal.GM_Yaw.posCtrl.refAbsPos - sentryGimbal.GM_Yaw.posCtrl.absPos) < 1.0f) &&
+					(fabs(sentryGimbal.GM_Pitch.posCtrl.refAbsPos - sentryGimbal.GM_Pitch.posCtrl.absPos) < 0.6f))
+					masterTxData.loaderMode = LOADER_RUN_PS5;
+				else
+					masterTxData.loaderMode = LOADER_STOP;
+			}
+			else
+			{
+				if ((fabs(sentryGimbal.GM_Yaw.posCtrl.refAbsPos - sentryGimbal.GM_Yaw.posCtrl.absPos) < 1.5f) &&
+					(fabs(sentryGimbal.GM_Pitch.posCtrl.refAbsPos - sentryGimbal.GM_Pitch.posCtrl.absPos) < 0.6f))
+					masterTxData.loaderMode = LOADER_RUN_PS10;
+				else
+					masterTxData.loaderMode = LOADER_STOP;
+			}
+		}
+	}
+	else
+		masterTxData.loaderMode = LOADER_STOP;
+}
+
 void Gimbal_TraceForecast(Gimbal_t *gimbal)
 {
 	GimbalFilter_t *filter = &(gimbal->gimbalFilter);
-	float tmpWYaw = 0, tmpWPitch = 0;
+	float tmpWYaw = 0, tmpWPitch = 0, tmpDis = 0;
+	static float lastDis = 0.0f;
 	
 	uint8_t i;
 	
-	if ((masterRxData.isFind == 1) && (gimbal->mode == GIMBAL_TRACE))		//发现目标则做预测处理
+	if ((PCRxComm.PCData.isFind == 1) && (gimbal->mode == GIMBAL_TRACE))		//发现目标则做预测处理
 	{
-		if (filter->isFirst == 0)				//对第一次发现目标进行处理
+		if (filter->isFirst == 0)				//对第一次发现目标进行处理	跟随之后做预测
 		{
-			filter->tick = HAL_GetTick();		//获取时间
+//			if ((fabs(gimbal->GM_Yaw.posCtrl.refAbsPos - gimbal->GM_Yaw.posCtrl.absPos) < 1.0f) && 
+//				(fabs(gimbal->GM_Pitch.posCtrl.refAbsPos - gimbal->GM_Pitch.posCtrl.absPos) < 1.0f) && 
+//				(filter->isStart == 0))
+//				filter->isStart = 1;
 			
-			/* 滤波器左移 */
-			for (i = 0; i < 19; i++)
-			{
-				filter->wYaw[i] = filter->wYaw[i + 1];
-				filter->wPitch[i] = filter->wPitch[i + 1];
-			}
-			
-			/* 更新当前角速度 */
-			filter->wYaw[19] = (gimbal->GM_Yaw.posCtrl.absPos + masterRxData.yawAngle - filter->lastAbsYaw) / 
-								((float)(filter->tick - filter->lastTick) / 1000);
-			filter->wPitch[19] = (gimbal->GM_Pitch.posCtrl.absPos + masterRxData.pitchAngle - filter->lastAbsPitch) / 
-								((float)(filter->tick - filter->lastTick) / 1000);
-			
-			/* 均值滤波 */
-			for (i = 0; i < 20; i++)
-			{
-				tmpWYaw += filter->wYaw[i];
-				tmpWPitch += filter->wPitch[i];
-			}
-			filter->avgWYaw = tmpWYaw / 20;
-			filter->avgWPitch = tmpWPitch / 20;
-			
-			/* 补偿延时角 */
-			filter->yawFore = filter->avgWYaw * (masterRxData.distance / 25.0f);
-			filter->pitchFore = filter->avgWPitch * (masterRxData.distance / 25.0f);
+//			if (filter->isStart == 1)
+//			{
+				filter->tick = HAL_GetTick();		//获取时间
+				
+				/* 滤波器左移 */
+				for (i = 0; i < 59; i++)
+				{
+					filter->wYaw[i] = filter->wYaw[i + 1];
+					filter->wPitch[i] = filter->wPitch[i + 1];
+					filter->distance[i] = filter->distance[i + 1];
+				}
+				
+				/* 更新当前角速度 */
+				
+				detaYaw = gimbal->GM_Yaw.posCtrl.absPos + PCRxComm.PCData.yawAngle - filter->lastAbsYaw;
 
-			/* 存储数据 */
-			filter->lastTick = filter->tick;
-			filter->lastAbsYaw = gimbal->GM_Yaw.posCtrl.absPos + masterRxData.yawAngle;
-			filter->lastAbsPitch = gimbal->GM_Pitch.posCtrl.absPos + masterRxData.pitchAngle;
+				filter->wYaw[59] = (gimbal->GM_Yaw.posCtrl.absPos + PCRxComm.PCData.yawAngle - filter->lastAbsYaw) / 
+									((float)(filter->tick - filter->lastTick) / 1000);
+				filter->wPitch[59] = (gimbal->GM_Pitch.posCtrl.absPos + PCRxComm.PCData.pitchAngle - filter->lastAbsPitch) / 
+									((float)(filter->tick - filter->lastTick) / 1000);
+				
+				if (fabs(lastDis - PCRxComm.PCData.distance) < 0.5f)
+					filter->distance[59] = PCRxComm.PCData.distance;
+				else
+					filter->distance[59] = lastDis;
+				
+				lastDis = filter->distance[59];
+				
+				/* 均值滤波 */
+				for (i = 0; i < 60; i++)
+				{
+					tmpWYaw += filter->wYaw[i];
+					tmpWPitch += filter->wPitch[i];
+					tmpDis += filter->distance[i];
+				}
+				filter->avgWYaw = tmpWYaw / 60;
+				filter->avgWPitch = tmpWPitch / 60;
+				filter->avgDis = tmpDis / 60;
+				
+				if (filter->avgWYaw > (5.0f / filter->avgDis / 3.1415f * 180))
+					filter->avgWYaw = 5.0f / filter->avgDis / 3.1415f * 180;
+				if (filter->avgWYaw < -(5.0f / filter->avgDis / 3.1415f * 180))
+					filter->avgWYaw = -(5.0f / filter->avgDis / 3.1415f * 180);
+				
+				/* 补偿延时角 */
+				filter->yawFore = filter->avgWYaw * (filter->avgDis / 23.0f);
+				filter->pitchFore = filter->avgWPitch * (filter->avgDis / 23.0f);
+				
+				if ((filter->yawFore < 0.2f) && (filter->yawFore > -0.2f))
+					filter->yawFore = 0.0f;
+				if (filter->yawFore > 11.0f)
+					filter->yawFore = 11.0f;
+				if (filter->yawFore < -11.0f)
+					filter->yawFore = -11.0f;
+				
+				if ((filter->pitchFore < 0.4f) && (filter->pitchFore > -0.4f))
+					filter->pitchFore = 0.0f;
+				if (filter->pitchFore > 3.0f)
+					filter->pitchFore = 3.0f;
+				if (filter->pitchFore < -3.0f)
+					filter->pitchFore = -3.0f;
+
+				/* 存储数据 */
+				filter->lastTick = filter->tick;
+				filter->lastAbsYaw = gimbal->GM_Yaw.posCtrl.absPos + PCRxComm.PCData.yawAngle;
+				filter->lastAbsPitch = gimbal->GM_Pitch.posCtrl.absPos + PCRxComm.PCData.pitchAngle;
+//			}
 		}
 		else
 		{
 			filter->isFirst = 0;
+			filter->isStart = 0;
 			filter->avgWYaw = 0;
 			filter->avgWPitch = 0;
-			filter->lastAbsYaw = gimbal->GM_Yaw.posCtrl.absPos + masterRxData.yawAngle;
-			filter->lastAbsPitch = gimbal->GM_Pitch.posCtrl.absPos + masterRxData.pitchAngle;
+			filter->avgDis = 0;
+			lastDis = PCRxComm.PCData.distance;
+			filter->lastAbsYaw = gimbal->GM_Yaw.posCtrl.absPos + PCRxComm.PCData.yawAngle;
+			filter->lastAbsPitch = gimbal->GM_Pitch.posCtrl.absPos + PCRxComm.PCData.pitchAngle;
 			filter->lastTick = HAL_GetTick();
 			filter->tick = filter->lastTick;
 			filter->pitchFore = 0;
 			filter->yawFore = 0;
-			for (i = 0; i < 19; i++)
+			for (i = 0; i < 59; i++)
 			{
 				filter->wYaw[i] = 0;
 				filter->wPitch[i] = 0;
@@ -495,15 +611,17 @@ void Gimbal_TraceForecast(Gimbal_t *gimbal)
 	else
 	{
 		filter->isFirst = 1;
+		filter->isStart = 0;
 		filter->avgWYaw = 0;
 		filter->avgWPitch = 0;
+		filter->avgDis = 0;
 		filter->lastAbsYaw = gimbal->GM_Yaw.posCtrl.absPos;
 		filter->lastAbsPitch = gimbal->GM_Pitch.posCtrl.absPos;
 		filter->lastTick = HAL_GetTick();
 		filter->tick = filter->lastTick;
 		filter->pitchFore = 0;
 		filter->yawFore = 0;
-		for (i = 0; i < 19; i++)
+		for (i = 0; i < 59; i++)
 		{
 			filter->wYaw[i] = 0;
 			filter->wPitch[i] = 0;

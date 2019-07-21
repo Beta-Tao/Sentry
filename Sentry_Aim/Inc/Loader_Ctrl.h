@@ -13,21 +13,20 @@
 #define LOADER_PS1				45
 
 /* ×ÜÏßID */
-#define LM_ID					0x207
+#define LM_ID					0x203
 
 typedef enum
 {
-	LOADER_INIT			 = 0,
-	LOADER_STOP			 = 1,
-	LOADER_JAM			 = 2,
-	LOADER_RUN_PS3		 = 3,
-	LOADER_RUN_PS5		 = 4,
-	LOADER_RUN_PS6		 = 5,
-	LOADER_RUN_PS8		 = 6,
-	LOADER_RUN_PS10		 = 7,
-	LOADER_RUN_PS15		 = 8,
-	LOADER_RUN_PS20		 = 9,
-	LOADER_DEBUG_VEL	 = 10,
+	LOADER_STOP			= 0,
+	LOADER_JAM,
+	LOADER_RUN_PS3,
+	LOADER_RUN_PS5,
+	LOADER_RUN_PS6,
+	LOADER_RUN_PS8,
+	LOADER_RUN_PS10,
+	LOADER_RUN_PS15,
+	LOADER_RUN_PS20,
+	LOADER_DEBUG_VEL,
 }LoaderMode_e;
 
 typedef struct

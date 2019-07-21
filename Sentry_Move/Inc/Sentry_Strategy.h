@@ -1,19 +1,7 @@
 #ifndef _SENTRY_STRATEGY_H_
 #define _SENTRY_STRATEGY_H_
 
-#define DisGrade_Update(grade) 						\
-		do{											\
-			disCount[grade]++;						\
-			Dis_Reflush(disCount, grade, 6);		\
-			if (disCount[grade] >= 20)				\
-			{										\
-				disCount[grade] = 0;				\
-				st->disGrade = grade;				\
-			}										\
-		}while(0)
-
 #include "Master_Comm.h"
-#include "PC_Comm.h"
 
 typedef enum
 {
@@ -89,9 +77,5 @@ void Sentry_UpdateGimbalST(SentryST_t *st);
 void Sentry_UpdateLoaderST(SentryST_t *st);
 
 void Sentry_UpdateShooterST(SentryST_t *st);
-
-void Dis_Reflush(uint8_t *data, uint8_t num, uint8_t len);
-
-void Sentry_GetDisGrade(SentryST_t *st);
 
 #endif

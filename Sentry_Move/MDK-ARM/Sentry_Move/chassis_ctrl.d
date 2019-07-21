@@ -41,7 +41,6 @@ sentry_move\chassis_ctrl.o: ..\Inc\Master_Comm.h
 sentry_move\chassis_ctrl.o: ..\Inc\Gimbal_Ctrl.h
 sentry_move\chassis_ctrl.o: ..\Inc\Loader_Ctrl.h
 sentry_move\chassis_ctrl.o: ..\Inc\Shooter_Ctrl.h
-sentry_move\chassis_ctrl.o: ..\Inc\PC_Comm.h
 sentry_move\chassis_ctrl.o: ..\Inc\Remote_Comm.h
 sentry_move\chassis_ctrl.o: ..\Inc\Referee_Comm.h
 sentry_move\chassis_ctrl.o: ..\Inc\CRC.h

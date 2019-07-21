@@ -41,7 +41,7 @@ void PC_Data_Receive(void)
 		__HAL_UART_CLEAR_IDLEFLAG(&huart3);                                           //清除空闲中断的标志
 		(void)USART3->SR;                                                             //清空SR寄存器
 		(void)USART3->DR;                                                             //清空DR寄存器
-		__HAL_DMA_CLEAR_FLAG(&hdma_usart3_rx,DMA_FLAG_TCIF1_5);                       //清除DMA1_Steam1传输完成标志
+		__HAL_DMA_CLEAR_FLAG(&hdma_usart3_rx, DMA_FLAG_TCIF1_5);                       //清除DMA1_Steam1传输完成标志
 		HAL_UART_DMAStop(&huart3);                                                    //传输完成以后关闭串口DMA
 		HAL_UART_Receive_DMA(&huart3, USART3_DMA_RX_BUF, BSP_USART3_DMA_RX_BUF_LEN);  //接受数据
 		if(USART3_DMA_RX_BUF[0] == START_CHECK_FIRST && 
@@ -59,6 +59,7 @@ void PC_Data_Receive(void)
 void PC_Decode(uint8_t *pData)
 {
 	memcpy(&(PCRxComm.PCData.yawAngle), pData + 2, sizeof(float));			//Yaw轴期望角度
+	PCRxComm.PCData.yawAngle = -PCRxComm.PCData.yawAngle;
 	memcpy(&(PCRxComm.PCData.pitchAngle), pData + 6, sizeof(float));		//Pitch轴期望角度
 	
 	memcpy(&(PCRxComm.PCData.distance), pData + 10, sizeof(float));			//目标距离

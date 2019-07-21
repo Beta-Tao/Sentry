@@ -8,7 +8,7 @@
 #define CM_VEL_MIN				-900		//即转速
 #define CM_VEL_MAX				900
 
-#define CHASSIS_ACC		4
+#define CHASSIS_ACC		5
 #define	CHASSIS_DEC		3
 
 /* 总线ID */
@@ -16,7 +16,7 @@
 #define CM_R_ID					0x202
 
 /* 刚好不超功率的速度为 480.0f */
-#define CHASSIS_DETECT_LOW_VEL			200.0f
+#define CHASSIS_DETECT_LOW_VEL			600.0f
 #define CHASSIS_DETECT_NORMAL_VEL		500.0f
 #define CHASSIS_DETECT_FAST_VEL			600.0f
 #define CHASSIS_DODGE_VEL				700.0f
@@ -35,6 +35,7 @@ typedef enum
 typedef enum
 {
 	LEFT	= 2,
+	NONE	= 1,
 	RIGHT	= 0,
 }ChassisDir_e;
 
@@ -53,6 +54,11 @@ typedef struct
 	
 	uint8_t trigRightEdge;
 	
+	float leftDis;
+	
+	float rightDis;
+	
+	float trigDis;
 }ChassisTrig_t;
 
 typedef struct
@@ -77,6 +83,8 @@ void Chassis_CtrlInit(Chassis_t *chassis);
 void Chassis_UpdateState(Chassis_t *chassis);
  
 void Chassis_MotorCtrl(Motor_t *motor);
+
+void Chassis_GetDistance(TIM_HandleTypeDef *htim, Chassis_t *chassis);
 
 void Chassis_IsTrig(Chassis_t *chassis);
 #endif

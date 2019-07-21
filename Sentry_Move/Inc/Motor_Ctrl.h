@@ -7,10 +7,10 @@
 #include "DataScope_DP.h"
 
 /* 电调控制参数 */
-#define C620_CUR_MIN			-11000		//实际用不到16384
-#define C620_CUR_MAX			11000
-#define C610_CUR_MIN			-11000
-#define C610_CUR_MAX			11000
+#define C620_CUR_MIN			-16000		//实际用不到16384
+#define C620_CUR_MAX			16000
+#define C610_CUR_MIN			-16000
+#define C610_CUR_MAX			16000
 #define GM6020_VOL_MIN			-20000
 #define GM6020_VOL_MAX			20000
 

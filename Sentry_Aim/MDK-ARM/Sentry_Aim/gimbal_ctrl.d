@@ -35,8 +35,12 @@ sentry_aim\gimbal_ctrl.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_
 sentry_aim\gimbal_ctrl.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h
 sentry_aim\gimbal_ctrl.o: ../Inc/can.h
 sentry_aim\gimbal_ctrl.o: ../Inc/DataScope_DP.h
+sentry_aim\gimbal_ctrl.o: ../Inc/Loader_Ctrl.h
 sentry_aim\gimbal_ctrl.o: ../Inc/Master_Comm.h
+sentry_aim\gimbal_ctrl.o: ../Inc/PC_Comm.h
 sentry_aim\gimbal_ctrl.o: ../Inc/usart.h
 sentry_aim\gimbal_ctrl.o: ../Inc/gpio.h
 sentry_aim\gimbal_ctrl.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
 sentry_aim\gimbal_ctrl.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+sentry_aim\gimbal_ctrl.o: F:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
+sentry_aim\gimbal_ctrl.o: ../Inc/IMU_Comm.h

@@ -42,3 +42,5 @@ sentry_aim\main.o: ../Inc/DataScope_DP.h
 sentry_aim\main.o: ../Inc/Loader_Ctrl.h
 sentry_aim\main.o: ../Inc/Shooter_Ctrl.h
 sentry_aim\main.o: ../Inc/Master_Comm.h
+sentry_aim\main.o: ../Inc/PC_Comm.h
+sentry_aim\main.o: ../Inc/IMU_Comm.h

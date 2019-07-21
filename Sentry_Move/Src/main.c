@@ -52,7 +52,6 @@
 #include "Remote_Comm.h"
 #include "Referee_Comm.h"
 #include "Master_Comm.h"
-#include "PC_Comm.h"
 #include "Chassis_Ctrl.h"
 #include "Sentry_Strategy.h"
 
@@ -102,8 +101,7 @@ int main(void)
 
   /* USER CODE END 1 */
 
-  /* MCU Configuration-----
-	---------------------------------------------------*/
+  /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
@@ -127,20 +125,19 @@ int main(void)
   MX_UART7_Init();
   MX_UART8_Init();
   MX_USART6_UART_Init();
-  MX_USART3_UART_Init();
   MX_TIM6_Init();
   MX_TIM7_Init();
+  MX_TIM5_Init();
   /* USER CODE BEGIN 2 */
   
 	Chassis_CtrlInit(&sentryChassis);
+	Loader_CtrlInit(&sentryLoader);
 	Master_CommInit();
-	PC_CommInit();
 	Referee_SentryDataInit();
 	Sentry_STInit(&sentryST);
 	
  	RemoteCtl_Data_Receive_Start();
 	Referee_Data_Receive_Start();
-	PC_Data_Receive_Start();
 	Master_Data_Receive_Start();
 	
 	HAL_TIM_Base_Start_IT(&htim6);

@@ -208,19 +208,31 @@ void Motor_VelCtrl(VelCtrl_t *vel_t)
 	float diff;
 	
 	/* 加减速斜坡 */
-	if (vel_t->refVel_Soft < (vel_t->refVel - vel_t->acc))		//需要加速，使用加速加速度
-		vel_t->refVel_Soft += vel_t->acc;
-	else if (vel_t->refVel_Soft > (vel_t->refVel + vel_t->dec))	//需要减速，使用减速加速度
-		vel_t->refVel_Soft -= vel_t->dec;
-	else													//在线性加速度范围内使用PID调节
-		vel_t->refVel_Soft = vel_t->refVel;
+	if (vel_t->refVel > 0.0f)
+	{
+		if (vel_t->refVel_Soft < (vel_t->refVel - vel_t->acc))		//需要加速，使用加速加速度
+			vel_t->refVel_Soft += vel_t->acc;
+		else if (vel_t->refVel_Soft > (vel_t->refVel + vel_t->dec))	//需要减速，使用减速加速度
+			vel_t->refVel_Soft -= vel_t->dec;
+		else													//在线性加速度范围内使用PID调节
+			vel_t->refVel_Soft = vel_t->refVel;
+	}
+	else
+	{
+		if (vel_t->refVel_Soft > (vel_t->refVel + vel_t->acc))		//需要加速，使用加速加速度
+			vel_t->refVel_Soft -= vel_t->acc;
+		else if (vel_t->refVel_Soft < (vel_t->refVel - vel_t->dec))	//需要减速，使用减速加速度
+			vel_t->refVel_Soft += vel_t->dec;
+		else													//在线性加速度范围内使用PID调节
+			vel_t->refVel_Soft = vel_t->refVel;
+	}
 	
 	/* 速度PID */
 	vel_t->errLast = vel_t->err;
 	vel_t->err = vel_t->refVel_Soft * vel_t->velRatio - vel_t->rawVel;		//使用vel_t->refVel_Soft作为速度期望
 	diff = vel_t->err - vel_t->errLast;
 	vel_t->integ += vel_t->err;
-	 
+	
 	/* 积分限幅 */
 	if (vel_t->integ >= 10000)
 		vel_t->integ = 10000;

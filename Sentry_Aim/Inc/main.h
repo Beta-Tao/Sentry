@@ -82,8 +82,6 @@ void Error_Handler(void);
 #define Laser_GPIO_Port GPIOG
 #define ballTrig_Pin GPIO_PIN_9
 #define ballTrig_GPIO_Port GPIOI
-#define YawInit_Pin GPIO_PIN_0
-#define YawInit_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

@@ -36,5 +36,4 @@ sentry_aim\shooter_ctrl.o: ../Inc/main.h
 sentry_aim\shooter_ctrl.o: ../Inc/can.h
 sentry_aim\shooter_ctrl.o: ../Inc/DataScope_DP.h
 sentry_aim\shooter_ctrl.o: ../Inc/Master_Comm.h
-sentry_aim\shooter_ctrl.o: ../Inc/tim.h
 sentry_aim\shooter_ctrl.o: ../Inc/gpio.h

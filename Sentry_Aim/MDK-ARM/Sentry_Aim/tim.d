@@ -1,4 +1,4 @@
-sentry_aim\tim.o: ..\Src\tim.c
+sentry_aim\tim.o: ../Src/tim.c
 sentry_aim\tim.o: ../Inc/tim.h
 sentry_aim\tim.o: ../Inc/main.h
 sentry_aim\tim.o: ../Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h

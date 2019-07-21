@@ -18,13 +18,15 @@
 #define EVENT_DATA_LEN					4u
 #define SUPPLY_PROJECTILE_ACTION_LEN	3u
 #define SUPPLY_PROJECTILE_BOOKING_LEN	2u
+#define REFEREE_WARNING_LEN				2u
 #define GAME_ROBOT_STATE_LEN			15u
 #define POWER_HEAT_DATA_LEN				14u
 #define GAME_ROBOT_POS_LEN				16u
-#define BUFF_MUSK_LEN					1u
+#define BUFF_LEN						1u
 #define AERIAL_ROBOT_ENERGY_LEN			3u
 #define ROBOT_HURT_LEN					1u
 #define SHOOT_DATA_LEN					6u
+#define BULLET_REMAINING_LEN			2u
 
 #define EXT_STUDENT_INTERACTIVE_HEADER_DATA_LEN		7u
 
@@ -36,13 +38,15 @@
 #define EVENT_DATA_CMD_ID					0x0101
 #define SUPPLY_PROJECTILE_ACTION_CMD_ID		0x0102
 #define SUPPLY_PROJECTILE_BOOKING_CMD_ID	0x0103
+#define REFEREE_WARNING_CMD_ID				0x0104
 #define GAME_ROBOT_STATE_CMD_ID				0x0201
 #define POWER_HEAT_DATA_CMD_ID				0x0202
 #define GAME_ROBOT_POS_CMD_ID				0x0203
-#define BUFF_MUSK_CMD_ID					0x0204
+#define BUFF_CMD_ID							0x0204
 #define AERIAL_ROBOT_ENERGY_CMD_ID			0x0205
 #define ROBOT_HURT_CMD_ID					0x0206
 #define SHOOT_DATA_CMD_ID					0x0207
+#define BULLET_REMAINING_CMD_ID				0x0208
 
 #define EXT_STUDENT_INTERACTIVE_HEADER_DATA_CMD_ID		0x0301
 
@@ -72,8 +76,21 @@ typedef __packed struct
 
 typedef __packed struct
 {
-	uint16_t robot_legion;
-}ext_game_robot_survivors_t;	//机器人存活数据
+	uint16_t red_1_robot_HP;
+	uint16_t red_2_robot_HP;
+	uint16_t red_3_robot_HP;
+	uint16_t red_4_robot_HP;
+	uint16_t red_5_robot_HP;
+	uint16_t red_7_robot_HP;
+	uint16_t red_base_HP;
+	uint16_t blue_1_robot_HP;
+	uint16_t blue_2_robot_HP;
+	uint16_t blue_3_robot_HP;
+	uint16_t blue_4_robot_HP;
+	uint16_t blue_5_robot_HP;
+	uint16_t blue_7_robot_HP;
+	uint16_t blue_base_HP;
+}ext_game_robot_HP_t;	//机器人存活数据
 
 typedef __packed struct
 {
@@ -92,6 +109,12 @@ typedef __packed struct
 	uint8_t supply_projectile_id;
 	uint8_t supply_num;
 }ext_supply_projectile_booking_t;	//补给站预约子弹
+
+typedef __packed struct
+{
+	uint8_t level;
+	uint8_t foul_robot_id;
+}ext_referee_warning_t;				//裁判警告信息
 
 typedef __packed struct
 {
@@ -129,7 +152,7 @@ typedef __packed struct
 typedef __packed struct
 {
 	uint8_t power_rune_buff;	//Buff类型，1表示有效
-}ext_buff_musk_t;					//Buff获取数据
+}ext_buff_t;					//Buff获取数据
 
 typedef __packed struct
 {
@@ -149,6 +172,11 @@ typedef __packed struct
     uint8_t	bullet_freq;      	//子弹射频
     float	bullet_speed;		//子弹射速
 }ext_shoot_data_t;              //实时射击信息
+
+typedef __packed struct
+{
+	uint16_t bullet_remaining_num;
+}ext_bullet_remaining_t;
 
 typedef __packed struct
 {
@@ -172,7 +200,7 @@ typedef __packed struct
 	
 	ext_game_result_t					GameResult_t;
 	
-	ext_game_robot_survivors_t			GameRobotSurvivors_t;
+	ext_game_robot_HP_t					GameRobotHP_t;
 	
 	ext_event_data_t					EventData_t;
 	
@@ -180,19 +208,23 @@ typedef __packed struct
 	
 	ext_supply_projectile_booking_t		SupplyProjectileBooking_t;
 	
+	ext_referee_warning_t				RefereeWarning_t;
+	
 	ext_game_robot_state_t				GameRobotState_t;
 	
 	ext_power_heat_data_t				PowerHeatData_t;
 	
 	ext_game_robot_pos_t				GameRobotPos_t;
 	
-	ext_buff_musk_t						BuffMusk_t;
+	ext_buff_t							Buff_t;
 	
 	aerial_robot_energy_t				AerialRobotEnergy_t;
 	
 	ext_robot_hurt_t					RobotHurt_t;
 	
 	ext_shoot_data_t					ShootData_t;
+	
+	ext_bullet_remaining_t				BulletRemaining_t;
 	
 	ext_student_interactive_header_data_t otherRobotData_t;
 }ext_referee_data_t;

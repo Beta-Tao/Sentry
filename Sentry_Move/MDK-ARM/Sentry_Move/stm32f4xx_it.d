@@ -42,7 +42,6 @@ sentry_move\stm32f4xx_it.o: ..\Inc\Loader_Ctrl.h
 sentry_move\stm32f4xx_it.o: ..\Inc\Shooter_Ctrl.h
 sentry_move\stm32f4xx_it.o: ..\Inc\Referee_Comm.h
 sentry_move\stm32f4xx_it.o: ..\Inc\CRC.h
-sentry_move\stm32f4xx_it.o: ..\Inc\PC_Comm.h
 sentry_move\stm32f4xx_it.o: ..\Inc\Chassis_Ctrl.h
 sentry_move\stm32f4xx_it.o: ..\Inc\tim.h
 sentry_move\stm32f4xx_it.o: ..\Inc\Sentry_Strategy.h

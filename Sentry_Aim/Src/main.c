@@ -52,6 +52,8 @@
 #include "Loader_Ctrl.h"
 #include "Shooter_Ctrl.h"
 #include "Master_Comm.h"
+#include "PC_Comm.h"
+#include "IMU_Comm.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -117,22 +119,30 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
-  MX_CAN1_Init();
   MX_UART7_Init();
   MX_UART8_Init();
-  MX_TIM1_Init();
+  MX_USART3_UART_Init();
+  MX_CAN1_Init();
+  MX_TIM6_Init();
+  MX_USART6_UART_Init();
   /* USER CODE BEGIN 2 */
-	CAN_CommInit(&hcan1);	//初始化CAN通信并开始
 	
 	/* 初始化电机控制参数 */
-	Gimbal_CtrlInit(&sentryGimbal);
-	Loader_CtrlInit(&sentryLoader);
 	
-	while ((sentryGimbal.mode != GIMBAL_STOP) || (sentryLoader.mode != LOADER_STOP));
+	Gimbal_CtrlInit(&sentryGimbal);
+	Shooter_CtrlInit(&sentryShooter);
 	
 	Master_CommInit();		//初始化通信包
-	Shooter_CtrlInit(&sentryShooter);
+	PC_CommInit();
+	IMU_CommInit();
 	Master_Data_Receive_Start();
+	PC_Data_Receive_Start();
+	IMU_Data_Receive_Start();
+	HAL_Delay(100);			//延时100ms等待IMU更新
+	
+	CAN_CommInit(&hcan1);	//初始化CAN通信并开始
+	
+	HAL_TIM_Base_Start_IT(&htim6);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -141,8 +151,7 @@ int main(void)
   {
 
     /* USER CODE END WHILE */
-//	  HAL_Delay(20);
-//	Master_SendData();
+
     /* USER CODE BEGIN 3 */
 
   }

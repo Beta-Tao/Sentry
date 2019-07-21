@@ -70,7 +70,7 @@ void Referee_Decode(uint8_t *pData)
 							memcpy(&RefereeData_t.GameResult_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, GAME_RESULT_LEN);
 							break;
 						case GAME_ROBOTSURVIVORS_CMD_ID:	//1Hz发送
-							memcpy(&RefereeData_t.GameRobotSurvivors_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, GAME_ROBOTSURVIVORS_LEN);
+							memcpy(&RefereeData_t.GameRobotHP_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, GAME_ROBOTSURVIVORS_LEN);
 							break;
 						case EVENT_DATA_CMD_ID:		//事件改变后发送
 							memcpy(&RefereeData_t.EventData_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, EVENT_DATA_LEN);
@@ -78,6 +78,9 @@ void Referee_Decode(uint8_t *pData)
 //						case SUPPLY_PROJECTILE_ACTION_CMD_ID:	//动作改变后发送
 //							memcpy(&RefereeData_t.SupplyProjectileAction_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, SUPPLY_PROJECTILE_ACTION_LEN);
 //							break;
+						case REFEREE_WARNING_CMD_ID:
+							memcpy(&RefereeData_t.RefereeWarning_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, REFEREE_WARNING_LEN);
+							break;
 						case GAME_ROBOT_STATE_CMD_ID:	//10Hz
 							memcpy(&RefereeData_t.GameRobotState_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, GAME_ROBOT_STATE_LEN);
 							
@@ -126,8 +129,8 @@ void Referee_Decode(uint8_t *pData)
 						case GAME_ROBOT_POS_CMD_ID:		//10Hz
 							memcpy(&RefereeData_t.GameRobotPos_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, GAME_ROBOT_POS_LEN);
 							break;
-						case BUFF_MUSK_CMD_ID:			//增益状态改变后发送
-							memcpy(&RefereeData_t.BuffMusk_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, BUFF_MUSK_LEN);
+						case BUFF_CMD_ID:			//增益状态改变后发送
+							memcpy(&RefereeData_t.Buff_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, BUFF_LEN);
 							break;
 //						case AERIAL_ROBOT_ENERGY_CMD_ID:	//空中机器人能量状态数据，10Hz
 //							memcpy(&RefereeData_t.AerialRobotEnergy_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, AERIAL_ROBOT_ENERGY_LEN);
@@ -137,6 +140,9 @@ void Referee_Decode(uint8_t *pData)
 							break;
 						case SHOOT_DATA_CMD_ID:			//子弹发射后发送
 							memcpy(&RefereeData_t.ShootData_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, SHOOT_DATA_LEN);
+							break;
+						case BULLET_REMAINING_CMD_ID:
+							memcpy(&RefereeData_t.BulletRemaining_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, BULLET_REMAINING_LEN);
 							break;
 						case EXT_STUDENT_INTERACTIVE_HEADER_DATA_CMD_ID:
 							memcpy(&RefereeData_t.otherRobotData_t, frameHeadLoc + FRAME_HEADER_LEN + CMD_ID_LEN, EXT_STUDENT_INTERACTIVE_HEADER_DATA_LEN);

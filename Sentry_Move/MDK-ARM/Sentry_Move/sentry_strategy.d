@@ -39,7 +39,6 @@ sentry_move\sentry_strategy.o: ..\Inc\can.h
 sentry_move\sentry_strategy.o: ..\Inc\DataScope_DP.h
 sentry_move\sentry_strategy.o: ..\Inc\Loader_Ctrl.h
 sentry_move\sentry_strategy.o: ..\Inc\Shooter_Ctrl.h
-sentry_move\sentry_strategy.o: ..\Inc\PC_Comm.h
 sentry_move\sentry_strategy.o: ..\Inc\Referee_Comm.h
 sentry_move\sentry_strategy.o: ..\Inc\CRC.h
 sentry_move\sentry_strategy.o: ..\Inc\Remote_Comm.h

@@ -1,6 +1,6 @@
 #include "Loader_Ctrl.h"
-#include "gpio.h"
-#include "Master_Comm.h"
+#include "Remote_Comm.h"
+#include "Sentry_Strategy.h"
 
 Loader_t sentryLoader;
 
@@ -19,7 +19,7 @@ void Loader_CtrlInit(Loader_t *loader)
 					  9, 0.4, 0,  						//kp, ki, kd
 					  6.00000);
 	
-	loader->mode = LOADER_INIT;
+	loader->mode = LOADER_STOP;
 }
 
 /**
@@ -29,10 +29,28 @@ void Loader_CtrlInit(Loader_t *loader)
   */
 void Loader_UpdateState(Loader_t *loader)
 {
-	loader->mode = ((loader->mode == LOADER_INIT) || 
-					(loader->mode == LOADER_JAM) ? loader->mode : (LoaderMode_e)masterRxData.loaderMode);
+	if (loader->mode != LOADER_JAM)
+	{
+		switch (RemoteComm.RemoteData.remote.s2)
+		{
+			case RC_SW_UP:		//当s1在上时，为自动模式
+				loader->mode = (LoaderMode_e)sentryST.loaderMode;
+				//sentryChassis.mode = CHASSIS_DETECT_NORMAL;
+				//sentryChassis.mode = CHASSIS_DODGE;
+				break;
+			case RC_SW_MID:		//当s1在中时，为遥控模式
+			case RC_SW_DOWN:	//当s1在下时，为停止模式
+				if (RemoteComm.RemoteData.remote.ch3 == RC_CH_VALUE_MAX)
+					loader->mode = LOADER_RUN_PS10;
+				else
+					loader->mode = LOADER_STOP;
+				break;
+			default:
+				break;
+		}
+	}
 	
-	static uint32_t covCount = 0;			//判断是否卡弹的计数位，避免误测以及启动转动时的误判
+	static uint32_t covCount = 0;
 	switch(loader->mode)
 	{
 		case LOADER_RUN_PS3:
@@ -50,26 +68,11 @@ void Loader_UpdateState(Loader_t *loader)
 			break;
 		case LOADER_JAM:							//卡弹状态
 			covCount++;								//开始反转计数
-			if (covCount >= 300)						//反转达到十个周期，则反转结束
+			if (covCount >= 200)						//反转达到十个周期，则反转结束
 			{
 				loader->mode = loader->lastMode;
 				covCount = 0;
 			}
-			break;
-		case LOADER_INIT:				//添加判断堵转情况
-			if (Loader_IsJammed(loader) == 1)
-			{
-				loader->lastMode = loader->mode;
-				loader->mode = LOADER_JAM;
-				break;
-			}
-		
-			if (HAL_GPIO_ReadPin(ballTrig_GPIO_Port, ballTrig_Pin) == GPIO_PIN_SET)
-				loader->mode = LOADER_STOP;
-			break;
-		case LOADER_STOP:
-//			if (HAL_GPIO_ReadPin(ballTrig_GPIO_Port, ballTrig_Pin) == GPIO_PIN_RESET)	//空弹时上弹
-//				loader->mode = LOADER_INIT;
 			break;
 		default:									//停转状态
 			break;
@@ -90,9 +93,6 @@ void Loader_MotorCtrl(Motor_t *motor)
 	
 	switch (sentryLoader.mode)
 	{
-		case LOADER_INIT:
-			Motor_SetVel(&(motor->velCtrl), 2.0f * LOADER_PS1);
-			break;
 		case LOADER_STOP:
 			Motor_SetVel(&(motor->velCtrl), 0);
 			break;
@@ -130,11 +130,12 @@ uint8_t Loader_IsJammed(Loader_t *loader)
 {
 	static uint32_t jamCount;
 	if (loader->LM.velCtrl.refVel != 0 && 
-				loader->LM.velCtrl.rawVel <= 20 && loader->LM.velCtrl.rawVel >= -20)
+				loader->LM.velCtrl.rawVel <= 20 && loader->LM.velCtrl.rawVel >= -20 && 
+				(loader->LM.curCtrl.rawCur > 2000 || loader->LM.curCtrl.rawCur < -2000))
 										//供弹模式下期望转速不为0但实际转速较小，判断为堵转状态
 	{
 		jamCount++;
-		if (jamCount >= 60)
+		if (jamCount >= 500)
 		{
 			jamCount = 0;
 			return 1;

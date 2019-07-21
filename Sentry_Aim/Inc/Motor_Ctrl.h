@@ -56,6 +56,15 @@ typedef enum
 	RELA	= 1,
 }PosCtrlType_e;
 
+typedef struct
+{
+	float kp;
+	
+	float ki;
+	
+	float kd;
+}PIDParam_t;
+
 /* 电机速度控制结构体 */
 typedef struct
 {
@@ -85,6 +94,7 @@ typedef struct
 	float absPos;		//当前绝对位置，度
 	
 	float refRelaPos;	//期望相对位置，度
+	float refAbsPos;	//期望绝对位置
 	float detaPos;		//两次反馈的相对转角
 	
 	float rawPos;		//当前位置，转子读数
@@ -122,23 +132,27 @@ typedef struct
 	PosCtrl_t posCtrl;
 }Motor_t;
 
-void Motor_SetPosPIDParam(PosCtrl_t *pos_t, float kp, float ki, float kd);
-
 void Motor_SetVel(VelCtrl_t *vel_t, float vel);
 
 void Motor_SetPos(PosCtrl_t *pos_t, float pos, uint8_t type);
 
+void Motor_SetVelCtrlParam(VelCtrl_t *vel_t, PIDParam_t *pid);
+
+void Motor_SetPosCtrlParam(PosCtrl_t *pos_t, PIDParam_t *pid);
+
 void Motor_VelCtrlInit(Motor_t *motor, 
-					   float acc, float dec, 
-					   float kp, float ki, float kd, float ratio);
+					   float acc, float dec, PIDParam_t *pid, float ratio);
 					   
-void Motor_PosCtrlInit(Motor_t *motor, float acc, 
-					   float kp, float ki, float kd,
+void Motor_PosCtrlInit(Motor_t *motor, float acc, PIDParam_t *pid,
 					   float outputMin, float outputMax, float posMax, float posMin, float ratio);
 
-void Motor_PosCtrl(PosCtrl_t *pos_t);
+void Motor_RunPosPID(PosCtrl_t *pos_t);
 
-void Motor_VelCtrl(VelCtrl_t *vel_t);
+void Motor_RunVelPID(VelCtrl_t *vel_t);
+
+void Motor_PosCtrl(Motor_t *motor, float pos, uint8_t type);
+
+void Motor_VelCtrl(Motor_t *motor, float vel);
 
 void Motor_CanRxMsgConv(CAN_HandleTypeDef *hcan, Motor_t *motor);
 					   

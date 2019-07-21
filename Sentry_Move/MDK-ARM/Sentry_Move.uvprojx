@@ -338,7 +338,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F427xx</Define>
               <Undefine></Undefine>
-              <IncludePath>..\Inc;              ../Drivers/STM32F4xx_HAL_Driver/Inc;              ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;              ../Drivers/CMSIS/Device/ST/STM32F4xx/Include;              ../Drivers/CMSIS/Include;              ../Inc</IncludePath>
+              <IncludePath>..\Inc;                  ../Drivers/STM32F4xx_HAL_Driver/Inc;                  ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;                  ../Drivers/CMSIS/Device/ST/STM32F4xx/Include;                  ../Drivers/CMSIS/Include;                  ../Inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -542,6 +542,11 @@
               <FileType>1</FileType>
               <FilePath>..\Src\Chassis_Ctrl.c</FilePath>
             </File>
+            <File>
+              <FileName>Loader_Ctrl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\Loader_Ctrl.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -563,19 +568,9 @@
               <FilePath>..\Src\CRC.c</FilePath>
             </File>
             <File>
-              <FileName>DataScope_DP.C</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\DataScope_DP.C</FilePath>
-            </File>
-            <File>
               <FileName>Remote_Comm.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\Remote_Comm.c</FilePath>
-            </File>
-            <File>
-              <FileName>PC_Comm.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\PC_Comm.c</FilePath>
             </File>
           </Files>
         </Group>

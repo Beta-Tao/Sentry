@@ -80,10 +80,6 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define rightEdgeTrig_Pin GPIO_PIN_12
 #define rightEdgeTrig_GPIO_Port GPIOH
-#define rightAbove_Pin GPIO_PIN_11
-#define rightAbove_GPIO_Port GPIOH
-#define leftAbove_Pin GPIO_PIN_10
-#define leftAbove_GPIO_Port GPIOH
 #define leftEdgeTrig_Pin GPIO_PIN_15
 #define leftEdgeTrig_GPIO_Port GPIOD
 /* USER CODE BEGIN Private defines */
