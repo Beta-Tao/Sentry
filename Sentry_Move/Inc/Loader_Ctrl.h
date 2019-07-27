@@ -7,8 +7,8 @@
 #define LM_VEL_MIN				-1000			//¼´×ªËÙ
 #define LM_VEL_MAX				1000 
 
-#define LOADER_ACC				10
-#define	LOADER_DEC				10
+#define LOADER_ACC				2
+#define	LOADER_DEC				2
 
 #define LOADER_PS1				45
 
@@ -19,6 +19,7 @@ typedef enum
 {
 	LOADER_STOP			= 0,
 	LOADER_JAM,
+	LOADER_RUN_PS1,
 	LOADER_RUN_PS3,
 	LOADER_RUN_PS5,
 	LOADER_RUN_PS6,

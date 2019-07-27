@@ -88,6 +88,9 @@ extern UART_HandleTypeDef huart3;
 extern UART_HandleTypeDef huart6;
 /* USER CODE BEGIN EV */
 
+float debugYaw = 0.0f;
+float debugPitch = 0.0f;
+
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -276,6 +279,9 @@ void USART3_IRQHandler(void)
   /* USER CODE BEGIN USART3_IRQn 0 */
 	PC_Data_Receive();
 	Gimbal_TraceForecast(&sentryGimbal);
+	
+	debugYaw = sentryGimbal.GM_Yaw.posCtrl.refAbsPos - sentryGimbal.GM_Yaw.posCtrl.absPos;
+	debugPitch = sentryGimbal.GM_Pitch.posCtrl.refAbsPos - sentryGimbal.GM_Pitch.posCtrl.absPos;
   /* USER CODE END USART3_IRQn 0 */
   //HAL_UART_IRQHandler(&huart3);
   /* USER CODE BEGIN USART3_IRQn 1 */

@@ -116,7 +116,7 @@ void Sentry_UpdateChassisST(SentryST_t *st)
 	switch (st->chassisRange)
 	{
 		case WHOLE:
-			if (sentryChassis.CM_Right.posCtrl.absPos > 2500000.0f)		//×ó±ß¿ìµ½±ßÔµ
+			if (sentryChassis.CM_Right.posCtrl.absPos > 2650000.0f)		//×ó±ß¿ìµ½±ßÔµ
 			{
 				st->chassisMode = CHASSIS_DETECT_LOW;
 				if (sentryChassis.chassisTrig.trigLeftEdge == 1)
@@ -126,7 +126,7 @@ void Sentry_UpdateChassisST(SentryST_t *st)
 						sentryChassis.chassisDir = NONE;
 					}
 					else
-					{
+					{ 
 						sentryChassis.chassisDir = RIGHT;
 						sentryChassis.chassisTrig.trigLeftEdge = 0;
 						sentryChassis.CM_Right.posCtrl.absPos = 0.0f;	//Ë¢ÐÂ
@@ -137,7 +137,7 @@ void Sentry_UpdateChassisST(SentryST_t *st)
 //			else if ((sentryChassis.chassisPos == RIGHT_CURVE) || 
 //						(sentryChassis.chassisPos == RIGHT_STRAIGHT))
 //				sentryChassis.chassisDir = LEFT;
-			else if (sentryChassis.CM_Right.posCtrl.absPos < -2500000.0f)
+			else if (sentryChassis.CM_Right.posCtrl.absPos < -2650000.0f)
 			{
 				st->chassisMode = CHASSIS_DETECT_LOW;
 				if (sentryChassis.chassisTrig.trigRightEdge == 1)

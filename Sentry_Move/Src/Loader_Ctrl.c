@@ -41,7 +41,9 @@ void Loader_UpdateState(Loader_t *loader)
 			case RC_SW_MID:		//当s1在中时，为遥控模式
 			case RC_SW_DOWN:	//当s1在下时，为停止模式
 				if (RemoteComm.RemoteData.remote.ch3 == RC_CH_VALUE_MAX)
-					loader->mode = LOADER_RUN_PS10;
+					loader->mode = LOADER_RUN_PS15;
+				else if (RemoteComm.RemoteData.remote.ch3 == RC_CH_VALUE_MIN)
+					loader->mode = LOADER_RUN_PS1;
 				else
 					loader->mode = LOADER_STOP;
 				break;
@@ -53,6 +55,7 @@ void Loader_UpdateState(Loader_t *loader)
 	static uint32_t covCount = 0;
 	switch(loader->mode)
 	{
+		case LOADER_RUN_PS1:
 		case LOADER_RUN_PS3:
 		case LOADER_RUN_PS5:
 		case LOADER_RUN_PS6:
@@ -98,6 +101,9 @@ void Loader_MotorCtrl(Motor_t *motor)
 			break;
 		case LOADER_JAM:				//堵转模式，则开始反转
 			Motor_SetVel(&(motor->velCtrl), -10.0f * LOADER_PS1);
+			break;
+		case LOADER_RUN_PS1:
+			Motor_SetVel(&(motor->velCtrl), 1.0f * LOADER_PS1);
 			break;
 		case LOADER_RUN_PS3:
 			Motor_SetVel(&(motor->velCtrl), 3.0f * LOADER_PS1);

@@ -27,7 +27,7 @@ typedef enum
 #define GM_YAW_MIN				0.0f
 
 #define GM_PITCH_MAX			0.0f
-#define GM_PITCH_MIN			-50.0f
+#define GM_PITCH_MIN			-68.0f
 
 /* 基于电机安装位置的常量 */
 #define GM_YAW_OFFSET			4578u
@@ -38,7 +38,7 @@ typedef enum
 #define GM_PITCH_INIT_VEL		60.0f
 
 #define GM_YAW_DETECT_VEL			180.0f
-#define GM_PITCH_DETECT_VEL			100.0f
+#define GM_PITCH_DETECT_VEL			150.0f
 
 /* 总线ID */
 #define GM_YAW_ID					0x205
@@ -71,6 +71,12 @@ typedef enum
 	GIMBAL_DEBUG_VEL	= 8,
 	GIMBAL_DEBUG_POS	= 9,
 }GimbalMode_e;
+
+typedef enum
+{
+	STEP	 = 0,		//阶跃，表示出现新目标
+	FOLLOW	 = 1		//跟随，表示跟上新目标
+}GimbalTraceState_e;
 
 typedef struct
 {
@@ -118,11 +124,28 @@ typedef struct
 
 typedef struct
 {
+	volatile GimbalTraceState_e yawTraceState;
+	
+	volatile GimbalTraceState_e pitchTraceState;
+	
+	uint32_t yawTraceTick;
+	
+	uint32_t lastYawTraceTick;
+	
+	uint32_t pitchTraceTick;
+	
+	uint32_t lastPitchTraceTick;
+}GimbalTrace_t;
+
+typedef struct
+{
 	volatile GimbalMode_e mode;
 	
 	GimbalDetect_t gimbalDetect;
 	
 	GimbalFilter_t gimbalFilter;
+	
+	GimbalTrace_t gimbalTrace;
 	
 	Motor_t GM_Pitch;
 	
@@ -141,6 +164,8 @@ void Gimbal_CtrlInit(Gimbal_t *gimbal);
 void Gimbal_InitDetect(Gimbal_t *gimbal);
 
 void Gimbal_FilterInit(Gimbal_t *gimbal);
+
+void Gimbal_TraceInit(Gimbal_t *gimbal);
 
 void Gimbal_UpdateState(Gimbal_t *gimbal);
 

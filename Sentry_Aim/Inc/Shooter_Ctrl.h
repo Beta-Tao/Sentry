@@ -10,12 +10,12 @@
 #define FM_LEFT_15MPS	0
 #define FM_LEFT_20MPS	0
 #define FM_LEFT_25MPS	0
-#define FM_LEFT_30MPS	-43000
+#define FM_LEFT_30MPS	-40000
 
 #define FM_RIGHT_15MPS	0
 #define FM_RIGHT_20MPS	0
 #define FM_RIGHT_25MPS	0
-#define FM_RIGHT_30MPS	43000
+#define FM_RIGHT_30MPS	40000
 
 /* ¼Ó¼õËÙ¶È */
 #define FM_LEFT_ACC		1000000

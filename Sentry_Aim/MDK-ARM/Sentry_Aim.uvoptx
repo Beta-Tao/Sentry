@@ -172,17 +172,17 @@
         <Ww>
           <count>3</count>
           <WinNumber>1</WinNumber>
-          <ItemText>remoteYawPosPid</ItemText>
+          <ItemText>\\Sentry_Aim\../Src/Gimbal_Ctrl.c\yawTraceVelPid</ItemText>
         </Ww>
         <Ww>
           <count>4</count>
           <WinNumber>1</WinNumber>
-          <ItemText>pitchVelPid</ItemText>
+          <ItemText>remoteYawPosPid</ItemText>
         </Ww>
         <Ww>
           <count>5</count>
           <WinNumber>1</WinNumber>
-          <ItemText>remotePitchPosPid</ItemText>
+          <ItemText>traceStepYawPosPid</ItemText>
         </Ww>
         <Ww>
           <count>6</count>
@@ -192,32 +192,27 @@
         <Ww>
           <count>7</count>
           <WinNumber>1</WinNumber>
-          <ItemText>traceStepYawPosPid</ItemText>
+          <ItemText>pitchVelPid</ItemText>
         </Ww>
         <Ww>
           <count>8</count>
           <WinNumber>1</WinNumber>
-          <ItemText>traceFollowPitchPosPid</ItemText>
+          <ItemText>remotePitchPosPid</ItemText>
         </Ww>
         <Ww>
           <count>9</count>
           <WinNumber>1</WinNumber>
-          <ItemText>zone</ItemText>
+          <ItemText>traceStepPitchPosPid</ItemText>
         </Ww>
         <Ww>
           <count>10</count>
           <WinNumber>1</WinNumber>
-          <ItemText>traceStepYawPosPid</ItemText>
+          <ItemText>traceFollowPitchPosPid</ItemText>
         </Ww>
         <Ww>
           <count>11</count>
           <WinNumber>1</WinNumber>
-          <ItemText>traceStepPitchPosPid</ItemText>
-        </Ww>
-        <Ww>
-          <count>12</count>
-          <WinNumber>1</WinNumber>
-          <ItemText>yawTraceVelPid</ItemText>
+          <ItemText>pitchTraceVelPid</ItemText>
         </Ww>
       </WatchWindow1>
       <WatchWindow2>
@@ -260,6 +255,11 @@
           <count>7</count>
           <WinNumber>2</WinNumber>
           <ItemText>USART6_DMA_RX_BUF</ItemText>
+        </Ww>
+        <Ww>
+          <count>8</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>pitchTraceVelPid</ItemText>
         </Ww>
       </WatchWindow2>
       <Tracepoint>

@@ -47,7 +47,8 @@ void Master_GetData(void)
 		case RC_SW_MID:							//当s2在中时，为遥控模式
 			masterTxData.gimbalMode = GIMBAL_REMOTE;
 		
-			if (RemoteComm.RemoteData.remote.ch3 >= RC_CH_VALUE_OFFSET + 10)
+			if ((RemoteComm.RemoteData.remote.ch3 >= RC_CH_VALUE_OFFSET + 10) || 
+				(RemoteComm.RemoteData.remote.ch3 <= RC_CH_VALUE_OFFSET - 10))
 				masterTxData.shooterMode = SHOOTER_OPEN_30MPS;
 			else
 				masterTxData.shooterMode = SHOOTER_CEASE;
@@ -55,7 +56,8 @@ void Master_GetData(void)
 		case RC_SW_DOWN:						//当s2在下时，为Debug模式
 			masterTxData.gimbalMode =  (GimbalMode_e)sentryST.gimbalMode;
 			
-			if (RemoteComm.RemoteData.remote.ch3 >= RC_CH_VALUE_OFFSET + 10)
+			if ((RemoteComm.RemoteData.remote.ch3 >= RC_CH_VALUE_OFFSET + 10) || 
+				(RemoteComm.RemoteData.remote.ch3 <= RC_CH_VALUE_OFFSET - 10))
 				masterTxData.shooterMode = SHOOTER_OPEN_30MPS;
 			else
 				masterTxData.shooterMode = SHOOTER_CEASE;

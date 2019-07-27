@@ -27,20 +27,20 @@
 //PIDParam_t traceStepPitchPosPid = 		{-1.0f, 0.0f, 0.0f};
 //PIDParam_t traceFollowPitchPosPid = 	{-1.0f, 0.0f, 0.0f};
 
-float debugYaw = 0.0f;
 float detaYaw = 0.0f;
 
 /* IMU控制 */
 PIDParam_t yawVelPid = 					{-240.0f, -10.0f, 0.0f};
-PIDParam_t yawTraceVelPid = 			{-60.0f, -0.4f, 0.0f};
+PIDParam_t yawTraceVelPid = 			{-70.0f, -0.4f, 0.0f};
 
 PIDParam_t pitchVelPid = 				{180.0f, 3.0f, 0.0f};
+PIDParam_t pitchTraceVelPid =			{180.0f, 3.0f, 0.0f};
 
 PIDParam_t remoteYawPosPid = 			{11.0f, 0.0f, 0.0f};
 PIDParam_t detectYawPosPid = 			{0.0f, 0.0f, 0.0f};
 
-PIDParam_t traceStepYawPosPid = 		{18.0f, 0.0f, 600.0f};
-PIDParam_t traceFollowYawPosPid = 		{32.0f, 20.0f, 300.0f};
+PIDParam_t traceStepYawPosPid = 		{19.0f, 0.0f, 200.0f};
+PIDParam_t traceFollowYawPosPid = 		{30.0f, 20.0f, 200.0f};
 
 PIDParam_t remotePitchPosPid = 			{-0.5f, 0.0f, 0.0f};
 PIDParam_t detectPitchPosPid = 			{0.0f, 0.0f, 0.0f};
@@ -49,8 +49,6 @@ PIDParam_t traceStepPitchPosPid = 		{-1.0f, 0.0f, 0.0f};
 PIDParam_t traceFollowPitchPosPid = 	{-1.0f, 0.0f, 0.0f};
 
 Gimbal_t sentryGimbal;
-
-float zone = 2.0f;
 
 float yawErr = 0.0f;
 float pitchErr = 0.0f;
@@ -93,6 +91,13 @@ void Gimbal_CtrlInit(Gimbal_t *gimbal)
 	gimbal->yawCtrlType = IMU;
 	gimbal->pitchCtrlType = MOTOR;
 	
+	gimbal->gimbalTrace.yawTraceState = STEP;
+	gimbal->gimbalTrace.pitchTraceState = STEP;
+	gimbal->gimbalTrace.yawTraceTick = 0;
+	gimbal->gimbalTrace.lastYawTraceTick = 0;
+	gimbal->gimbalTrace.pitchTraceTick = 0;
+	gimbal->gimbalTrace.lastPitchTraceTick = 0;
+	
 	Gimbal_InitDetect(gimbal);
 	Gimbal_FilterInit(gimbal);
 }
@@ -120,17 +125,29 @@ void Gimbal_FilterInit(Gimbal_t *gimbal)
 	gimbal->gimbalFilter.pitchFore = 0.0f;
 }
 
+void Gimbal_TraceInit(Gimbal_t *gimbal)
+{
+	gimbal->gimbalTrace.yawTraceState = STEP;
+	gimbal->gimbalTrace.yawTraceTick = 0;
+	gimbal->gimbalTrace.lastYawTraceTick = 0;
+	
+	gimbal->gimbalTrace.pitchTraceState = STEP;
+	gimbal->gimbalTrace.pitchTraceTick = 0;
+	gimbal->gimbalTrace.lastPitchTraceTick = 0;
+}
+
 void Gimbal_UpdateState(Gimbal_t *gimbal)
 {
 	static GimbalMode_e lastMode;
 	
 	switch (gimbal->mode)
 	{
-		case GIMBAL_DETECT_WHOLE:
-		case GIMBAL_DETECT_AHEAD:
-		case GIMBAL_DETECT_BACK:
-			
+		case GIMBAL_TRACE:
+			if (PCRxComm.PCData.isFind != 1)
+				Gimbal_TraceInit(gimbal);
+			break;
 		default:
+			Gimbal_TraceInit(gimbal);
 			break;
 	}
 	
@@ -253,7 +270,7 @@ void Gimbal_MotorCtrl(Motor_t *motor)
 			{
 				Motor_SetVelCtrlParam(&(motor->velCtrl), &(pitchVelPid));
 				
-				if (motor->posCtrl.absPos >= -10.0f)
+				if (motor->posCtrl.absPos >= -5.0f)
 					sentryGimbal.gimbalDetect.pitchDetectDir = DOWN;
 				if (motor->posCtrl.absPos <= -30.0f)
 					sentryGimbal.gimbalDetect.pitchDetectDir = UP;
@@ -385,13 +402,19 @@ void Gimbal_MotorCtrl(Motor_t *motor)
 		case GIMBAL_TRACE:
 			if (motor == &(sentryGimbal.GM_Yaw))
 			{
-				debugYaw = sentryGimbal.GM_Yaw.posCtrl.refAbsPos - sentryGimbal.GM_Yaw.posCtrl.absPos;
-				
-				if (((sentryGimbal.GM_Yaw.posCtrl.refAbsPos - sentryGimbal.GM_Yaw.posCtrl.absPos) > zone) || 
-					((sentryGimbal.GM_Yaw.posCtrl.refAbsPos - sentryGimbal.GM_Yaw.posCtrl.absPos) < -zone))
+				if (sentryGimbal.gimbalTrace.yawTraceState == STEP)
 				{
 					Motor_SetPosCtrlParam(&(motor->posCtrl), &(traceStepYawPosPid));
 					Motor_SetVelCtrlParam(&(motor->velCtrl), &(yawTraceVelPid));
+					if (sentryGimbal.gimbalTrace.lastYawTraceTick == 0)
+						sentryGimbal.gimbalTrace.lastYawTraceTick = HAL_GetTick();
+					else
+					{
+						sentryGimbal.gimbalTrace.yawTraceTick = HAL_GetTick();
+						if ((fabs(sentryGimbal.GM_Yaw.posCtrl.refAbsPos - sentryGimbal.GM_Yaw.posCtrl.absPos) < 0.3f) &&
+							(sentryGimbal.gimbalTrace.yawTraceTick - sentryGimbal.gimbalTrace.lastYawTraceTick > 180))
+							sentryGimbal.gimbalTrace.yawTraceState = FOLLOW;
+					}
 				}
 				else
 				{
@@ -402,16 +425,24 @@ void Gimbal_MotorCtrl(Motor_t *motor)
 			}
 			else if (motor == &(sentryGimbal.GM_Pitch))
 			{
-				if (((sentryGimbal.GM_Pitch.posCtrl.refAbsPos - sentryGimbal.GM_Pitch.posCtrl.absPos) > 1.0f) || 
-					((sentryGimbal.GM_Pitch.posCtrl.refAbsPos - sentryGimbal.GM_Pitch.posCtrl.absPos) < -1.0f))
+				if (sentryGimbal.gimbalTrace.pitchTraceState == STEP)
 				{
 					Motor_SetPosCtrlParam(&(motor->posCtrl), &(traceStepPitchPosPid));
-					Motor_SetVelCtrlParam(&(motor->velCtrl), &(pitchVelPid));
+					Motor_SetVelCtrlParam(&(motor->velCtrl), &(pitchTraceVelPid));
+					if (sentryGimbal.gimbalTrace.lastPitchTraceTick == 0)
+						sentryGimbal.gimbalTrace.lastPitchTraceTick = HAL_GetTick();
+					else
+					{
+						sentryGimbal.gimbalTrace.pitchTraceTick = HAL_GetTick();
+						if ((fabs(sentryGimbal.GM_Pitch.posCtrl.refAbsPos - sentryGimbal.GM_Pitch.posCtrl.absPos) < 0.3f) &&
+							(sentryGimbal.gimbalTrace.pitchTraceTick - sentryGimbal.gimbalTrace.lastPitchTraceTick > 180))
+							sentryGimbal.gimbalTrace.pitchTraceState = FOLLOW;
+					}
 				}
 				else
 				{
 					Motor_SetPosCtrlParam(&(motor->posCtrl), &(traceFollowPitchPosPid));
-					Motor_SetVelCtrlParam(&(motor->velCtrl), &(pitchVelPid));
+					Motor_SetVelCtrlParam(&(motor->velCtrl), &(pitchTraceVelPid));
 				}
 				
 				Motor_PosCtrl(motor, PCRxComm.PCData.pitchAngle + sentryGimbal.gimbalFilter.pitchFore, RELA);
@@ -457,23 +488,23 @@ void Gimbal_UpdateLoadMode(void)
 	pitchErr = sentryGimbal.GM_Pitch.posCtrl.refAbsPos - sentryGimbal.GM_Pitch.posCtrl.absPos;
 	
 	//TODO: 更新供弹状态
-	if (sentryGimbal.mode == GIMBAL_TRACE)
+	if ((sentryGimbal.mode == GIMBAL_TRACE) && (PCRxComm.PCData.isFind == 1))
 	{
 		if (PCRxComm.PCData.isBig == 0)				//小装甲板
 		{
 			if (PCRxComm.PCData.distance > 6.0f)
 			{
-				if ((fabs(sentryGimbal.GM_Yaw.posCtrl.refAbsPos - sentryGimbal.GM_Yaw.posCtrl.absPos) < 0.8f) &&
-					(fabs(sentryGimbal.GM_Pitch.posCtrl.refAbsPos - sentryGimbal.GM_Pitch.posCtrl.absPos) < 0.6f))
+				if ((fabs(sentryGimbal.GM_Yaw.posCtrl.refAbsPos - sentryGimbal.GM_Yaw.posCtrl.absPos) < 2.0f) &&
+					(fabs(sentryGimbal.GM_Pitch.posCtrl.refAbsPos - sentryGimbal.GM_Pitch.posCtrl.absPos) < 2.0f))
 					masterTxData.loaderMode = LOADER_RUN_PS5;
 				else
 					masterTxData.loaderMode = LOADER_STOP;
 			}
 			else
 			{
-				if ((fabs(sentryGimbal.GM_Yaw.posCtrl.refAbsPos - sentryGimbal.GM_Yaw.posCtrl.absPos) < 1.0f) &&
-					(fabs(sentryGimbal.GM_Pitch.posCtrl.refAbsPos - sentryGimbal.GM_Pitch.posCtrl.absPos) < 0.6f))
-					masterTxData.loaderMode = LOADER_RUN_PS10;
+				if ((fabs(sentryGimbal.GM_Yaw.posCtrl.refAbsPos - sentryGimbal.GM_Yaw.posCtrl.absPos) < 2.5f) &&
+					(fabs(sentryGimbal.GM_Pitch.posCtrl.refAbsPos - sentryGimbal.GM_Pitch.posCtrl.absPos) < 2.5f))
+					masterTxData.loaderMode = LOADER_RUN_PS15;
 				else
 					masterTxData.loaderMode = LOADER_STOP;
 			}
@@ -482,17 +513,17 @@ void Gimbal_UpdateLoadMode(void)
 		{
 			if (PCRxComm.PCData.distance > 6.0f)
 			{
-				if ((fabs(sentryGimbal.GM_Yaw.posCtrl.refAbsPos - sentryGimbal.GM_Yaw.posCtrl.absPos) < 1.0f) &&
-					(fabs(sentryGimbal.GM_Pitch.posCtrl.refAbsPos - sentryGimbal.GM_Pitch.posCtrl.absPos) < 0.6f))
+				if ((fabs(sentryGimbal.GM_Yaw.posCtrl.refAbsPos - sentryGimbal.GM_Yaw.posCtrl.absPos) < 2.5f) &&
+					(fabs(sentryGimbal.GM_Pitch.posCtrl.refAbsPos - sentryGimbal.GM_Pitch.posCtrl.absPos) < 2.5f))
 					masterTxData.loaderMode = LOADER_RUN_PS5;
 				else
 					masterTxData.loaderMode = LOADER_STOP;
 			}
 			else
 			{
-				if ((fabs(sentryGimbal.GM_Yaw.posCtrl.refAbsPos - sentryGimbal.GM_Yaw.posCtrl.absPos) < 1.5f) &&
-					(fabs(sentryGimbal.GM_Pitch.posCtrl.refAbsPos - sentryGimbal.GM_Pitch.posCtrl.absPos) < 0.6f))
-					masterTxData.loaderMode = LOADER_RUN_PS10;
+				if ((fabs(sentryGimbal.GM_Yaw.posCtrl.refAbsPos - sentryGimbal.GM_Yaw.posCtrl.absPos) < 3.0f) &&
+					(fabs(sentryGimbal.GM_Pitch.posCtrl.refAbsPos - sentryGimbal.GM_Pitch.posCtrl.absPos) < 3.0f))
+					masterTxData.loaderMode = LOADER_RUN_PS15;
 				else
 					masterTxData.loaderMode = LOADER_STOP;
 			}
@@ -564,8 +595,8 @@ void Gimbal_TraceForecast(Gimbal_t *gimbal)
 					filter->avgWYaw = -(5.0f / filter->avgDis / 3.1415f * 180);
 				
 				/* 补偿延时角 */
-				filter->yawFore = filter->avgWYaw * (filter->avgDis / 23.0f);
-				filter->pitchFore = filter->avgWPitch * (filter->avgDis / 23.0f);
+				filter->yawFore = filter->avgWYaw * (filter->avgDis / 16.0f);
+				filter->pitchFore = filter->avgWPitch * (filter->avgDis / 24.0f);
 				
 				if ((filter->yawFore < 0.2f) && (filter->yawFore > -0.2f))
 					filter->yawFore = 0.0f;
@@ -601,7 +632,7 @@ void Gimbal_TraceForecast(Gimbal_t *gimbal)
 			filter->tick = filter->lastTick;
 			filter->pitchFore = 0;
 			filter->yawFore = 0;
-			for (i = 0; i < 59; i++)
+			for (i = 0; i < 60; i++)
 			{
 				filter->wYaw[i] = 0;
 				filter->wPitch[i] = 0;
@@ -621,7 +652,7 @@ void Gimbal_TraceForecast(Gimbal_t *gimbal)
 		filter->tick = filter->lastTick;
 		filter->pitchFore = 0;
 		filter->yawFore = 0;
-		for (i = 0; i < 59; i++)
+		for (i = 0; i < 60; i++)
 		{
 			filter->wYaw[i] = 0;
 			filter->wPitch[i] = 0;

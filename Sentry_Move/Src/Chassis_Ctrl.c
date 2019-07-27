@@ -16,7 +16,7 @@ GPIO_PinState lastLeftAbovePinState = GPIO_PIN_SET, leftAbovePinState = GPIO_PIN
 GPIO_PinState lastRightAbovePinState = GPIO_PIN_SET, rightAbovePinState = GPIO_PIN_SET;
 
 //float debugVel = 1150.0f;
-float debugVel = 1200.0f;
+float debugVel = 1160.0f;
 
 /**
   * @brief	µ×ÅÌ¿ØÖÆ³õÊ¼»¯
